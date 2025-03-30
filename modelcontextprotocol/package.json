@@ -1,0 +1,55 @@
+{
+  "name": "@paypal/mcp",
+  "version": "0.1.0",
+  "homepage": "https://github.com/rishabhsharma/paypal-agent-toolkit/tree/main/modelcontextprotocol",
+  "description": "A command line tool for setting up PayPal MCP server",
+  "bin": "dist/index.js",
+  "files": [
+    "dist/index.js",
+    "LICENSE",
+    "README.md",
+    "VERSION",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('dist/index.js', '755')\"",
+    "clean": "rm -rf dist",
+    "lint": "eslint \"./**/*.ts*\"",
+    "prettier": "prettier './**/*.{js,ts,md,html,css}' --write",
+    "prettier-check": "prettier './**/*.{js,ts,md,html,css}' --check",
+    "test": "jest"
+  },
+  "packageManager": "pnpm@9.11.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "colors": "^1.4.0"
+  },
+  "imports": {
+    "#sdk/*": "@modelcontextprotocol/sdk/dist/esm/*"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "paypal"
+  ],
+  "author": "PayPal <support@paypal.com> (https://paypal.com/)",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/compat": "^1.2.6",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.13.4",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jest": "^28.11.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "globals": "^15.15.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.5.1",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2"
+  }
+}
