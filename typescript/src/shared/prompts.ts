@@ -2,14 +2,14 @@ import type { Context } from './configuration';
 
 export const createInvoicePrompt = (context: Context) => `
 Create a draft invoice in PayPal and then send the invoice to customer. Show the response link to the user that comes under "sendResult".
-
+Required parameters are: invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), amount.breakdown.custom.amount.value (product cost)
 High level: detail, invoicer, primary_recipients, items, amount are required json objects.
 
 Below are the required parameters to input referencing the json payload below:
 invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), amount.breakdown.custom.amount.value (product cost),
 amount.breakdown.tax.percent (tax percent), amount.breakdown.discount.invoice_discount.percent (discount)
 
-Any amount value specified cannot be 0.00. Also specific amount must be double
+Also specific amount must be double or integer.
 Below are the parameters you need to take care of:
 invoice_number -> auto-generate invoice number starting with # followed by 10 random numbers
 invoice_date -> today's date
