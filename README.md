@@ -22,9 +22,7 @@ npm install @paypal/agent-toolkit
 The library needs to be configured with your account's client id and secret which is available in your [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/). 
 
 
-#### Tools
-
-The toolkit works with Vercel's AI SDK and can be passed as a list of tools.
+The toolkit works with Vercel's AI SDK and can be passed as a list of tools. For more details, refer our [examples](./typescript/examples)
 
 ```typescript
 import {PayPalAgentToolkit} from '@paypal/agent-toolkit/ai-sdk';
@@ -41,6 +39,8 @@ const {text: response}= await generateText({
 });
 
 ```
+
+
 
 
 ## PayPal Model Context Protocol
@@ -144,10 +144,12 @@ Set `PAYPAL_ENVIRONMENT` value as either `SANDBOX` for stage testing and `PRODUC
 
 ## Available tools
 
-| Tool                       | Description                       |
-| -------------------------- | --------------------------------- |
-| `invoices.create`          | Create a new invoice              |
-| `invoices.list`            | List invoices                     |
+| Tool                       | Description                       | Availability	 |
+| -------------------------- | --------------------------------- | --------------|
+| `invoices.create`          | Create a new invoice              | MCP Server	 |				
+| `invoices.list`            | List invoices                     | MCP Server	 |
+| `createOrder`	             | Create an Order                   | ai-sdk	 |
+| `getOrder`	             | Get Order details                 | ai-sdk	 |
 
 ## Environment Variables
 
