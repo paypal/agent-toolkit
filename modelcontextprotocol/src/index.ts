@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import {PayPalAgentToolkit} from '../../typescript/dist';
+import {PayPalAgentToolkit} from '@paypal/agent-toolkit/modelcontextprotocol';
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import {green, red, yellow} from 'colors';
 
