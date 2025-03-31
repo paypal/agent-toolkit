@@ -96,13 +96,8 @@ This guide explains how to integrate the PayPal connector with Claude Desktop.
 
 Node.js is required for the PayPal connector to function:
 
-1. Visit the [Node.js official website](https://nodejs.org/)
-2. Verify installation by opening a terminal/command prompt and running:
-   ```
-   node --version
-   npm --version
-   ```
-   Both commands should display version numbers if installation was successful.
+1. Visit the [Node.js official website](https://nodejs.org/), download and install it.
+2. Requirements: Node 18+
 
 ### 2. Configure PayPal Connector with MCP host (Claude desktop / Cursor / Cline)
 We will show the integration with Claude desktop. You can use your favorite MCP host.
@@ -119,7 +114,7 @@ We will show the integration with Claude desktop. You can use your favorite MCP 
        "command": "npx",
        "args": [
          "-y",
-         "@paypal/agent-toolkit",
+         "@paypal/mcp",
          "--tools=all"
        ],
        "env": {
