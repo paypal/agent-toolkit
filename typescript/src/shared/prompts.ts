@@ -87,7 +87,7 @@ Below is the payload request structure:
 `;
 
 export const listInvoicesPrompt = (context: Context) => `
-List invoices from PayPal.
+List invoices from PayPal. Limit is 1000 invoices.
 
 This function retrieves a list of invoices with optional pagination parameters.
 `;
