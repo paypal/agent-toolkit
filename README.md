@@ -171,7 +171,7 @@ Set `PAYPAL_ENVIRONMENT` value as either `SANDBOX` for stage testing and `PRODUC
 The following environment variables can be used:
 
 - `PAYPAL_ACCESS_TOKEN`: Your PayPal Access Token
-- `PAYPAL_SANDBOX`: Set to "true" for sandbox mode, "false" for production (defaults to "true")
+- `PAYPAL_ENVIRONMENT`: Set to `SANDBOX` for sandbox mode, `PRODUCTION` for production (defaults to `SANDBOX` mode)
 
 
 This guide explains how to generate an access token for PayPal API integration, including how to find your client ID and client secret.
