@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
 
+// === INVOICE PARAMETERS ===
+
 export const createInvoiceParameters = (context: Context) => 
   z.object({
     detail: z.object({}).passthrough().describe('The details dictionary containing information about the merchant, primary recipients, and invoice information.'),
@@ -81,3 +83,35 @@ export const listSubscriptionPlansParameters = (context: Context) =>
     page_size: z.number().optional().describe('The number of records to return per page (maximum 100).'),
     total_required: z.boolean().optional().describe('Indicates whether the response should include the total count of plans.'),
   });
+
+// === ORDER PARAMETERS ===
+/**
+ * Parameters are defined and exported both as Type and as ZodSchema to avoid runtime conversions.
+ */
+
+const itemDetails = z.object({
+    itemCost: z.number().describe('The cost of each item - upto 2 decimal points'),
+    taxPercent: z.number().describe('The tax percent for the specific item').default(0),
+    itemTotal: z.number().describe('The total cost of this line item'),
+});
+
+const lineItem = z.object({
+    name: z.string().describe('The name of the item'),
+    quantity: z.number().describe('The item quantity. Must be a whole number.').default(1),
+    description: z.string().describe('The detailed item description.'),
+}).merge(itemDetails); // Merge itemDetails into lineItem
+
+export const createOrderParameters = z.object({
+    currencyCode: z.enum(['USD']).describe('Currency code of the amount'),
+    items: z.array(z.lazy(() => lineItem)).max(50),
+    notes: z.string().optional(),
+    returnUrl: z.string().optional(),
+    cancelUrl: z.string().optional()
+});
+
+export type CreateOrder = z.infer<typeof createOrderParameters>;
+
+export const getOrderParameters = z.object({
+    id: z.string().describe('The order id generated during create call'),
+})
+export type GetOrder = z.infer<typeof getOrderParameters>;

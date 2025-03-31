@@ -1,5 +1,7 @@
 import type { Context } from './configuration';
 
+// === INVOICE PARAMETERS ===
+
 export const createInvoicePrompt = (context: Context) => `
 Create a draft invoice in PayPal and then send the invoice to customer. Show the response link to the user that comes under "sendResult".
 Required parameters are: invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), amount.breakdown.custom.amount.value (product cost)
@@ -137,3 +139,8 @@ List subscription plans from PayPal.
 
 This function retrieves a list of subscription plans with optional product filtering and pagination parameters.
 `;
+
+
+// === ORDER PROMPTS ===
+
+

@@ -38,7 +38,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-.env
 venv/
 env/
 ENV/
@@ -72,7 +71,12 @@ out/
 .next/
 .nuxt/
 .cache/
+typescript/package-lock.json
+typescript/ai-sdk
+typescript/.env
+typescript/.npmrc
+typescript/dist
+typescript/node_modules
 
 # Misc
-.DS_Store
-Thumbs.db 
+Thumbs.db
