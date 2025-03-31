@@ -40,10 +40,8 @@ export function parseArgs(args: string[]): Options {
         options.tools = value.split(',');
       } else if (key == 'access-token') {
         options.accessToken = value;
-      } else if (key == 'sandbox') {
-        options.sandbox = value.toLowerCase() === 'true';
-      } else if (key == 'paypal-account') {
-        options.paypalAccount = value;
+      } else if (key == 'paypal-environment') {
+        options.sandbox = value.toLowerCase() != 'production';
       } else {
         throw new Error(
           `Invalid argument: ${key}. Accepted arguments are: ${ACCEPTED_ARGS.join(
@@ -84,8 +82,10 @@ export function parseArgs(args: string[]): Options {
 
   // Set sandbox mode (default to true if not specified)
   if (options.sandbox === undefined) {
-    const sandboxEnv = process.env.PAYPAL_SANDBOX;
-    options.sandbox = sandboxEnv ? sandboxEnv.toLowerCase() === 'true' : true;
+    const sandboxEnv = process.env.PAYPAL_ENVIRONMENT;
+    options.sandbox = sandboxEnv
+      ? sandboxEnv.toLowerCase() != 'production'
+      : true;
   }
 
   return options;
@@ -137,7 +137,7 @@ export async function main() {
     accessToken: options.accessToken!,
     sandbox: options.sandbox,
   };
-  
+
   // Add PayPal account to context if provided
   if (options.paypalAccount) {
     context.merchant_id = options.paypalAccount;
