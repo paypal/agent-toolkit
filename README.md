@@ -84,13 +84,13 @@ main().catch((error) => {
 });
 ```
 
-### Usage with Claude Desktop (Similar steps for Cline/Cursor/Github Co-Pilot, etc.)
+### Usage with MCP host (Claude Desktop/Cline/Cursor/Github Co-Pilot)
 
 This guide explains how to integrate the PayPal connector with Claude Desktop.
 
 ## Prerequisites
 - Claude Desktop application installed
-- Administrator access to your computer (for installing Node.js)
+- installing Node.js locally
 
 ## Installation Steps
 

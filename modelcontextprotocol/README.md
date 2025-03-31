@@ -12,13 +12,13 @@ npx @modelcontextprotocol/inspector node dist/index.js --tools=all --access-toke
 
 Replace `YOUR_ACCESS_TOKEN` with your PayPal access token. Refer this on how to [generate a PayPal access token](#generating-an-access-token). Alternatively, you could set the PAYPAL_ACCESS_TOKEN in your environment variables.
 
-### Usage with Claude Desktop (Similar steps for Cline/Cursor/Github Co-Pilot, etc.)
+### Usage with MCP host (Claude Desktop/Cline/Cursor/Github Co-Pilot)
 
 This guide explains how to integrate the PayPal connector with Claude Desktop.
 
 ## Prerequisites
 - Claude Desktop application installed
-- Administrator access to your computer (for installing Node.js)
+- installing Node.js locally
 
 ## Installation Steps
 
