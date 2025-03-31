@@ -31,7 +31,7 @@ const paypalToolkit = new PayPalAgentToolkit({
 const llm: LanguageModelV1 = getModel(); // The model to be used with ai-sdk
 const {text: response}= await generateText({
     model: llm,
-    tools: this.toolkit.tools,
+    tools: await paypalToolkit.getTools(),
     prompt: `Create an invoice for 3 hours of labor at $120/hr and text a link to John Doe.`,
 });
 
