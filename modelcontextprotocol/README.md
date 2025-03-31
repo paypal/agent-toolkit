@@ -175,3 +175,6 @@ Once you have your access token, update the `PAYPAL_ACCESS_TOKEN` value in your 
 2. Implement token refresh logic to handle token expiration
 3. Use environment-specific tokens (sandbox for testing, production for real transactions)
 4. Avoid hardcoding tokens in application code
+
+## Disclaimer
+`@paypal/mcp` *provides access to AI-generated content that may be inaccurate or incomplete. Users are responsible for independently verifying any information before relying on it. PayPal makes no guarantees regarding output accuracy and is not liable for any decisions, actions, or consequences resulting from its use.*
