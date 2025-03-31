@@ -1,29 +1,54 @@
-![PayPal Developer Cover](https://github.com/paypaldev/.github/blob/main/pp-cover.png)
-<div align="center">
-  <a href="https://twitter.com/paypaldev" target="_blank">
-    <img alt="Twitter: PayPal Developer" src="https://img.shields.io/twitter/follow/paypaldev?style=social" />
-  </a>
-  <br />
-  <a href="https://twitter.com/paypaldev" target="_blank">Twitter</a>
-    <span>&nbsp;&nbsp;-&nbsp;&nbsp;</span>
-  <a href="https://www.paypal.com/us/home" target="_blank">PayPal</a>
-    <span>&nbsp;&nbsp;-&nbsp;&nbsp;</span>
-  <a href="https://developer.paypal.com/home" target="_blank">Docs</a>
-    <span>&nbsp;&nbsp;-&nbsp;&nbsp;</span>
-  <a href="https://github.com/paypaldev" target="_blank">Code Samples</a>
-    <span>&nbsp;&nbsp;-&nbsp;&nbsp;</span>
-  <a href="https://dev.to/paypaldeveloper" target="_blank">Blog</a>
-  <br />
-  <hr />
-</div>
+# PayPal Agent Toolkit
 
-# PayPal-Repo-Template
-This is a sample repo to use as a template when we are creating new repos under the PayPal org.
+A toolkit for building AI agents that can interact with PayPal's API. This toolkit provides functions and tools for common PayPal operations such as invoice management, product management, and subscription management.
 
-## PayPal Developer Community
+## Languages
 
-The PayPal Developer community helps you build your career, while also improving PayPal products and the developer experience. You’ll be able to contribute code and documentation, meet new people and learn from the open source community.
+This toolkit is implemented in multiple languages:
 
-* Website: [developer.paypal.com](https://developer.paypal.com)
-* Twitter: [@paypaldev](https://twitter.com/paypaldev)
-* Github:  [@paypal](https://github.com/paypal)
+- [Python](./python/README.md): Python implementation with support for OpenAI, LangChain, and CrewAI.
+
+## Features
+
+The PayPal Agent Toolkit provides the following capabilities:
+
+### Invoice Management
+- Create invoices
+- List invoices
+- Send invoices to recipients
+- Send reminders for unpaid invoices
+- Cancel sent invoices
+
+### Product Management
+- Create products
+- List products
+- Update products
+
+### Subscription Management
+- Create subscription plans
+- List subscription plans
+
+## Getting Started
+
+### Python
+
+To get started with the Python implementation, navigate to the `python` directory and follow the instructions in the README.
+
+```bash
+cd python
+pip install -e .
+```
+
+For detailed usage examples, see the [Python README](./python/README.md).
+
+## Documentation
+
+For detailed information about the PayPal API, refer to the official PayPal API documentation:
+
+- [PayPal Invoice API](https://developer.paypal.com/docs/api/invoicing/v2/)
+- [PayPal Catalog Products API](https://developer.paypal.com/docs/api/catalog-products/v1/)
+- [PayPal Subscriptions API](https://developer.paypal.com/docs/api/subscriptions/v1/)
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

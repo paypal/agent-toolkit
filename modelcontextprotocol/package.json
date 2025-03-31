@@ -25,7 +25,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
-    "colors": "^1.4.0"
+    "colors": "^1.4.0",
+    "@paypal/agent-toolkit": "latest"
   },
   "imports": {
     "#sdk/*": "@modelcontextprotocol/sdk/dist/esm/*"
