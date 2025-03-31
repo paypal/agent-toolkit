@@ -1,6 +1,6 @@
 # PayPal Agent Toolkit
 
-The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Agent SDK, LangChain, Vercel's AI SDK, and Model Context Protocol (MCP) to integrate with PayPal APIs through function calling. It includes support for TypeScript and is built on top of PayPal APIs and the PayPal [Node][node-sdk] SDKs.
+The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Agent SDK, LangChain, Vercel's AI SDK, and Model Context Protocol (MCP) to integrate with PayPal APIs through function calling. It includes support for TypeScript and is built on top of PayPal APIs and the PayPal SDKs.
 
 ## TypeScript
 
@@ -19,7 +19,12 @@ npm install @paypal/agent-toolkit
 
 ### Usage
 
-The library needs to be configured with your account's client id and secret which is available in your [PayPal Developer Dashboard][api-keys]. 
+The library needs to be configured with your account's client id and secret which is available in your [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/). 
+
+
+#### Tools
+
+The toolkit works with Vercel's AI SDK and can be passed as a list of tools.
 
 ```typescript
 import {PayPalAgentToolkit} from '@paypal/agent-toolkit/ai-sdk';
@@ -37,30 +42,12 @@ const {text: response}= await generateText({
 
 ```
 
-#### Tools
-
-The toolkit works with LangChain and Vercel's AI SDK and can be passed as a list of tools. For example:
-
-```typescript
-import { AgentExecutor, createStructuredChatAgent } from "langchain/agents";
-
-const tools = payPalAgentToolkit.getTools();
-
-const agent = await createStructuredChatAgent({
-  llm,
-  tools,
-  prompt,
-});
-
-const agentExecutor = new AgentExecutor({
-  agent,
-  tools,
-});
-```
 
 ## PayPal Model Context Protocol
 
 The PayPal [Model Context Protocol](https://modelcontextprotocol.com/) server allows you to integrate with PayPal APIs through function calling. This protocol supports various tools to interact with different PayPal services.
+
+### Running MCP Inspector
 
 To run the PayPal MCP server using npx, use the following command:
 
@@ -69,9 +56,10 @@ To run the PayPal MCP server using npx, use the following command:
 npx @modelcontextprotocol/inspector node dist/index.js --tools=all --access-token=YOUR_ACCESS_TOKEN --paypal-environment=SANDBOX
 ```
 
-Replace `YOUR_ACCESS_TOKEN` with your PayPal access token. Refer this on how to [generate a PayPal access token](#generating-an-access-token). Alternatively, you could set the PAYPAL_ACCESS_TOKEN in your environment variables.
+Replace `YOUR_ACCESS_TOKEN` with active access token generated using these steps: [PayPal access token](#generating-an-access-token). Alternatively, you could set the PAYPAL_ACCESS_TOKEN in your environment variables.
 
-Alternatively, you can set up your own MCP server. For example:
+### Custom MCP Server
+You can set up your own MCP server. For example:
 
 ```typescript
 import { PayPalAgentToolkit } from “@paypal/agent-toolkit/modelcontextprotocol";
