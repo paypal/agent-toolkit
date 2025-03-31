@@ -68,8 +68,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 const tools = payPalAgentToolkit.getTools();
 
 const server = new PayPalAgentToolkit({
-	clientId: process.env.PAYPAL_CLIENT_ID,
-	clientSecret: process.env.PAYPAL_CLIENT_SECRET
+	accessToken: process.env.PAYPAL_ACCESS_TOKEN
 });
 
 async function main() {
