@@ -1,0 +1,17 @@
+{
+  "name": "paypal-examples-ai-sdk",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^0.0.63",
+    "@dotenvx/dotenvx": "^1.32.0",
+    "@paypal/agent-toolkit": "latest",
+    "ai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4"
+  }
+}
