@@ -2,11 +2,9 @@
   "name": "@paypal/agent-toolkit",
   "version": "0.1.0",
   "description": "PayPal Agent Toolkit for AI applications",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "ai-sdk",
-    "dist",
+    "mcp",
     "README.md",
     "LICENSE"
   ],
@@ -17,13 +15,13 @@
       "default": "./ai-sdk/index.js"
     },
     "./modelcontextprotocol": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./mcp/index.d.ts",
+      "default": "./mcp/index.js"
     }
   },
   "scripts": {
     "build": "npm i && tsup",
-    "clean": "rm -rf dist ai-sdk",
+    "clean": "rm -rf dist ai-sdk mcp",
     "lint": "eslint 'src/**/*.{js,ts}'",
     "test": "jest",
     "prepublishOnly": "npm run build"

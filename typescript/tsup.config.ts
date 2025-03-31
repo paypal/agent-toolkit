@@ -18,6 +18,7 @@ export default defineConfig([{ // Define multiple entry points
 },
   {
     entry: ['src/modelcontextprotocol/index.ts'],
+    outDir: "mcp",
     clean: true,
     dts: true,
     format: ['cjs', 'esm'],

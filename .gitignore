@@ -73,6 +73,7 @@ out/
 .cache/
 typescript/package-lock.json
 typescript/ai-sdk
+typescript/mcp
 typescript/.env
 typescript/.npmrc
 typescript/dist
