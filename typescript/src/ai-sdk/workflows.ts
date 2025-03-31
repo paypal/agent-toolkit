@@ -22,7 +22,7 @@ class PayPalWorkflows {
     }
 
 
-    public async generateOrder(llm: LanguageModelV1, userPrompt: string, systemPrompt: string): Promise<string> {
+    public async createOrder(llm: LanguageModelV1, userPrompt: string, systemPrompt: string): Promise<string> {
         // Step 1: Generate the order details for the transaction
         this.log('Step 1: I am using the provided prompts to create a request object for PayPal.');
         // @ts-ignore
