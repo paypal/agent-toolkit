@@ -1,7 +1,7 @@
 import { config } from '@dotenvx/dotenvx'
 import { generateText, LanguageModelV1 } from 'ai';
 // @ts-ignore
-import { Workflows, Toolkit } from '@paypal/agent-toolkit/ai-sdk';
+import { PayPalWorkflows, PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk';
 import * as readline from "readline";
 
 // Get the env file path from an environment variable, with a default fallback
@@ -33,9 +33,11 @@ const ppConfig = {
 /*
  * This holds all the tools that use PayPal functionality
  */
-const paypalToolkit = new Toolkit(ppConfig);
-
-const paypalWorkflows = new Workflows(ppConfig)
+const paypalToolkit = new PayPalAgentToolkit(ppConfig);
+/*
+ * This holds all the preconfigured common PayPal workflows
+ */
+const paypalWorkflows = new PayPalWorkflows(ppConfig)
 
 /*
  * Merchant needs to track the orders on their side so that they can retrieve orderID for future processing
@@ -81,6 +83,15 @@ const chat = (message: string) => {
                 const orderId = await getInfo(orderSummary, 'orderId');
                 tracker.addOrder(customerName, orderId);
                 agentLog(orderSummary);
+            } else if (userPrompt.toLowerCase().includes('details') && userPrompt.toLowerCase().includes('orderId')) {
+                const {text: orderDetails} = await generateText({
+                    model: llm,
+                    tools: await paypalToolkit.getTools(),
+                    maxSteps: 10,
+                    prompt: userPrompt,
+                });
+                const orderId = await getInfo(userPrompt, 'orderId');
+                agentLog(`Response 3: Here is the order details with ID: ${orderId}; ${JSON.stringify(orderDetails, null, 2)}`);
             }
         } catch (error) {
             console.error('Error generating text:', error);

@@ -2,7 +2,7 @@ import {generateObject, GenerateObjectResult, generateText, LanguageModelV1} fro
 import {CreateOrder, createOrderParameters,} from "../shared/parameters";
 import PayPalAgentToolkit from "./toolkit";
 
-class Workflows {
+class PayPalWorkflows {
     // @ts-ignore
     readonly toolkit: PayPalAgentToolkit;
     log: (message: any) => void;
@@ -70,4 +70,4 @@ class Workflows {
     }
 }
 
-export default Workflows;
+export default PayPalWorkflows;

@@ -1,4 +1,4 @@
 import PayPalAgentToolkit from "./toolkit";
-import Workflows from "./workflows";
+import PayPalWorkflows from "./workflows";
 
-export {PayPalAgentToolkit, Workflows}
+export {PayPalAgentToolkit, PayPalWorkflows}
