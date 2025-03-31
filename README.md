@@ -161,10 +161,6 @@ Set `PAYPAL_ENVIRONMENT` value as either `SANDBOX` for stage testing and `PRODUC
 | -------------------------- | --------------------------------- |
 | `invoices.create`          | Create a new invoice              |
 | `invoices.list`            | List invoices                     |
-| `invoices.send`            | Send an invoice to recipients     |
-| `invoices.sendReminder`    | Send a reminder for an invoice    |
-| `invoices.cancel`          | Cancel a sent invoice             |
-
 
 ## Environment Variables
 
