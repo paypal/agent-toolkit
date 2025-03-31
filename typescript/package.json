@@ -17,8 +17,8 @@
       "default": "./ai-sdk/index.js"
     },
     "./modelcontextprotocol": {
-      "types": "./dist/modelcontextprotocol/index.d.ts",
-      "default": "./dist/modelcontextprotocol/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
