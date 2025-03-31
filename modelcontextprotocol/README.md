@@ -7,7 +7,7 @@ To run the PayPal MCP server using npx, use the following command:
 
 ```bash
 # Start MCP Inspector and server with all tools
-npx @modelcontextprotocol/inspector node dist/index.js --tools=all --access-token=YOUR_ACCESS_TOKEN --paypal-environment=SANDBOX
+npx -y @paypal/agent-toolkit --tools=all PAYPAL_ACCESS_TOKEN="YOUR_ACCESS_TOKEN" PAYPAL_ENVIRONMENT="SANDBOX"
 ```
 
 Replace `YOUR_ACCESS_TOKEN` with your PayPal access token. Refer this on how to [generate a PayPal access token](#generating-an-access-token). Alternatively, you could set the PAYPAL_ACCESS_TOKEN in your environment variables.
