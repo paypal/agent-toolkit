@@ -2,7 +2,7 @@
 
 The PayPal [Model Context Protocol](https://modelcontextprotocol.com/) server allows you to integrate with PayPal APIs through function calling. This protocol supports various tools to interact with different PayPal services.
 
-### Usage with Claude Desktop
+### Usage with Claude Desktop (Similar steps for Cline/Cursor/Github Co-Pilot, etc.)
 
 This guide explains how to integrate the PayPal connector with Claude Desktop.
 
