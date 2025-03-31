@@ -22,8 +22,8 @@ npm install @paypal/agent-toolkit
 The library needs to be configured with your account's client id and secret which is available in your [PayPal Developer Dashboard][api-keys]. 
 
 ```typescript
-import {Toolkit} from '@paypalcorp/paypal-agent/ai-sdk';
-const paypalToolkit = new Toolkit({
+import {PayPalAgentToolkit} from '@paypal/agent-toolkit/ai-sdk';
+const paypalToolkit = new PayPalAgentToolkit({
      clientId: process.env.PAYPAL_CLIENT_ID,
      clientSecret: process.env.PAYPAL_CLIENT_SECRET
 });
