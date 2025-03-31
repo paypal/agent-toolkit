@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {
   createInvoice,
   listInvoices,
@@ -17,7 +16,6 @@ import type { Context } from './configuration';
 class PayPalAPI {
   accessToken: string;
   context: Context;
-  tokenExpiry?: Date;
 
   constructor(accessToken: string, context?: Context) {
     this.accessToken = accessToken;

@@ -1,6 +1,11 @@
 import axios from 'axios';
 import type PayPalAPI from './api';
 import type { Context } from './configuration';
+import PayPalClient from "./client";
+import {createOrderParameters, getOrderParameters} from "./parameters";
+import {getResponseFromStatus, parseOrderDetails, PayPalResponse} from "./payloadUtils";
+import {ApiResponse, Order, OrdersController} from "@paypal/paypal-server-sdk";
+import {TypeOf} from "zod";
 
 // === INVOICE FUNCTIONS ===
 
@@ -678,3 +683,39 @@ function handleAxiosError(error: any): never {
     throw new Error(`PayPal API error: ${error.message}`);
   }
 }
+
+// === ORDER FUNCTIONS ===
+
+export const createOrder = async (
+    paypalClient: PayPalClient,
+    params: TypeOf<typeof createOrderParameters>
+): Promise<PayPalResponse<Order>> => {
+  const ordersController = new OrdersController(paypalClient.sdkClient);
+  // Currently using only single currency for entire transaction
+  const orderRequest = parseOrderDetails(params);
+  try {
+    const result: ApiResponse<Order> = await ordersController.ordersCreate({
+      body: orderRequest,
+    });
+    return getResponseFromStatus(result);
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to create order');
+  }
+};
+
+export const getOrder = async (
+    paypalClient: PayPalClient,
+    params: TypeOf<typeof getOrderParameters>
+): Promise<PayPalResponse<Order>> => {
+  const ordersController = new OrdersController(paypalClient.sdkClient);
+  try {
+    const result = await ordersController.ordersGet({
+      id: params.id
+    });
+    return getResponseFromStatus(result);
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to retrieve order');
+  }
+};
