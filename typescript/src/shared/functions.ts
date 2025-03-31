@@ -70,7 +70,7 @@ export async function createInvoice(
         const sendResult = await sendInvoice(paypal, context, {
           invoice_id: invoiceId,
           note: "thank you for choosing us. If there are any issues, feel free to contact us",
-          send_to_recipient: false
+          send_to_recipient: true
         });
         console.error(`[createInvoice] Auto-send invoice result: ${JSON.stringify(sendResult)}`);
         
