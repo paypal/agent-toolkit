@@ -20,7 +20,7 @@ type Options = {
   paypalAccount?: string;
 };
 
-const ACCEPTED_ARGS = ['access-token', 'tools', 'paypal-account', 'sandbox'];
+const ACCEPTED_ARGS = ['access-token', 'tools', 'sandbox'];
 const ACCEPTED_TOOLS = [
   'invoices.list',
   'invoices.send',
