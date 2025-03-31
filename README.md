@@ -1,29 +1,104 @@
-![PayPal Developer Cover](https://github.com/paypaldev/.github/blob/main/pp-cover.png)
-<div align="center">
-  <a href="https://twitter.com/paypaldev" target="_blank">
-    <img alt="Twitter: PayPal Developer" src="https://img.shields.io/twitter/follow/paypaldev?style=social" />
-  </a>
-  <br />
-  <a href="https://twitter.com/paypaldev" target="_blank">Twitter</a>
-    <span>&nbsp;&nbsp;-&nbsp;&nbsp;</span>
-  <a href="https://www.paypal.com/us/home" target="_blank">PayPal</a>
-    <span>&nbsp;&nbsp;-&nbsp;&nbsp;</span>
-  <a href="https://developer.paypal.com/home" target="_blank">Docs</a>
-    <span>&nbsp;&nbsp;-&nbsp;&nbsp;</span>
-  <a href="https://github.com/paypaldev" target="_blank">Code Samples</a>
-    <span>&nbsp;&nbsp;-&nbsp;&nbsp;</span>
-  <a href="https://dev.to/paypaldeveloper" target="_blank">Blog</a>
-  <br />
-  <hr />
-</div>
+# PayPal Agent Toolkit
 
-# PayPal-Repo-Template
-This is a sample repo to use as a template when we are creating new repos under the PayPal org.
+The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Agent SDK, LangChain, Vercel's AI SDK, and Model Context Protocol (MCP) to integrate with PayPal APIs through function calling. It includes support for TypeScript and is built on top of PayPal APIs and the PayPal [Node][node-sdk] SDKs.
 
-## PayPal Developer Community
+## TypeScript
 
-The PayPal Developer community helps you build your career, while also improving PayPal products and the developer experience. You’ll be able to contribute code and documentation, meet new people and learn from the open source community.
+### Installation
 
-* Website: [developer.paypal.com](https://developer.paypal.com)
-* Twitter: [@paypaldev](https://twitter.com/paypaldev)
-* Github:  [@paypal](https://github.com/paypal)
+You don't need this source code unless you want to modify the package. If you just
+want to use the package run:
+
+```
+npm install @paypal/agent-toolkit
+```
+
+#### Requirements
+
+- Node 18+
+
+### Usage
+
+The library needs to be configured with your account's client id and secret which is available in your [PayPal Developer Dashboard][api-keys]. 
+
+```typescript
+import {Toolkit} from '@paypalcorp/paypal-agent/ai-sdk';
+const paypalToolkit = new Toolkit({
+     clientId: process.env.PAYPAL_CLIENT_ID,
+     clientSecret: process.env.PAYPAL_CLIENT_SECRET
+});
+
+const llm: LanguageModelV1 = getModel(); // The model to be used with ai-sdk
+const {text: response}= await generateText({
+    model: llm,
+    tools: this.toolkit.tools,
+    prompt: `Create an invoice for 3 hours of labor at $120/hr and text a link to John Doe.`,
+});
+
+```
+
+#### Tools
+
+The toolkit works with LangChain and Vercel's AI SDK and can be passed as a list of tools. For example:
+
+```typescript
+import { AgentExecutor, createStructuredChatAgent } from "langchain/agents";
+
+const tools = payPalAgentToolkit.getTools();
+
+const agent = await createStructuredChatAgent({
+  llm,
+  tools,
+  prompt,
+});
+
+const agentExecutor = new AgentExecutor({
+  agent,
+  tools,
+});
+```
+
+## Model Context Protocol
+
+The PayPal Agent Toolkit also supports the [Model Context Protocol (MCP)](https://modelcontextprotocol.com/).
+
+To run the PayPal MCP server using npx, use the following command:
+
+```bash
+# Start MCP Inspector and server with all tools
+npx @modelcontextprotocol/inspector node dist/index.js --tools=all --client-id=YOUR_CLIENT_ID --client-secret=YOUR_CLIENT_SECRET --sandbox=true
+```
+
+Replace `YOUR_CLIENT_ID` and `YOUR_CLIENT_SECRET` with your PayPal client credentials available in your [PayPal Developer Dashboard][api-keys]. Alternatively, you could set the PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET in your environment variables.
+
+Alternatively, you can set up your own MCP server. For example:
+
+```typescript
+import { PayPalAgentToolkit } from “@paypal/agent-toolkit/modelcontextprotocol";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const tools = payPalAgentToolkit.getTools();
+
+const server = new PayPalAgentToolkit({
+	clientId: process.env.PAYPAL_CLIENT_ID,
+	clientSecret: process.env.PAYPAL_CLIENT_SECRET
+});
+
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("PayPal MCP Server running on stdio");
+}
+
+main().catch((error) => {
+  console.error("Fatal error in main():", error);
+  process.exit(1);
+});
+```
+
+## Supported API methods
+
+TBD
+
+[node-sdk]: https://github.com/paypal/paypal-typescript-server-sdk
+[api-keys]: https://developer.paypal.com/dashboard/applications/sandbox
