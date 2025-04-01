@@ -59,10 +59,10 @@ Below is the payload request structure:
       },
       "tax": {
         "name": "Sales Tax",
-        "percent": 7.25
+        "percent": 0
       },
       "discount": {
-        "percent": 5
+        "percent": 0
       },
       "unit_of_measure": "QUANTITY"
     }
@@ -73,12 +73,12 @@ Below is the payload request structure:
         "label": "Packing Charges",
         "amount": {
           "currency_code": "USD",
-          "value": 10.00
+          "value": 0
         }
       },
       "discount": {
         "invoice_discount": {
-          "percent": 5
+          "percent": 0
         }
       }
     }
