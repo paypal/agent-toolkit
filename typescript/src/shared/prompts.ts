@@ -59,7 +59,7 @@ Below is the payload request structure:
       },
       "tax": {
         "name": "Sales Tax",
-        "percent": 7.25
+        "percent": 0
       },
       "discount": {
         "percent": 0
