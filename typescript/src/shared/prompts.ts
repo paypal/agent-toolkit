@@ -11,6 +11,7 @@ Below are the required parameters to input referencing the json payload below:
 invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), amount.breakdown.custom.amount.value (product cost),
 amount.breakdown.tax.percent (tax percent), amount.breakdown.discount.invoice_discount.percent (discount)
 
+only apply discount here: amount.breakdown.discount.invoice_discount.percent and not here: items[0].discount.percent unless user says item/product specific discount.
 Also specific amount must be double or integer.
 Below are the parameters you need to take care of:
 invoice_number -> auto-generate invoice number starting with # followed by 10 random numbers
