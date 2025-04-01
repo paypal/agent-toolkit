@@ -1,0 +1,5 @@
+# Currently for all files on the branch
+*   @Core-SDK/agent-toolkit-sync
+
+# Specifically for the github folder
+/.github/ @Core-SDK/agent-toolkit-sync
