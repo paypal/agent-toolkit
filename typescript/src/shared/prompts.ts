@@ -73,12 +73,12 @@ Below is the payload request structure:
         "label": "Packing Charges",
         "amount": {
           "currency_code": "USD",
-          "value": 10.00
+          "value": 0
         }
       },
       "discount": {
         "invoice_discount": {
-          "percent": 5
+          "percent": 0
         }
       }
     }
