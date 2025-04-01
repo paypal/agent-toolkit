@@ -62,7 +62,7 @@ Below is the payload request structure:
         "percent": 7.25
       },
       "discount": {
-        "percent": 5
+        "percent": 0
       },
       "unit_of_measure": "QUANTITY"
     }
