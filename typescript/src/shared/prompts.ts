@@ -4,11 +4,11 @@ import type { Context } from './configuration';
 
 export const createInvoicePrompt = (context: Context) => `
 Create a draft invoice in PayPal and then send the invoice to customer. Show the response link to the user that comes under "sendResult".
-Required parameters are: invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), amount.breakdown.custom.amount.value (product cost)
+Required parameters are: invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), items[0].unit_amount.value (product cost)
 High level: detail, invoicer, primary_recipients, items, amount are required json objects.
 
 Below are the required parameters to input referencing the json payload below:
-invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), amount.breakdown.custom.amount.value (product cost),
+invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), items[0].unit_amount.value (product cost),
 amount.breakdown.tax.percent (tax percent), amount.breakdown.discount.invoice_discount.percent (discount)
 
 only apply discount here: amount.breakdown.discount.invoice_discount.percent and not here: items[0].discount.percent unless user says item/product specific discount.
@@ -22,68 +22,64 @@ payment_term.due_date -> within 10 days
 Populate other fields with test data.
 Below is the payload request structure:
 {
-  "detail": {
-    "invoice_number": "#12334263331",
-    "reference": "deal-ref",
-    "invoice_date": "2018-11-12",
-    "currency_code": "USD",
-    "note": "Thank you for your business.",
-    "term": "No refunds after 30 days.",
-    "memo": "This is a long contract",
-    "payment_term": {
-      "term_type": "NET_10",
-      "due_date": "2018-11-22"
-    }
-  },
-  "invoicer": {
-    "name": {
-      "given_name": "David",
-      "surname": "Larusso"
-    },
-    "email_address": "sb-onrga38364250@business.example.com",
-  },
-  "primary_recipients": [
-    {
-        "billing_info": {
-          "email_address": "bill-me@example.com"
-        }
-    }
-  ],
-  "items": [
-    {
-      "name": "Yoga Mat",
-      "description": "Elastic mat to practice yoga.",
-      "quantity": 1,
-      "unit_amount": {
+    "detail": {
+        "invoice_number": "#12334263331",
+        "reference": "deal-ref",
+        "invoice_date": "2018-11-12",
         "currency_code": "USD",
-        "value": 50.00
-      },
-      "tax": {
-        "name": "Sales Tax",
-        "percent": 0
-      },
-      "discount": {
-        "percent": 0
-      },
-      "unit_of_measure": "QUANTITY"
-    }
-  ],
-  "amount": {
-    "breakdown": {
-      "custom": {
-        "label": "Packing Charges",
-        "amount": {
-          "currency_code": "USD",
-          "value": 0
+        "note": "Thank you for your business.",
+        "term": "No refunds after 30 days.",
+        "memo": "This is a long contract",
+        "payment_term": {
+            "term_type": "NET_10",
+            "due_date": "2018-11-22"
         }
-      },
-      "discount": {
-        "invoice_discount": {
-          "percent": 0
+    },
+    "invoicer": {
+        "name": {
+            "given_name": "David",
+            "surname": "Larusso"
+        },
+        "email_address": "sb-onrga38364250@business.example.com"
+    },
+    "primary_recipients": [
+        {
+            "billing_info": {
+                "email_address": "bill-me@example.com"
+            }
         }
-      }
+    ],
+    "items": [
+        {
+            "name": "Yoga Mat",
+            "description": "Elastic mat to practice yoga.",
+            "quantity": 1,
+            "unit_amount": {
+                "currency_code": "USD",
+                "value": 0
+            },
+            "tax": {
+                "name": "Sales Tax",
+                "percent": 0
+            },
+            "discount": {
+                "percent": 0
+            },
+            "unit_of_measure": "QUANTITY"
+        }
+    ],
+    "amount": {
+        "breakdown": {
+            "discount": {
+                "invoice_discount": {
+                    "percent": 0
+                }
+            },
+            "tax": {
+                "percent": 0
+            }
+        }
     }
-  }
 }
 `;
 
