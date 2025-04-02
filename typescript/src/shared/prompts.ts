@@ -9,8 +9,9 @@ High level: detail, invoicer, primary_recipients, items, amount are required jso
 
 Below are the required parameters to input referencing the json payload below:
 invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), items[0].unit_amount.value (product cost),
-amount.breakdown.tax.percent (tax percent), amount.breakdown.discount.invoice_discount.percent (discount)
+items[0].tax.percent (tax percent), amount.breakdown.discount.invoice_discount.percent (discount)
 
+Add tax for each item and not in custom breakdown.
 only apply discount here: amount.breakdown.discount.invoice_discount.percent and not here: items[0].discount.percent unless user says item/product specific discount.
 Also specific amount must be double or integer.
 Below are the parameters you need to take care of:
@@ -74,9 +75,6 @@ Below is the payload request structure:
                 "invoice_discount": {
                     "percent": 0
                 }
-            },
-            "tax": {
-                "percent": 0
             }
         }
     }
