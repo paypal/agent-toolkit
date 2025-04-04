@@ -35,7 +35,7 @@ class PayPalWorkflows {
         const orderObject: CreateOrder = result.object;
         this.log(`Response 1: I have now created the request object with provided details;\n ${JSON.stringify(orderObject)}`);
         this.log(`Proceeding with next step.`)
-        this.log(`Step 2: I am now choosing the correct tool from PayPal's toolkit to create an an order using the generated object from previous step.`);
+        this.log(`Step 2: I am now choosing the correct tool from PayPal's toolkit to create an order using the generated object from previous step.`);
         const {text: orderId} = await generateText({
             model: llm,
             tools: await this.toolkit.getTools(),
