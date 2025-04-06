@@ -115,10 +115,10 @@ This guide explains how to generate an access token for PayPal API integration, 
 ### Using cURL
 
 ```bash
-curl --location 'https://api-m.sandbox.paypal.com/v1/oauth2/token' \
+curl -v --location 'https://api-m.sandbox.paypal.com/v1/oauth2/token' \
+-u CLIENT_ID:CLIENT_SECRET \
 -H 'Accept: application/json' \
 -H 'Accept-Language: en_US' \
--H 'Authorization: Basic CLIENT_ID:CLIENT_SECRET' \
 -d 'grant_type=client_credentials'
 ```
 
