@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   createInvoicePrompt,
   listInvoicesPrompt,
+  getInvoicePrompt,
   sendInvoicePrompt,
   sendInvoiceReminderPrompt,
   cancelSentInvoicePrompt,
@@ -11,11 +12,22 @@ import {
   updateProductPrompt,
   createSubscriptionPlanPrompt,
   listSubscriptionPlansPrompt,
+  createShipmentPrompt,
+  getShipmentTrackingPrompt,
+  generateInvoiceQrCodePrompt,
+  createOrderPrompt,
+  getOrderPrompt,
+  getDisputePrompt,
+  listDisputesPrompt,
+  acceptDisputeClaimPrompt,
+  captureOrderPrompt,
+  listTransactionsPrompt,
 } from './prompts';
 
 import {
   createInvoiceParameters,
   listInvoicesParameters,
+  getInvoicParameters,
   sendInvoiceParameters,
   sendInvoiceReminderParameters,
   cancelSentInvoiceParameters,
@@ -24,6 +36,16 @@ import {
   updateProductParameters,
   createSubscriptionPlanParameters,
   listSubscriptionPlansParameters,
+  createShipmentParameters,
+  getShipmentTrackingParameters,
+  generateInvoiceQrCodeParameters,
+  createOrderParameters,
+  getOrderParameters,
+  getDisputeParameters,
+  listDisputesParameters,
+  acceptDisputeClaimParameters,
+  captureOrderParameters,
+  listTransactionsParameters
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -64,6 +86,17 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
+    method: 'get_invoice',
+    name: 'Get Invoice',
+    description: getInvoicePrompt(context),
+    parameters: getInvoicParameters(context),
+    actions: {
+      invoices: {
+        get: true,
+      },
+    },
+  },
+  {
     method: 'send_invoice',
     name: 'Send Invoice',
     description: sendInvoicePrompt(context),
@@ -93,6 +126,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         cancel: true,
+      },
+    },
+  },
+  {
+    method: 'generate_invoice_qr',
+    name: 'Generate Invoice QR Code',
+    description: generateInvoiceQrCodePrompt(context),
+    parameters: generateInvoiceQrCodeParameters(context),
+    actions: {
+      invoices: {
+        generateQR: true,
       },
     },
   },
@@ -151,7 +195,113 @@ const tools = (context: Context): Tool[] => [
       },
     },
   },
-
+  {
+    method: 'create_shipment',
+    name: 'Create shipment',
+    description: createShipmentPrompt(context),
+    parameters: createShipmentParameters(context),
+    actions: {
+      shipment: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'get_shipment_tracking',
+    name: 'Get Shipment Tracking',
+    description: getShipmentTrackingPrompt(context),
+    parameters: getShipmentTrackingParameters(context),
+    actions: {
+      shipment: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'create_order',
+    name: 'Create Order',
+    description: createOrderPrompt(context),
+    parameters: createOrderParameters(context),
+    actions: {
+      orders: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'get_order',
+    name: 'Get Order',
+    description: getOrderPrompt(context),
+    parameters: getOrderParameters(context),
+    actions: {
+      orders: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'capture_order',
+    name: 'Capture Order',
+    description: captureOrderPrompt(context),
+    parameters: captureOrderParameters(context),
+    actions: {
+      orders: {
+        capture: true,
+      },
+    },
+  },
+  {
+    method: 'list_disputes',
+    name: 'List Disputes',
+    description: listDisputesPrompt(context),
+    parameters: listDisputesParameters(context),
+    actions: {
+      disputes: {
+        list: true,
+      },
+    },
+  },
+  {
+    method: 'get_dispute',
+    name: 'Get Dispute',
+    description: getDisputePrompt(context),
+    parameters: getDisputeParameters(context),
+    actions: {
+      disputes: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'accept_dispute_claim',
+    name: 'Accept dispute claim',
+    description: acceptDisputeClaimPrompt(context),
+    parameters: acceptDisputeClaimParameters(context),
+    actions: {
+      disputes: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'list_transactions',
+    name: 'List Transactions',
+    description: listTransactionsPrompt(context),
+    parameters: listTransactionsParameters(context),
+    actions: {
+      transactions: {
+        list: true,
+      },
+    },
+  },
 ];
+const allActions = tools({}).reduce((acc, tool) => {
+  Object.keys(tool.actions).forEach(product => {
+    acc[product] = { ...acc[product], ...tool.actions[product] };
+  });
+  return acc;
+}, {} as { [key: string]: { [key: string]: boolean } });
+
+export const ALL_TOOLS_ENABLED = allActions;
 
 export default tools;

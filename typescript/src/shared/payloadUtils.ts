@@ -1,59 +1,73 @@
-// Generate a dynamic PATCH request
-import {
-    ApiResponse,
-    CheckoutPaymentIntent,
-    OrderRequest,
-} from "@paypal/paypal-server-sdk";
-import {TypeOf} from "zod";
-import {createOrderParameters} from "./parameters";
-import {round} from "mathjs";
+import { TypeOf } from "zod";
+import { createOrderParameters } from "./parameters";
+import { round } from "mathjs";
+import { snakeCase, camelCase } from "lodash";
 
-export function parseOrderDetails(params: TypeOf<typeof createOrderParameters>) {
+export function parseOrderDetails(params: TypeOf<ReturnType<typeof createOrderParameters>>) {
     try {
         const currCode = params.currencyCode;
         let items: any[] = [];
         const subTotal = params.items.reduce((sum, item) => sum + item.itemCost * item.quantity, 0);
+        const shippingCost = params.shippingCost || 0;
         const taxAmount = params.items.reduce((sum, item) => sum + item.itemCost * item.taxPercent * item.quantity / 100, 0)
-        const total = subTotal + taxAmount;
+        const discount = params.discount || 0;
+        const total = subTotal + taxAmount + shippingCost - discount;
+        const amountBreakdown = {
+            item_total: {
+                value: round(subTotal, 2).toString(),
+                currency_code: currCode
+            },
+            shipping: {
+                value: round(shippingCost, 2).toString(),
+                currency_code: currCode
+            },
+            tax_total: {
+                value: round(taxAmount, 2).toString(),
+                currency_code: currCode
+            },
+            discount: {
+                value: round(discount, 2).toString(),
+                currency_code: currCode
+            },
+        }
         params.items.forEach(item => {
             items.push({
                 name: item.name,
                 description: item.description,
-                unitAmount: {
+                unit_amount: {
                     value: item.itemCost.toString() || '0',
-                    currencyCode: currCode
+                    currency_code: currCode
                 },
                 quantity: item.quantity.toString() || '1',
                 tax: {
                     value: round((item.itemCost * item.taxPercent) / 100, 2).toString() || '0',
-                    currencyCode: currCode
+                    currency_code: currCode
                 }
             })
         })
-        const request: OrderRequest = {
-            intent: CheckoutPaymentIntent.Capture,
-            purchaseUnits: [{
-                amount: {
-                    value: round(total, 2).toString(),
-                    currencyCode: currCode,
-                    breakdown: {
-                        itemTotal: {
-                            value: round(subTotal, 2).toString(),
-                            currencyCode: currCode
-                        },
-                        taxTotal: {
-                            value: round(taxAmount, 2).toString(),
-                            currencyCode: currCode
-                        }
-                    }
-                },
-                items: items
-            }],
-            paymentSource: {
+        const basePurchaseUnit = {
+            amount: {
+                value: round(total, 2).toString(),
+                currency_code: currCode,
+                breakdown: amountBreakdown
+            },
+            items: items,
+        }
+        // Conditionally add shipping address if available
+        const purchaseUnit = params.shippingAddress
+            ? { ...basePurchaseUnit, shipping: { address: params.shippingAddress } }
+            : basePurchaseUnit;
+        const request = {
+            intent: 'CAPTURE',
+            purchase_units: [purchaseUnit],
+        }
+        if (params.returnUrl || params.cancelUrl) {
+            // @ts-expect-error
+            request.payment_source = {
                 paypal: {
-                    experienceContext: {
-                        returnUrl: params.returnUrl,
-                        cancelUrl: params.cancelUrl
+                    experience_context: {
+                        return_url: params.returnUrl,
+                        cancel_url: params.cancelUrl
                     }
                 }
             }
@@ -65,34 +79,24 @@ export function parseOrderDetails(params: TypeOf<typeof createOrderParameters>) 
     }
 }
 
-export type PayPalResponse<T> =
-    | { status: "success"; data: T }         // Generic success response
-    | { status: "clientError"; error: string }   // Client error as string - needs request updates
-    | { status: "systemError"; error: string }; // System error as string - retryable
-export function getResponseFromStatus<T>(response: ApiResponse<T>): PayPalResponse<T> {
-    const statusCode = response.statusCode;
-    if (statusCode >= 200 && statusCode < 300) return {status: "success", data: response.result};
-    if (statusCode >= 400 && statusCode < 500) return {status: "clientError", error: response.body.toString()};
-    return {status: "systemError", error: response.body.toString()};
-}
-
-// Calculate new amount details based on items
-function calculateNewAmount(items: any[], existingAmount: any) {
-    let itemTotal = 0;
-    let taxTotal = 0;
-
-    for (const item of items) {
-        const itemPrice = parseFloat(item.unitAmount?.value || "0") * parseInt(item.quantity || "1");
-        itemTotal += itemPrice;
-        taxTotal += parseFloat(item.tax?.value || "0") * parseInt(item.quantity || "1");
+export const toSnakeCaseKeys = (obj: any): any => {
+    if (Array.isArray(obj)) {
+        return obj.map(toSnakeCaseKeys);
+    } else if (typeof obj === "object" && obj !== null) {
+        return Object.fromEntries(
+            Object.entries(obj).map(([key, value]) => [snakeCase(key), toSnakeCaseKeys(value)])
+        );
     }
+    return obj;
+};
 
-    return {
-        currencyCode: existingAmount?.currencyCode || "USD",
-        value: (itemTotal + taxTotal).toFixed(2),
-        breakdown: {
-            itemTotal: {currencyCode: "USD", value: itemTotal.toFixed(2)},
-            taxTotal: {currencyCode: "USD", value: taxTotal.toFixed(2)}
-        },
-    };
-}
+export const toCamelCaseKeys = (obj: any): any => {
+    if (Array.isArray(obj)) {
+        return obj.map(toCamelCaseKeys);
+    } else if (typeof obj === 'object' && obj !== null) {
+        return Object.fromEntries(
+            Object.entries(obj).map(([key, value]) => [camelCase(key), toCamelCaseKeys(value)])
+        );
+    }
+    return obj;
+};

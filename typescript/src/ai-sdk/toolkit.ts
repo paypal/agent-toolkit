@@ -1,59 +1,34 @@
-import PayPalClient from "../shared/client";
 import { Tool } from "ai";
-import {
-    createOrderParameters,
-    getOrderParameters,
-} from "../shared/parameters";
-import { createOrder, getOrder } from "../shared/functions";
+import PayPalAPI from "../shared/api";
+import PayPalClient from "../shared/client";
+import { Configuration, isToolAllowed } from "../shared/configuration";
+import tools from '../shared/tools';
+import PayPalTool from './tools';
 
 class PayPalAgentToolkit {
-    // @ts-ignore
     readonly client: PayPalClient;
+    private _paypal: PayPalAPI;
+    private _tools: { [key: string]: Tool };
 
-    constructor({ clientId, clientSecret, environment, logRequestDetails, logResponseDetails, debug }: {
+    constructor({ clientId, clientSecret, configuration }: {
         clientId: string,
         clientSecret: string,
-        environment?: string,
-        logRequestDetails?: string,
-        logResponseDetails?: string,
-        debug?: string
+        configuration: Configuration,
     }) {
-        this.client = new PayPalClient({ clientId, clientSecret, environment, logRequestDetails, logResponseDetails, debug });
+        const context = configuration.context || {};
+        this.client = new PayPalClient({ clientId, clientSecret, context });
+        const filteredTools = tools(context).filter((tool) =>
+            isToolAllowed(tool, configuration)
+        );
+        this._paypal = new PayPalAPI(this.client, configuration.context);
+        this._tools = filteredTools.reduce((acc, item) => {
+            acc[item.method] = PayPalTool(this._paypal, item.method, item.description, item.parameters);
+            return acc;
+        }, {} as { [key: string]: Tool });
     }
 
-
-    createAnOrder = (): Tool => {
-        return {
-            description: `This tool is used to invoke the Create Order call in PayPal. This is typically the first step in integrating a PayPal payment flow. It creates a payment order, which is essentially a resource that represents the intent to purchase something, including details like the amount, currency, and other details specific to the order. If the merchant has provided it, also include the return url and cancel url for the post transaction steps. `,
-            parameters: createOrderParameters,
-            execute: async (params): Promise<string> => {
-                return await createOrder(this.client, params)
-                    .then(response => {
-                        if (response.status == "success") {
-                            return response.data.id || '';
-                        } else {
-                            return response.error;
-                        }
-                    });
-            },
-        };
-    };
-
-    getOrderDetails = (): Tool => {
-        return{
-            description: `This tool is used to retrieve the order details for a PayPal payment order. This can only be invoked if the order has been created and an order ID is available. This tool uses the order ID specified as part of prompt to retrieve the order's current status, review transaction details, and access other metadata associated with the order.`,
-            parameters: getOrderParameters,
-            execute: (params) => {
-                return getOrder(this.client, params)
-            },
-        };
-    }
-
-    getTools = async () => {
-        return {
-            createOrder: this.createAnOrder(),
-            getOrder: this.getOrderDetails()
-        };
+    getTools(): { [key: string]: Tool } {
+        return this._tools;
     }
 
 }

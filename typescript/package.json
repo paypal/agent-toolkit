@@ -1,67 +1,52 @@
 {
   "name": "@paypal/agent-toolkit",
-  "version": "0.1.0",
-  "description": "PayPal Agent Toolkit for AI applications",
-  "files": [
-    "ai-sdk",
-    "mcp",
-    "README.md",
-    "LICENSE"
-  ],
+  "version": "1.0.0",
+  "description": "PayPal toolkit for AI agent workflows in typescript",
+  "scripts": {
+    "clean": "rm -rf dist ai-sdk",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pnpm i && tsup"
+  },
   "exports": {
     "./ai-sdk": {
       "types": "./ai-sdk/index.d.ts",
-      "import": "./ai-sdk/index.mjs",
       "default": "./ai-sdk/index.js"
     },
-    "./modelcontextprotocol": {
+    "./mcp": {
       "types": "./mcp/index.d.ts",
       "default": "./mcp/index.js"
     }
   },
-  "scripts": {
-    "build": "npm i && tsup",
-    "clean": "rm -rf dist ai-sdk mcp",
-    "lint": "eslint 'src/**/*.{js,ts}'",
-    "test": "jest",
-    "prepublishOnly": "npm run build"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.1",
-    "@paypal/paypal-server-sdk": "^0.6.1",
-    "ai": "^4.2.8",
-    "axios": "^1.6.7",
-    "lodash": "^4.17.21",
-    "mathjs": "^14.4.0",
-    "zod": "^3.23.8",
-    "zod-to-json-schema": "^3.24.1"
-  },
+  "author": "",
+  "license": "ISC",
+  "files": [
+    "src/ai-sdk/**/*",
+    "ai-sdk",
+    "mcp",
+    "package.json"
+  ],
   "devDependencies": {
+    "@types/debug": "^4.1.12",
     "@types/jest": "^29.5.14",
-    "@types/lodash": "^4.17.16",
-    "@types/node": "^22.13.4",
-    "@typescript-eslint/eslint-plugin": "^8.24.1",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.3",
+    "@types/lodash": "^4.17.15",
+    "@types/node": "^22.10.5",
     "jest": "^29.7.0",
-    "prettier": "^3.5.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "tsup": "^8.3.6",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   },
-  "engines": {
-    "node": ">=18"
-  },
-  "keywords": [
-    "paypal",
-    "agent",
-    "ai",
-    "modelcontextprotocol",
-    "mcp",
-    "payments"
-  ],
-  "author": "PayPal <support@paypal.com>",
-  "license": "Apache-2.0"
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.32.0",
+    "@paypal/paypal-server-sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "ai": "^4.0.23",
+    "axios": "^1.8.4",
+    "debug": "^4.4.0",
+    "fast-json-patch": "^3.1.1",
+    "lodash": "^4.17.21",
+    "mathjs": "^14.0.1",
+    "zod": "^3.24.2"
+  }
 }

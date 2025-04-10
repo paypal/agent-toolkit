@@ -4,6 +4,7 @@ export type Context = {
   access_token?: string;
   request_id?: string;
   tenant_context?: any;
+  debug?: boolean;
   [key: string]: any;
 };
 

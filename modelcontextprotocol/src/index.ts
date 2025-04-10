@@ -24,6 +24,8 @@ const ACCEPTED_ARGS = ['access-token', 'tools', 'paypal-environment'];
 const ACCEPTED_TOOLS = [
   'invoices.list',
   'invoices.create',
+  'shipment.create',
+  'shipment.get'
 ];
 
 export function parseArgs(args: string[]): Options {

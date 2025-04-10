@@ -3,94 +3,22 @@ import type { Context } from './configuration';
 // === INVOICE PARAMETERS ===
 
 export const createInvoicePrompt = (context: Context) => `
-Create a draft invoice in PayPal and then send the invoice to customer. Show the response link to the user that comes under "sendResult".
-Required parameters are: invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), amount.breakdown.custom.amount.value (product cost)
-High level: detail, invoicer, primary_recipients, items, amount are required json objects.
+Create Invoices on PayPal.
 
-Below are the required parameters to input referencing the json payload below:
-invoicer.email_address (email address), primary_recipients[0].billing_info.email_address (recipient's email address), items[0].name (product name), amount.breakdown.custom.amount.value (product cost),
-amount.breakdown.tax.percent (tax percent), amount.breakdown.discount.invoice_discount.percent (discount)
-
-Also specific amount must be double or integer.
-Below are the parameters you need to take care of:
-invoice_number -> auto-generate invoice number starting with # followed by 10 random numbers
-invoice_date -> today's date
-currency_code -> "USD"
-payment_term.term_type -> "NET_10"
-payment_term.due_date -> within 10 days
-Populate other fields with test data.
-Below is the payload request structure:
-{
-  "detail": {
-    "invoice_number": "#12334263331",
-    "reference": "deal-ref",
-    "invoice_date": "2018-11-12",
-    "currency_code": "USD",
-    "note": "Thank you for your business.",
-    "term": "No refunds after 30 days.",
-    "memo": "This is a long contract",
-    "payment_term": {
-      "term_type": "NET_10",
-      "due_date": "2018-11-22"
-    }
-  },
-  "invoicer": {
-    "name": {
-      "given_name": "David",
-      "surname": "Larusso"
-    },
-    "email_address": "sb-onrga38364250@business.example.com",
-  },
-  "primary_recipients": [
-    {
-        "billing_info": {
-          "email_address": "bill-me@example.com"
-        }
-    }
-  ],
-  "items": [
-    {
-      "name": "Yoga Mat",
-      "description": "Elastic mat to practice yoga.",
-      "quantity": 1,
-      "unit_amount": {
-        "currency_code": "USD",
-        "value": 50.00
-      },
-      "tax": {
-        "name": "Sales Tax",
-        "percent": 7.25
-      },
-      "discount": {
-        "percent": 5
-      },
-      "unit_of_measure": "QUANTITY"
-    }
-  ],
-  "amount": {
-    "breakdown": {
-      "custom": {
-        "label": "Packing Charges",
-        "amount": {
-          "currency_code": "USD",
-          "value": 10.00
-        }
-      },
-      "discount": {
-        "invoice_discount": {
-          "percent": 5
-        }
-      }
-    }
-  }
-}
+This function is used to create an invoice in the PayPal system. It allows you to generate a new invoice, specifying details such as customer information, items, quantities, pricing, and tax information. Once created, an invoice can be sent to the customer for payment.
 `;
 
 export const listInvoicesPrompt = (context: Context) => `
-List invoices from PayPal. Limit is 1000 invoices.
+List invoices from PayPal.
 
 This function retrieves a list of invoices with optional pagination parameters.
 `;
+
+export const getInvoicePrompt = (context: Context) => `
+Get an invoice from PayPal.
+
+This function retrieves details of a specific invoice using its ID.
+`
 
 export const sendInvoicePrompt = (context: Context) => `
 Send an invoice to the recipient(s).
@@ -108,6 +36,12 @@ export const cancelSentInvoicePrompt = (context: Context) => `
 Cancel a sent invoice.
 
 This function cancels an invoice that has already been sent to the recipient(s).
+`;
+
+export const generateInvoiceQrCodePrompt = (context: Context) => `
+Generate a QR code for an invoice.
+
+This function generates a QR code for an invoice, which can be used to pay the invoice using a mobile device or scanning app.
 `;
 
 export const createProductPrompt = (context: Context) => `
@@ -140,7 +74,81 @@ List subscription plans from PayPal.
 This function retrieves a list of subscription plans with optional product filtering and pagination parameters.
 `;
 
+export const createShipmentPrompt = (context: Context) => `
+Create a shipment for a transaction in PayPal.
+This function creates a shipment record for a specific transaction, allowing you to track the shipment status and details.
+The transaction_id can fetch from the captured payment details in the order information.
+Required parameters are: tracking_number (the tracking number for the shipment), transaction_id (the transaction ID associated with the shipment). 
+High level: tracking_number, transaction_id, status (optional), carrier (optional) are required json objects.
+Below is the payload request structure:
+{
+    "tracking_number": "1234567890",
+    "transaction_id": "9XJ12345ABC67890",
+    "status": "SHIPPED", // Required: ON_HOLD, SHIPPED, DELIVERED, CANCELLED
+    "carrier": "UPS" // Required: The carrier handling the shipment. Link to supported carriers: http://developer.paypal.com/docs/tracking/reference/carriers/
+}
+`;
+
+export const getShipmentTrackingPrompt = (context: Context) => `
+Get tracking information for a shipment by ID.
+This function retrieves tracking information for a specific shipment using the transaction ID and tracking number.
+The transaction_id can fetch from the captured payment details in the order information.
+Required parameters are: transaction_id (the transaction ID associated with the shipment), tracking_number (the tracking number for the shipment).
+Below is the payload request structure:
+{
+    "transaction_id": "9XJ12345ABC67890",
+    "tracking_number": "1234567890"
+}
+`;
 
 // === ORDER PROMPTS ===
 
+export const createOrderPrompt = (context: Context) => `
+Create an order in PayPal.
 
+This tool is used to create a new order in PayPal. This is typically the first step in initiating a payment flow. It sets up an order with specified details such as item(s) to be purchased, quantity, amount, currency, and other details.
+`;
+
+export const getOrderPrompt = (context: Context) => `
+Retrieves the order details from PayPal for a given order ID.
+
+This tool is used to retrieve details of an existing order in PayPal. It provides information about the order, including items, amounts, status, and other relevant details.
+`;
+
+export const captureOrderPrompt = (context: Context) => `
+Capture a payment for an order.
+
+This tool is used to capture a payment for an order. It allows you to capture funds that have been authorized for a specific order but not yet captured.
+`;
+// === DISPUTE PROMPTS ===
+
+export const listDisputesPrompt = (context: Context) => `
+List disputes from PayPal.
+
+This function retrieves a list of disputes with optional pagination and filtering parameters.
+`;
+
+export const getDisputePrompt = (context: Context) => `
+Get details for a specific dispute from PayPal.
+
+This tool is used to lists disputes with a summary set of details, which shows the dispute_id, reason, status, dispute_state, dispute_life_cycle_stage, dispute_channel, dispute_amount, create_time and update_time fields.
+`;
+
+export const acceptDisputeClaimPrompt = (context: Context) => `
+Accept liability for a dispute claim.
+
+This tool is used to accept liability for a dispute claim. When you accept liability for a dispute claim, the dispute closes in the customer's favor and PayPal automatically refunds money to the customer from the merchant's account.
+`
+
+export const listTransactionsPrompt = (context: Context) => `
+List transactions from PayPal.
+
+This tool is used to lists transactions with optional filtering parameters within a date range of 31 days. 
+
+- The start_date and end_date should be specified in Internet date and time format. Example dates: 1996-12-19T16:39:57-08:00, 1985-04-12T23:20:50.52Z, 1990-12-31T23:59:60Z
+- The transaction_status accepts the following 4 values:
+    1. "D" - represents denied transactions.
+    2. "P" - represents pending transactions.
+    3. "S" - represents successful transactions.
+    4. "V" - represents transactions that were reversed.
+`

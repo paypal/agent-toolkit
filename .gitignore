@@ -1,82 +1,83 @@
-# Node.js
-node_modules/
-dist/
-coverage/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-.npm
+.idea
+dist
+coverage
+node_modules
+package-lock.json
+logs.txt
 .env
 .env.local
-.env.*.local
+typescript/ai-sdk/
+typescript/mcp/
 
-# TypeScript
-*.tsbuildinfo
-.tscache/
 
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-venv/
-env/
-ENV/
+
+# Virtual environment
+.env/
 .venv/
-.python-version
-.pytest_cache/
-.coverage
-htmlcov/
+env/
+venv/
 
-# IDEs and editors
-.idea/
-.vscode/
-*.swp
-*.swo
-.DS_Store
-.project
-.classpath
-.settings/
-*.sublime-workspace
-*.sublime-project
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
 
-# Logs and databases
-*.log
-*.sqlite
-*.db
-
-# Build and distribution
-dist/
+# Distribution / packaging
 build/
-out/
-.next/
-.nuxt/
-.cache/
-typescript/package-lock.json
-typescript/ai-sdk
-typescript/mcp
-typescript/.env
-typescript/dist
-typescript/node_modules
+dist/
+*.egg-info/
+.eggs/
 
-# Misc
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# Pytype
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# VS Code
+.vscode/
+
+# Mac/Linux/Windows system files
+.DS_Store
 Thumbs.db
+desktop.ini
+
+# Environments or Secrets
+.envrc
+*.env
+*.secret
+*.key
+*.pem
+
+# logs
+logs/
+*.log
