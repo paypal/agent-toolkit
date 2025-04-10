@@ -7,11 +7,6 @@ import {
   sendInvoicePrompt,
   sendInvoiceReminderPrompt,
   cancelSentInvoicePrompt,
-  createProductPrompt,
-  listProductsPrompt,
-  updateProductPrompt,
-  createSubscriptionPlanPrompt,
-  listSubscriptionPlansPrompt,
   createShipmentPrompt,
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
@@ -22,6 +17,16 @@ import {
   acceptDisputeClaimPrompt,
   captureOrderPrompt,
   listTransactionsPrompt,
+  createProductPrompt,
+  listProductsPrompt,
+  showProductDetailsPrompt,
+  updateProductPrompt,
+  createSubscriptionPlanPrompt,
+  listSubscriptionPlansPrompt,
+  showSubscriptionPlanDetailsPrompt,
+  createSubscriptionPrompt,
+  showSubscriptionDetailsPrompt,
+  
 } from './prompts';
 
 import {
@@ -31,11 +36,6 @@ import {
   sendInvoiceParameters,
   sendInvoiceReminderParameters,
   cancelSentInvoiceParameters,
-  createProductParameters,
-  listProductsParameters,
-  updateProductParameters,
-  createSubscriptionPlanParameters,
-  listSubscriptionPlansParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
@@ -45,7 +45,16 @@ import {
   listDisputesParameters,
   acceptDisputeClaimParameters,
   captureOrderParameters,
-  listTransactionsParameters
+  listTransactionsParameters,
+  createProductParameters,
+  listProductsParameters,
+  updateProductParameters,
+  showProductDetailsParameters,
+  createSubscriptionPlanParameters,
+  listSubscriptionPlansParameters,
+  showSubscriptionPlanDetailsParameters,
+  createSubscriptionParameters,
+  showSubscriptionDetailsParameters,
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -174,6 +183,17 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
+    method: 'show_product_details',
+    name: 'Show Products Details',
+    description: showProductDetailsPrompt(context),
+    parameters: showProductDetailsParameters(context),
+    actions: {
+      products: {
+        show: true,
+      },
+    },
+  },
+  {
     method: 'create_subscription_plan',
     name: 'Create Subscription Plan',
     description: createSubscriptionPlanPrompt(context),
@@ -192,6 +212,39 @@ const tools = (context: Context): Tool[] => [
     actions: {
       subscriptionPlans: {
         list: true,
+      },
+    },
+  },
+  {
+    method: 'show_subscription_plan_details',
+    name: 'Show Subscription Plan Details',
+    description: showSubscriptionPlanDetailsPrompt(context),
+    parameters: showSubscriptionPlanDetailsParameters(context),
+    actions: {
+      subscriptionPlans: {
+        show: true,
+      },
+    },
+  },
+  {
+    method: 'create_subscription',
+    name: 'Create Subscription',
+    description: createSubscriptionPrompt(context),
+    parameters: createSubscriptionParameters(context),
+    actions: {
+      subscriptions: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'show_subscription_details',
+    name: 'Show Subscription Details',
+    description: showSubscriptionDetailsPrompt(context),
+    parameters: showSubscriptionDetailsParameters(context),
+    actions: {
+      subscriptions: {
+        show: true,
       },
     },
   },

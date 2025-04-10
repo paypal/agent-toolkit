@@ -7,7 +7,6 @@ import {
   cancelSentInvoice,
   createProduct,
   listProducts,
-  updateProduct,
   createSubscriptionPlan,
   listSubscriptionPlans,
   createShipment,
@@ -18,7 +17,11 @@ import {
   listDisputes,
   getDispute,
   acceptDisputeClaim,
-  captureOrder, listTransactions
+  captureOrder, listTransactions,
+  createSubscription,
+  showProductDetails,
+  showSubscriptionPlanDetails,
+  showSubscriptionDetails,
 } from './functions';
 
 import type { Context } from './configuration';
@@ -105,12 +108,18 @@ class PayPalAPI {
         return createProduct(this, this.context, arg);
       case 'list_products':
         return listProducts(this, this.context, arg);
-      case 'update_product':
-        return updateProduct(this, this.context, arg);
+      case 'show_product_details':
+        return showProductDetails(this, this.context, arg);
       case 'create_subscription_plan':
         return createSubscriptionPlan(this, this.context, arg);
       case 'list_subscription_plans':
         return listSubscriptionPlans(this, this.context, arg);
+      case 'show_subscription_plan_details':
+        return showSubscriptionPlanDetails(this, this.context, arg);
+      case 'create_subscription':
+        return createSubscription(this, this.context, arg);
+      case 'show_subscription_details':
+        return showSubscriptionDetails(this, this.context, arg);
       case 'create_shipment':
         return createShipment(this, this.context, arg);
       case 'get_shipment_tracking':

@@ -11,14 +11,21 @@ import {
   listInvoicesParameters,
   sendInvoiceParameters,
   sendInvoiceReminderParameters,
-  createSubscriptionPlanParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
   getDisputeParameters,
   listDisputesParameters,
   captureOrderParameters,
   acceptDisputeClaimParameters,
-  listTransactionsParameters
+  listTransactionsParameters,
+  createProductParameters,
+  listProductsParameters,
+  showProductDetailsParameters,
+  createSubscriptionPlanParameters,
+  listSubscriptionPlansParameters,
+  showSubscriptionPlanDetailsParameters,
+  createSubscriptionParameters,
+  showSubscriptionDetailsParameters
 } from "./parameters";
 import { parseOrderDetails } from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -328,296 +335,177 @@ export async function generateInvoiceQrCode(
 }
 
 // === PRODUCT FUNCTIONS ===
-
 export async function createProduct(
-  paypal: PayPalAPI,
-  context: Context,
-  {
-    name,
-    type,
-    description,
-    category,
-    image_url,
-    home_url,
-  }: {
-    name: string;
-    type: string;
-    description?: string;
-    category?: string;
-    image_url?: string;
-    home_url?: string;
-  }
-) {
-  logger('[createProduct] Starting product creation process');
-  logger(`[createProduct] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-  logger(`[createProduct] Product name: ${name}, type: ${type}`);
-
-  if (description) {
-    logger(`[createProduct] Description: ${description}`);
-  }
-
-  if (category) {
-    logger(`[createProduct] Category: ${category}`);
-  }
-
-  if (image_url) {
-    logger(`[createProduct] Image URL: ${image_url}`);
-  }
-
-  if (home_url) {
-    logger(`[createProduct] Home URL: ${home_url}`);
-  }
-
+  paypal: PayPalAPI, 
+  context: Context, 
+  data:TypeOf<typeof createProductParameters>) {
+  
   const headers = await paypal.getHeaders();
-  logger('[createProduct] Headers obtained');
-
-  const url = `${paypal.getBaseUrl()}/v1/catalogs/products`;
-  logger(`[createProduct] API URL: ${url}`);
-
-  // Prepare product data
-  const productData: any = {
-    name,
-    type,
-  };
-
-  if (description !== undefined) {
-    productData.description = description;
-  }
-  if (category !== undefined) {
-    productData.category = category;
-  }
-  if (image_url !== undefined) {
-    productData.image_url = image_url;
-  }
-  if (home_url !== undefined) {
-    productData.home_url = home_url;
-  }
-  logger(`[createProduct] Product data: ${JSON.stringify(productData)}`);
-
-  // Make API call
+  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products`;
   try {
-    logger('[createProduct] Sending request to PayPal API');
-    const response = await axios.post(url, productData, { headers });
-    logger(`[createProduct] Product created successfully. Status: ${response.status}`);
-    logger(`[createProduct] Product ID: ${response.data.id || 'N/A'}`);
+    const response = await axios.post(apiUrl, {
+      headers: headers,
+      data,
+    });
+
     return response.data;
-  } catch (error: any) {
-    logger('[createProduct] Error creating product:', error.message);
-    handleAxiosError(error);
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Creating Product:", error.response?.data || error);
+    throw error;
   }
 }
+
 
 export async function listProducts(
-  paypal: PayPalAPI,
-  context: Context,
-  { page, page_size, total_required }: { page?: number; page_size?: number; total_required?: boolean }
-) {
-  logger('[listProducts] Starting to list products');
-  logger(`[listProducts] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-  logger(`[listProducts] Pagination: page=${page}, page_size=${page_size}, total_required=${total_required}`);
+  paypal: PayPalAPI, 
+  context: Context, 
+  data:TypeOf<typeof listProductsParameters>) {
 
   const headers = await paypal.getHeaders();
-  logger('[listProducts] Headers obtained');
-
-  const url = `${paypal.getBaseUrl()}/v1/catalogs/products`;
-  logger(`[listProducts] API URL: ${url}`);
-
-  // Prepare query parameters
-  const params: any = {};
-  if (page !== undefined) {
-    params.page = page;
-  }
-  if (page_size !== undefined) {
-    params.page_size = page_size;
-  }
-  if (total_required !== undefined) {
-    params.total_required = total_required.toString().toLowerCase();
-  }
-  logger(`[listProducts] Query parameters: ${JSON.stringify(params)}`);
-
-  // Make API call
+  const { page = 1, page_size = 2, total_required = true } = data;
+  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products?page_size=${data}&page=${page}&total_required=${total_required}`;
   try {
-    logger('[listProducts] Sending request to PayPal API');
-    const response = await axios.get(url, { headers, params });
-    logger(`[listProducts] Products retrieved successfully. Status: ${response.status}`);
+    const response = await axios.get(apiUrl, {
+      headers: headers,
+    });
+    return response.data;
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Listing Product:", error.response?.data || error);
+    throw error;
+  }
+};
 
-    if (response.data.total_items !== undefined) {
-      logger(`[listProducts] Total items: ${response.data.total_items}`);
-    }
 
-    if (response.data.products && Array.isArray(response.data.products)) {
-      logger(`[listProducts] Retrieved ${response.data.products.length} products`);
-    }
+export async function showProductDetails(
+  paypal: PayPalAPI, 
+  context: Context, 
+  data:TypeOf<typeof showProductDetailsParameters>) {
+    
+  const headers = await paypal.getHeaders();
+  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products/${data.product_id}`;
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: headers,
+    });
 
     return response.data;
-  } catch (error: any) {
-    logger('[listProducts] Error listing products:', error.message);
-    handleAxiosError(error);
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Show Product Details:", error.response?.data || error);
+    throw error;
   }
 }
 
-export async function updateProduct(
-  paypal: PayPalAPI,
-  context: Context,
-  { product_id, operations }: { product_id: string; operations: any[] }
-) {
-  logger('[updateProduct] Starting product update process');
-  logger(`[updateProduct] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-  logger(`[updateProduct] Product ID: ${product_id}`);
-  logger(`[updateProduct] Operations: ${JSON.stringify(operations)}`);
-
-  const headers = await paypal.getHeaders();
-  headers['Content-Type'] = 'application/json-patch+json';
-  logger('[updateProduct] Headers obtained with patch content type');
-
-  const url = `${paypal.getBaseUrl()}/v1/catalogs/products/${product_id}`;
-  logger(`[updateProduct] API URL: ${url}`);
-
-  // Make API call
-  try {
-    logger('[updateProduct] Sending PATCH request to PayPal API');
-    const response = await axios.patch(url, operations, { headers });
-    if (response.status === 204) {
-      logger(`[updateProduct] Product updated successfully. Status: ${response.status}`);
-      return { success: true, product_id };
-    }
-    logger(`[updateProduct] Product update response received. Status: ${response.status}`);
-    return response.data;
-  } catch (error: any) {
-    logger('[updateProduct] Error updating product:', error.message);
-    handleAxiosError(error);
-  }
-}
 
 // === SUBSCRIPTION PLAN FUNCTIONS ===
-
-export async function createSubscriptionPlan(
-  paypal: PayPalAPI,
-  context: Context,
-  params: TypeOf<ReturnType<typeof createSubscriptionPlanParameters>>
-) {
-  logger('[createSubscriptionPlan] Starting subscription plan creation process');
-  logger(`[createSubscriptionPlan] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-  const { product_id, name, billing_cycles, description, payment_preferences, taxes } = params;
-  logger(`[createSubscriptionPlan] Product ID: ${product_id}`);
-  logger(`[createSubscriptionPlan] Plan name: ${name}`);
-  logger(`[createSubscriptionPlan] Billing cycles: ${JSON.stringify(billing_cycles)}`);
-
-  if (description) {
-    logger(`[createSubscriptionPlan] Description: ${description}`);
-  }
-
-  if (payment_preferences) {
-    logger(`[createSubscriptionPlan] Payment preferences: ${JSON.stringify(payment_preferences)}`);
-  }
-
-  if (taxes) {
-    logger(`[createSubscriptionPlan] Taxes: ${JSON.stringify(taxes)}`);
-  }
-
+export async function createSubscriptionPlan( 
+  paypal: PayPalAPI, 
+  context: Context, 
+  data:TypeOf<typeof createSubscriptionPlanParameters>) {
+    
   const headers = await paypal.getHeaders();
-  logger('[createSubscriptionPlan] Headers obtained');
-
-  const url = `${paypal.getBaseUrl()}/v1/billing/plans`;
-  logger(`[createSubscriptionPlan] API URL: ${url}`);
-
-  // Prepare plan data
-  const planData: any = {
-    product_id,
-    name,
-    billing_cycles,
-  };
-
-  if (description !== undefined) {
-    planData.description = description;
-  }
-  if (payment_preferences !== undefined) {
-    planData.payment_preferences = payment_preferences;
-  }
-  if (taxes !== undefined) {
-    planData.taxes = taxes;
-  }
-  logger(`[createSubscriptionPlan] Plan data: ${JSON.stringify(planData)}`);
-
-  // Make API call
+  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans`;
   try {
-    logger('[createSubscriptionPlan] Sending request to PayPal API');
-    const response = await axios.post(url, planData, { headers });
-    logger(`[createSubscriptionPlan] Subscription plan created successfully. Status: ${response.status}`);
-    logger(`[createSubscriptionPlan] Plan ID: ${response.data.id || 'N/A'}`);
+    const response = await axios.post(apiUrl, {
+      headers: headers,
+      data,
+    });
     return response.data;
-  } catch (error: any) {
-    logger('[createSubscriptionPlan] Error creating subscription plan:', error.message);
-    handleAxiosError(error);
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Creating Plan:", error.response?.data || error);
+    throw error;
   }
 }
 
 export async function listSubscriptionPlans(
-  paypal: PayPalAPI,
-  context: Context,
-  {
-    product_id,
-    page,
-    page_size,
-    total_required,
-  }: {
-    product_id?: string;
-    page?: number;
-    page_size?: number;
-    total_required?: boolean;
-  }
-) {
-  logger('[listSubscriptionPlans] Starting to list subscription plans');
-  logger(`[listSubscriptionPlans] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-
-  if (product_id) {
-    logger(`[listSubscriptionPlans] Filtering by product ID: ${product_id}`);
-  }
-
-  logger(`[listSubscriptionPlans] Pagination: page=${page}, page_size=${page_size}, total_required=${total_required}`);
+  paypal: PayPalAPI, 
+  context: Context, 
+  data: TypeOf<typeof listSubscriptionPlansParameters>){
 
   const headers = await paypal.getHeaders();
-  logger('[listSubscriptionPlans] Headers obtained');
-
-  const url = `${paypal.getBaseUrl()}/v1/billing/plans`;
-  logger(`[listSubscriptionPlans] API URL: ${url}`);
-
-  // Prepare query parameters
-  const params: any = {};
-  if (product_id !== undefined) {
-    params.product_id = product_id;
+  const { page = 1, page_size = 10, total_required = true, product_id } = data;
+  let apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans?page_size=${page_size}&page=${page}&total_required=${total_required}`;
+  if (product_id) {
+    apiUrl += `&product_id=${product_id}`;
   }
-  if (page !== undefined) {
-    params.page = page;
-  }
-  if (page_size !== undefined) {
-    params.page_size = page_size;
-  }
-  if (total_required !== undefined) {
-    params.total_required = total_required.toString().toLowerCase();
-  }
-  logger(`[listSubscriptionPlans] Query parameters: ${JSON.stringify(params)}`);
-
-  // Make API call
   try {
-    logger('[listSubscriptionPlans] Sending request to PayPal API');
-    const response = await axios.get(url, { headers, params });
-    logger(`[listSubscriptionPlans] Subscription plans retrieved successfully. Status: ${response.status}`);
-
-    if (response.data.total_items !== undefined) {
-      logger(`[listSubscriptionPlans] Total items: ${response.data.total_items}`);
-    }
-
-    if (response.data.plans && Array.isArray(response.data.plans)) {
-      logger(`[listSubscriptionPlans] Retrieved ${response.data.plans.length} subscription plans`);
-    }
-
+    const response = await axios.get(apiUrl, {
+      headers: headers,
+    });
     return response.data;
-  } catch (error: any) {
-    logger('[listSubscriptionPlans] Error listing subscription plans:', error.message);
-    handleAxiosError(error);
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Listing Plans:", error.response?.data || error);
+    throw error;
   }
 }
+
+
+export async function showSubscriptionPlanDetails(
+  paypal: PayPalAPI, 
+  context: Context, 
+  data:TypeOf<typeof showSubscriptionPlanDetailsParameters>){
+
+  const headers = await paypal.getHeaders();
+  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans/${data.plan_id}`;
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: headers,
+    });
+
+    return response.data;
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Show Plan Details:", error.response?.data || error);
+    throw error;
+  }
+}
+
+// === SUBSCRIPTION  FUNCTIONS ===
+export async function createSubscription(
+  paypal: PayPalAPI, 
+  context: Context, 
+  data:TypeOf<typeof createSubscriptionParameters>){
+
+  const headers = await paypal.getHeaders();
+  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions`;
+  try {
+    const response = await axios.post(apiUrl, {
+      headers: headers,
+      data,
+    });
+    return response.data;
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Creating Subscription:", error.response?.data || error);
+    throw error;
+  }
+}
+
+
+export async function showSubscriptionDetails(
+  paypal: PayPalAPI, 
+  context: Context, 
+  data:TypeOf<typeof showSubscriptionDetailsParameters>){
+
+  const headers = await paypal.getHeaders();
+  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions/${data.subscription_id}`;
+  try {
+    const response = await axios.get(apiUrl, {
+      headers: headers,
+    });
+
+    return response.data;
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Show Subscription Details:", error.response?.data || error);
+    throw error;
+  }
+}
+
 
 // === ORDER FUNCTIONS ===
 
