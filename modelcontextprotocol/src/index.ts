@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import {PayPalAgentToolkit} from '@paypal/agent-toolkit/modelcontextprotocol';
+import {PayPalAgentToolkit} from '@paypal/agent-toolkit/mcp';
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import {green, red, yellow} from 'colors';
 
@@ -22,10 +22,32 @@ type Options = {
 
 const ACCEPTED_ARGS = ['access-token', 'tools', 'paypal-environment'];
 const ACCEPTED_TOOLS = [
-  'invoices.list',
-  'invoices.create',
-  'shipment.create',
-  'shipment.get'
+  'create_invoice',
+  'list_invoices',
+  'get_invoice',
+  'send_invoice',
+  'send_invoice_reminder',
+  'cancel_sent_invoice',
+  'generate_invoice_qr_code',
+  'create_order',
+  'get_order',
+  'capture_order',
+  'list_disputes',
+  'get_dispute',
+  'accept_dispute_claim',
+  'create_shipment',
+  'get_shipment_tracking',
+  'create_product',
+  'list_products',
+  'show_product_details',
+  'update_product',
+  'create_subscription_plan',
+  'list_subscription_plans',
+  'show_subscription_plan_details',
+  'create_subscription',
+  'show_subscription_details',
+  'cancel_subscription',
+  'list_transactions'
 ];
 
 export function parseArgs(args: string[]): Options {
