@@ -161,12 +161,7 @@ export const getShipmentTrackingPrompt = (context: Context) => `
 Get tracking information for a shipment by ID.
 This function retrieves tracking information for a specific shipment using the transaction ID and tracking number.
 The transaction_id can fetch from the captured payment details in the order information.
-Required parameters are: transaction_id (the transaction ID associated with the shipment), tracking_number (the tracking number for the shipment).
 Below is the payload request structure:
-{
-    "transaction_id": "9XJ12345ABC67890",
-    "tracking_number": "1234567890"
-}
 `;
 
 // === ORDER PROMPTS ===

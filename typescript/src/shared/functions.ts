@@ -28,7 +28,7 @@ import {
   showSubscriptionDetailsParameters,
   cancelSubscriptionParameters
 } from "./parameters";
-import { parseOrderDetails } from "./payloadUtils";
+import { parseOrderDetails, toQueryString } from "./payloadUtils";
 import { TypeOf } from "zod";
 import debug from "debug";
 
@@ -241,7 +241,7 @@ export async function sendInvoiceReminder(
   const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/remind`;
   logger(`[sendInvoiceReminder] API URL: ${url}`);
 
-  logger(`[sendInvoiceReminder] Request data: ${JSON.stringify(params)}`);
+  logger(`[sendInvoiceReminder] Request params: ${JSON.stringify(params)}`);
 
   // Make API call
   try {
@@ -288,7 +288,7 @@ export async function cancelSentInvoice(
   const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/cancel`;
   logger(`[cancelSentInvoice] API URL: ${url}`);
 
-  logger(`[cancelSentInvoice] Request data: ${JSON.stringify(params)}`);
+  logger(`[cancelSentInvoice] Request params: ${JSON.stringify(params)}`);
 
   // Make API call
   try {
@@ -337,15 +337,15 @@ export async function generateInvoiceQrCode(
 
 // === PRODUCT FUNCTIONS ===
 export async function createProduct(
-  paypal: PayPalAPI, 
-  context: Context, 
-  data:TypeOf<typeof createProductParameters>) {
-  
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createProductParameters>>) {
+
   const headers = await paypal.getHeaders();
   const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products`;
-  logger('[createProduct] Payload: ${JSON.stringify(data, null, 3)}');
+  logger(`[createProduct] Payload: ${JSON.stringify(params, null, 2)}`);
   try {
-    const response = await axios.post(apiUrl, data, { headers });
+    const response = await axios.post(apiUrl, params, { headers });
     return response.data;
   } catch (error) {
     // @ts-ignore
@@ -356,14 +356,14 @@ export async function createProduct(
 
 
 export async function listProducts(
-  paypal: PayPalAPI, 
-  context: Context, 
-  data:TypeOf<typeof listProductsParameters>) {
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof listProductsParameters>>) {
 
   const headers = await paypal.getHeaders();
-  const { page = 1, page_size = 2, total_required = true } = data;
+  const { page = 1, page_size = 2, total_required = true } = params;
   const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products?page_size=${page_size}&page=${page}&total_required=${total_required}`;
-  
+
   try {
     const response = await axios.get(apiUrl, { headers });
     return response.data;
@@ -375,12 +375,12 @@ export async function listProducts(
 };
 
 export async function showProductDetails(
-  paypal: PayPalAPI, 
-  context: Context, 
-  data:TypeOf<typeof showProductDetailsParameters>) {
-    
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof showProductDetailsParameters>>) {
+
   const headers = await paypal.getHeaders();
-  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products/${data.product_id}`;
+  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products/${params.product_id}`;
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -398,16 +398,16 @@ export async function showProductDetails(
 
 
 // === SUBSCRIPTION PLAN FUNCTIONS ===
-export async function createSubscriptionPlan( 
-  paypal: PayPalAPI, 
-  context: Context, 
-  data:TypeOf<typeof createSubscriptionPlanParameters>) {
-    
+export async function createSubscriptionPlan(
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createSubscriptionPlanParameters>>) {
+
   const headers = await paypal.getHeaders();
   const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans`;
-  logger('[createSubscriptionPlan] Payload: ${JSON.stringify(data, null, 3)}');
+  logger(`[createSubscriptionPlan] Payload: ${JSON.stringify(params, null, 2)}`);
   try {
-    const response = await axios.post(apiUrl, data, { headers });
+    const response = await axios.post(apiUrl, params, { headers });
     return response.data;
   } catch (error) {
     // @ts-ignore
@@ -417,17 +417,16 @@ export async function createSubscriptionPlan(
 }
 
 export async function listSubscriptionPlans(
-  paypal: PayPalAPI, 
-  context: Context, 
-  data: TypeOf<typeof listSubscriptionPlansParameters>){
-               
-  const { page = 1, page_size = 10, total_required = true, product_id } = data;
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof listSubscriptionPlansParameters>>) {
+  const { page = 1, page_size = 10, total_required = true, product_id } = params;
   let apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans?page_size=${page_size}&page=${page}&total_required=${total_required}`;
   if (product_id) {
     apiUrl += `&product_id=${product_id}`;
   }
   const headers = await paypal.getHeaders();
-  
+
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -441,13 +440,13 @@ export async function listSubscriptionPlans(
 }
 
 export async function showSubscriptionPlanDetails(
-  paypal: PayPalAPI, 
-  context: Context, 
-  data:TypeOf<typeof showSubscriptionPlanDetailsParameters>){
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof showSubscriptionPlanDetailsParameters>>) {
 
   const headers = await paypal.getHeaders();
-  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans/${data.plan_id}`;
-  
+  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans/${params.plan_id}`;
+
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -464,16 +463,16 @@ export async function showSubscriptionPlanDetails(
 
 // === SUBSCRIPTION  FUNCTIONS ===
 export async function createSubscription(
-  paypal: PayPalAPI, 
-  context: Context, 
-  data:TypeOf<typeof createSubscriptionParameters>){
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createSubscriptionParameters>>) {
 
   const headers = await paypal.getHeaders();
   const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions`;
-  
-  logger('[createSubscription] Payload: ${JSON.stringify(data, null, 3)}');
+
+  logger(`[createSubscription] Payload: ${JSON.stringify(params, null, 2)}`);
   try {
-    const response = await axios.post(apiUrl, data, { headers });
+    const response = await axios.post(apiUrl, params, { headers });
     return response.data;
   } catch (error) {
     // @ts-ignore
@@ -484,12 +483,13 @@ export async function createSubscription(
 
 
 export async function showSubscriptionDetails(
-  paypal: PayPalAPI, 
-  context: Context, 
-  data:TypeOf<typeof showSubscriptionDetailsParameters>){
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof showSubscriptionDetailsParameters>>) {
 
   const headers = await paypal.getHeaders();
-  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions/${data.subscription_id}`;
+  const { subscription_id } = params;
+  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
 
   try {
     const response = await axios.get(apiUrl, {
@@ -505,15 +505,15 @@ export async function showSubscriptionDetails(
 }
 
 export async function cancelSubscription(
-  paypal: PayPalAPI, 
-  context: Context, 
-  data: TypeOf<typeof cancelSubscriptionParameters>){
-  
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof cancelSubscriptionParameters>>) {
+
   const headers = await paypal.getHeaders();
-  const { subscription_id, payload } = data;
+  const { subscription_id, payload } = params;
   const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}/cancel`;
-  
-  logger('[cancelSubscription] Payload: ${JSON.stringify(data, null, 3)}');
+
+  logger(`[cancelSubscription] Payload: ${JSON.stringify(params, null, 3)}`);
   try {
     const response = await axios.post(apiUrl, payload, { headers });
     return response.data;
@@ -637,7 +637,7 @@ export async function createShipment(
     }]
   };
 
-  logger(`[createShipment] Trackers data: ${JSON.stringify(trackersData)}`);
+  logger(`[createShipment] Trackers params: ${JSON.stringify(trackersData)}`);
 
   // Make API call
   try {
@@ -659,15 +659,48 @@ export async function getShipmentTracking(
   logger('[getShipmentTracking] Starting to get shipment tracking information');
   logger(`[getShipmentTracking] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
   const {
-    transaction_id,
-    tracking_number
+    transaction_id: providedTransactionId,
+    order_id
   } = params;
-  logger(`[getShipmentTracking] Tracking details: transaction_id=${transaction_id}, tracking_number=${tracking_number}`);
+  logger(`[getShipmentTracking] Tracking details: transaction_id=${providedTransactionId}, order_id=${order_id}`);
 
   const headers = await paypal.getHeaders();
   logger('[getShipmentTracking] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v1/shipping/trackers/${transaction_id}-${tracking_number}`;
+  let transaction_id = providedTransactionId;
+
+  // Check if order_id is provided and transaction_id is not.
+  if (order_id && !providedTransactionId) {
+    logger('[getShipmentTracking] order_id provided but transaction_id is missing. Attempting to extract transaction_id from order details.');
+    try {
+      const orderDetails = await getOrder(paypal, context, { id: order_id });
+
+      if (orderDetails && orderDetails.purchase_units && orderDetails.purchase_units.length > 0) {
+        const purchaseUnit = orderDetails.purchase_units[0];
+
+        if (purchaseUnit.payments && purchaseUnit.payments.captures && purchaseUnit.payments.captures.length > 0) {
+          const captureDetails = purchaseUnit.payments.captures[0];
+          transaction_id = captureDetails.id;
+          logger(`[getShipmentTracking] transaction_id extracted from order details: ${transaction_id}`);
+
+        } else {
+          throw new Error("Could not find capture id in the purchase unit details.")
+        }
+      }
+
+      else {
+        throw new Error("Could not find purchase unit details in order details.")
+      }
+
+    } catch (error: any) {
+      logger(`[getShipmentTracking] Error extracting transaction_id from order details: ${error.message}`);
+      throw new Error(`Error extracting transaction_id from order details: ${error.message}`);
+    }
+  } else if (!providedTransactionId) {
+    throw new Error("Either transaction_id or order_id must be provided.");
+  }
+
+  const url = `${paypal.getBaseUrl()}/v1/shipping/trackers?transaction_id=${transaction_id}`;
   logger(`[getShipmentTracking] API URL: ${url}`);
 
   // Make API call
@@ -683,14 +716,6 @@ export async function getShipmentTracking(
 }
 
 // === DISPUTE FUNCTIONS ===
-
-
-export function toQueryString(params: TypeOf<ReturnType<typeof listDisputesParameters>>): string {
-  return Object.entries(params)
-    .filter(([_, value]) => value !== undefined && value !== null)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
-    .join('&');
-}
 
 export async function listDisputes(
   paypal: PayPalAPI,
@@ -770,9 +795,9 @@ export async function acceptDisputeClaim(
 }
 
 export async function listTransactions(
-    paypal: PayPalAPI,
-    context: Context,
-    params: TypeOf<ReturnType<typeof listTransactionsParameters>>
+  paypal: PayPalAPI,
+  context: Context,
+  params: TypeOf<ReturnType<typeof listTransactionsParameters>>
 ): Promise<any> {
   logger('[listTransactions] Starting to list disputes');
   logger(`[listTransactions] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
@@ -783,9 +808,9 @@ export async function listTransactions(
   if (!params.end_date && !params.start_date) {
     params.end_date = new Date().toLocaleString();
     params.start_date = new Date(new Date().getDay() - 31).toLocaleString();
-  } else if(!params.end_date){
+  } else if (!params.end_date) {
     params.end_date = new Date(new Date(params.start_date as string).getDay() + 31).toLocaleString();
-  } else if(!params.start_date){
+  } else if (!params.start_date) {
     params.start_date = new Date(new Date(params.end_date as string).getDay() - 31).toLocaleString();
   } else {
     let dayRange = new Date(params.end_date as string).getDay() - new Date(params.start_date as string).getDay();

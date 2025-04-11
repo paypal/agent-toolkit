@@ -5,34 +5,57 @@ The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Age
 
 ## Available tools
 
-| Tool | Description |
-|--------|------|
-| `create_invoice` | Create Invoice |
-| `list_invoices` | List Invoices |
-| `get_invoice` | Get Invoice |
-| `send_invoice` | Send Invoice |
-| `send_invoice_reminder` | Send Invoice Reminder |
-| `cancel_sent_invoice` | Cancel Sent Invoice |
-| `generate_invoice_qr` | Generate Invoice QR Code |
-| `create_product` | Create Product |
-| `list_products` | List Products |
-| `update_product` | Update Product |
-| `show_product_details` | Show Products Details |
-| `create_subscription_plan` | Create Subscription Plan |
-| `list_subscription_plans` | List Subscription Plans |
-| `show_subscription_plan_details` | Show Subscription Plan Details |
-| `create_subscription` | Create Subscription |
-| `show_subscription_details` | Show Subscription Details |
-| `cancel_subscription` | Cancel Subscription |
-| `create_shipment` | Create shipment |
-| `get_shipment_tracking` | Get Shipment Tracking |
-| `create_order` | Create Order |
-| `get_order` | Get Order |
-| `capture_order` | Capture Order |
-| `list_disputes` | List Disputes |
-| `get_dispute` | Get Dispute |
-| `accept_dispute_claim` | Accept dispute claim |
-| `list_transactions` | List Transactions |
+The PayPal Agent toolkit provides the following tools:
+
+**Invoices**
+
+- `create_invoice`: Create a new invoice in the PayPal system
+- `list_invoices`: List invoices with optional pagination and filtering
+- `get_invoice`: Retrieve details of a specific invoice
+- `send_invoice`: Send an invoice to recipients
+- `send_invoice_reminder`: Send a reminder for an existing invoice
+- `cancel_sent_invoice`: Cancel a sent invoice
+- `generate_invoice_qr_code`: Generate a QR code for an invoice
+
+**Orders**
+
+- `create_order`: Create an order in PayPal system based on provided details
+- `get_order`: Retrieve the details of an order
+- `capture_order`: Capture payment for an authorized order
+
+**Disputes**
+
+- `list_disputes`: Retrieve a summary of all open disputes
+- `get_dispute`: Retrieve detailed information of a specific dispute
+- `accept_dispute_claim`: Accept a dispute claim
+
+**Shipments**
+
+- `create_shipment`: Create a shipment tracking record
+- `get_shipment_tracking`: Retrieve shipment tracking information
+
+**Products**
+
+- `create_product`: Create a new product in the PayPal catalog
+- `list_products`: List products with optional pagination and filtering
+- `show_product_details`: Retrieve details of a specific product
+- `update_product`: Update an existing product
+
+**Subscription Plans**
+
+- `create_subscription_plan`: Create a new subscription plan
+- `list_subscription_plans`: List subscription plans
+- `show_subscription_plan_details`: Retrieve details of a specific subscription plan
+
+**Subscriptions**
+
+- `create_subscription`: Create a new subscription
+- `show_subscription_details`: Retrieve details of a specific subscription
+- `cancel_subscription`: Cancel an active subscription
+
+**Transactions**
+
+- `list_transactions`: List transactions with optional pagination and filtering
 
 ## TypeScript
 
@@ -41,7 +64,7 @@ The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Age
 You don't need this source code unless you want to modify the package. If you just
 want to use the package run:
 
-```
+```sh
 npm install @paypal/agent-toolkit
 ```
 
@@ -57,26 +80,57 @@ The library needs to be configured with your account's client id and secret whic
 The toolkit works with Vercel's AI SDK and can be passed as a list of tools. For more details, refer our [examples](./typescript/examples)
 
 ```typescript
-import {PayPalAgentToolkit, ALL_TOOLS_ENABLED} from '@paypal/agent-toolkit/ai-sdk';
+import { PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk';
 const paypalToolkit = new PayPalAgentToolkit({
-     clientId: process.env.PAYPAL_CLIENT_ID,
-     clientSecret: process.env.PAYPAL_CLIENT_SECRET,
-     configuration: {
-         actions: ALL_TOOLS_ENABLED
-     }
+  clientId: process.env.PAYPAL_CLIENT_ID,
+  clientSecret: process.env.PAYPAL_CLIENT_SECRET,
+  configuration: {
+    actions: {
+      invoices: {
+        create: true,
+        list: true,
+        send: true,
+        sendReminder: true,
+        cancel: true,
+        generateQRC: true,
+      },
+      products: { create: true, list: true, update: true },
+      subscriptionPlans: { create: true, list: true, show: true },
+      shipment: { create: true, show: true, cancel: true },
+      orders: { create: true, get: true },
+      disputes: { list: true, get: true },
+    },
+  },
 });
+```
 
+### Initializing the Workflows
+
+```typescript
+import { PayPalWorkflows, ALL_TOOLS_ENABLED } from '@paypal/agent-toolkit/ai-sdk';
+const paypalWorkflows = new PayPalWorkflows({
+  clientId: process.env.PAYPAL_CLIENT_ID,
+  clientSecret: process.env.PAYPAL_CLIENT_SECRET,
+  configuration: {
+    actions: ALL_TOOLS_ENABLED,
+  },
+});
+```
+
+## Usage
+
+### Using the toolkit
+
+```typescript
 const llm: LanguageModelV1 = getModel(); // The model to be used with ai-sdk
-const {text: response}= await generateText({
-    model: llm,
-    tools: await paypalToolkit.getTools(),
-    prompt: `Create an invoice for 3 hours of labor at $120/hr and text a link to John Doe.`,
+const { text: response } = await generateText({
+  model: llm,
+  tools: this.toolkit.tools,
+  maxSteps: 10,
+  prompt: `Create an order for $50 for custom handcrafted item and get the payment link.`,
 });
 
 ```
-
-
-
 
 ## PayPal Model Context Protocol
 
@@ -99,7 +153,11 @@ You can set up your own MCP server. For example:
 import { PayPalAgentToolkit } from “@paypal/agent-toolkit/modelcontextprotocol";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-const tools = payPalAgentToolkit.getTools();
+const orderSummary = await paypalWorkflows.generateOrder(
+  llm,
+  transactionInfo,
+  merchantInfo,
+);
 
 const server = new PayPalAgentToolkit({
 	accessToken: process.env.PAYPAL_ACCESS_TOKEN

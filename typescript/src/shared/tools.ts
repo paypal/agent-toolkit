@@ -140,13 +140,13 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
-    method: 'generate_invoice_qr',
+    method: 'generate_invoice_qr_code',
     name: 'Generate Invoice QR Code',
     description: generateInvoiceQrCodePrompt(context),
     parameters: generateInvoiceQrCodeParameters(context),
     actions: {
       invoices: {
-        generateQR: true,
+        generateQRC: true,
       },
     },
   },

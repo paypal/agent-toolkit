@@ -100,3 +100,10 @@ export const toCamelCaseKeys = (obj: any): any => {
     }
     return obj;
 };
+
+export function toQueryString(params: TypeOf<ReturnType<typeof listDisputesParameters>>): string {
+    return Object.entries(params)
+      .filter(([_, value]) => value !== undefined && value !== null)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+      .join('&');
+  }

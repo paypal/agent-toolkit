@@ -92,18 +92,17 @@ export const updateProductParameters = (context: Context) =>
 
 export const createShipmentParameters = (context: Context) =>
   z.object({
-    order_id: z.string().describe('The ID of the order for which to create a shipment.').optional(),
-    tracking_number: z.string().describe('The tracking number for the shipment. This is required to create a shipment.'),
-    transaction_id: z.string().describe('The transaction ID associated with the shipment. This is required to create a shipment.'),
-    status: z.string().optional().describe('The status of the shipment. It can be "ON_HOLD", "SHIPPED", "DELIVERED", or "CANCELLED".'),
+    order_id: z.string().describe('The ID of the order for which to create a shipment').optional(),
+    tracking_number: z.string().describe('The tracking number for the shipment. Id is provided by the shipper. This is required to create a shipment.'),
+    transaction_id: z.string().describe('The transaction ID associated with the shipment. Transaction id available after the order is paid or captured. This is required to create a shipment.'),
+    status: z.string().optional().describe('The status of the shipment. It can be "ON_HOLD", "SHIPPED", "DELIVERED", or "CANCELLED".').default("SHIPPED"),
     carrier: z.string().optional().describe('The carrier handling the shipment.'),
   });
 
 export const getShipmentTrackingParameters = (context: Context) =>
   z.object({
     order_id: z.string().describe('The ID of the order for which to create a shipment.').optional(),
-    transaction_id: z.string().describe('The transaction ID associated with the shipment tracking to retrieve.'),
-    tracking_number: z.string().describe('The tracking number for the shipment to retrieve.'),
+    transaction_id: z.string().describe('The transaction ID associated with the shipment tracking to retrieve.').optional(),
   });
 
 // === ORDER PARAMETERS ===
@@ -124,18 +123,12 @@ const lineItem = z.object({
 }).merge(itemDetails); // Merge itemDetails into lineItem
 
 const shippingAddress = z.object({
-
   address_line_1: z.string().describe('The first line of the address, such as number and street, for example, `173 Drury Lane`.This field needs to pass the full address.').optional(),
-
   address_line_2: z.string().describe(`The second line of the address, for example, a suite or apartment number.`).optional(),
-
   admin_area_2: z.string().describe('A city, town, or village. Smaller than `admin_area_level_1`.').optional(),
-
   admin_area_1: z.string().describe('The highest-level sub-division in a country, which is usually a province, state, or ISO-3166-2 subdivision. ').optional(),
-
   postal_code: z.string().describe('The postal code, which is the ZIP code or equivalent. Typically required for countries with a postal code or an equivalent.').optional(),
-
-  country_code: z.string().describe('The 2-character ISO 3166-1 code that identifies the country or region. Note: The country code for Great Britain is `GB` and not `UK` as used in the top-level domain names for that country.').length(2)
+  country_code: z.string().describe('The 2-character ISO 3166-1 code that identifies the country or region. Note: The country code for Great Britain is `GB` and not `UK` as used in the top-level domain names for that country.').length(2).optional()
 }).describe('The shipping address for the order.')
 
 export const createOrderParameters = (context: Context) => z.object({
@@ -143,7 +136,7 @@ export const createOrderParameters = (context: Context) => z.object({
   items: z.array(z.lazy(() => lineItem)).max(50),
   discount: z.number().describe('The discount amount for the order.').default(0).optional(),
   shippingCost: z.number().describe('The cost of shipping for the order.').default(0).optional(),
-  shippingAddress: shippingAddress.optional(),
+  shippingAddress: shippingAddress.describe('The shipping address for the order.').optional(),
   notes: z.string().optional(),
   returnUrl: z.string().optional().default('https://example.com/returnUrl'),
   cancelUrl: z.string().optional().default('https://example.com/cancelUrl')
@@ -184,16 +177,16 @@ export const acceptDisputeClaimParameters = (context: Context) => z.object({
 // === Transaction Search ===
 
 export const listTransactionsParameters = (context: Context) => z.object({
-    transaction_id: z.string().optional(),
-    transaction_status: z.enum([
-        "D",
-        "P",
-        "S",
-        "V"]).optional(),
-    start_date: z.string().describe('Filters the transactions in the response by a start date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional.').optional(),
-    end_date: z.string().describe('Filters the transactions in the response by an end date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional. The maximum supported range is 31 days.').optional(),
-    page_size: z.number().default(100).optional(),
-    page: z.number().default(1).optional()
+  transaction_id: z.string().optional().describe('The ID of the transaction to retrieve.'),
+  transaction_status: z.enum([
+    "D",
+    "P",
+    "S",
+    "V"]).optional(),
+  start_date: z.string().describe('Filters the transactions in the response by a start date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional.').optional(),
+  end_date: z.string().describe('Filters the transactions in the response by an end date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional. The maximum supported range is 31 days.').optional(),
+  page_size: z.number().default(100).optional(),
+  page: z.number().default(1).optional()
 });
 
 
@@ -219,116 +212,116 @@ export const showProductDetailsParameters = (context: Context) => z.object({
 
 // === SUBSCRIPTION PLAN PARAMETERS ===
 const frequencySchema = z.object({
-interval_unit: z.enum(['DAY', 'WEEK', 'MONTH', 'YEAR']).describe('The unit of time for the billing cycle.'),
-interval_count: z.number().describe('The number of units for the billing cycle.'),
+  interval_unit: z.enum(['DAY', 'WEEK', 'MONTH', 'YEAR']).describe('The unit of time for the billing cycle.'),
+  interval_count: z.number().describe('The number of units for the billing cycle.'),
 }).passthrough();
 
 const pricingSchemeSchema = z.object({
-fixed_price: z.object({
-  currency_code: z.enum(['USD']).describe('The currency code for the fixed price.'),
-  value: z.string().describe('The value of the fixed price.'),
-}).passthrough().optional().describe('The fixed price for the subscription plan.'),
-version: z.string().optional().describe('The version of the pricing scheme.'),
+  fixed_price: z.object({
+    currency_code: z.enum(['USD']).describe('The currency code for the fixed price.'),
+    value: z.string().describe('The value of the fixed price.'),
+  }).passthrough().optional().describe('The fixed price for the subscription plan.'),
+  version: z.string().optional().describe('The version of the pricing scheme.'),
 }).passthrough();
 
 const billingCycleSchema = z.object({
-frequency: frequencySchema.describe('The frequency of the billing cycle.'),
-tenure_type: z.enum(['REGULAR', 'TRIAL']).describe('The type of billing cycle tenure.'),
-sequence: z.number().describe('The sequence of the billing cycle.'),
-total_cycles: z.number().optional().describe('The total number of cycles in the billing plan.'),
-pricing_scheme: pricingSchemeSchema.describe('The pricing scheme for the billing cycle.'),
+  frequency: frequencySchema.describe('The frequency of the billing cycle.'),
+  tenure_type: z.enum(['REGULAR', 'TRIAL']).describe('The type of billing cycle tenure.'),
+  sequence: z.number().describe('The sequence of the billing cycle.'),
+  total_cycles: z.number().optional().describe('The total number of cycles in the billing plan.'),
+  pricing_scheme: pricingSchemeSchema.describe('The pricing scheme for the billing cycle.'),
 }).passthrough();
 
 const setupFeeSchema = z.object({
-currency_code: z.enum(['USD']).optional().describe('The currency code for the setup fee.'),
-value: z.string().optional().describe('The value of the setup fee.'),
+  currency_code: z.enum(['USD']).optional().describe('The currency code for the setup fee.'),
+  value: z.string().optional().describe('The value of the setup fee.'),
 }).passthrough().optional();
 
 const paymentPreferencesSchema = z.object({
-auto_bill_outstanding: z.boolean().optional().describe('Indicates whether to automatically bill outstanding amounts.'),
-setup_fee: setupFeeSchema.describe('The setup fee for the subscription plan.'),
-setup_fee_failure_action: z.enum(['CONTINUE', 'CANCEL']).optional().describe('The action to take if the setup fee payment fails.'),
-payment_failure_threshold: z.number().optional().describe('The number of failed payments before the subscription is canceled.'),
+  auto_bill_outstanding: z.boolean().optional().describe('Indicates whether to automatically bill outstanding amounts.'),
+  setup_fee: setupFeeSchema.describe('The setup fee for the subscription plan.'),
+  setup_fee_failure_action: z.enum(['CONTINUE', 'CANCEL']).optional().describe('The action to take if the setup fee payment fails.'),
+  payment_failure_threshold: z.number().optional().describe('The number of failed payments before the subscription is canceled.'),
 }).passthrough().optional();
 
 const taxesSchema = z.object({
-percentage: z.string().optional().describe('The tax percentage.'),
-inclusive: z.boolean().optional().describe('Indicates whether the tax is inclusive.'),
+  percentage: z.string().optional().describe('The tax percentage.'),
+  inclusive: z.boolean().optional().describe('Indicates whether the tax is inclusive.'),
 }).passthrough().optional();
 
 export const createSubscriptionPlanParameters = (context: Context) => z.object({
-product_id: z.string().describe('The ID of the product for which to create the plan.'),
-name: z.string().describe('The subscription plan name.'),
-description: z.string().optional().describe('The subscription plan description.'),
-billing_cycles: z.array(billingCycleSchema).describe('The billing cycles of the plan.'),
-payment_preferences: paymentPreferencesSchema.describe('The payment preferences for the subscription plan.'),
-taxes: taxesSchema.describe('The tax details.'),
+  product_id: z.string().describe('The ID of the product for which to create the plan.'),
+  name: z.string().describe('The subscription plan name.'),
+  description: z.string().optional().describe('The subscription plan description.'),
+  billing_cycles: z.array(billingCycleSchema).describe('The billing cycles of the plan.'),
+  payment_preferences: paymentPreferencesSchema.describe('The payment preferences for the subscription plan.'),
+  taxes: taxesSchema.describe('The tax details.'),
 });
 
 export const listSubscriptionPlansParameters = (context: Context) => z.object({
-product_id: z.string().optional().describe('The ID of the product for which to get subscription plans.'),
-page: z.number().optional().describe('The page number of the result set to fetch.'),
-page_size: z.number().optional().describe('The number of records to return per page (maximum 100).'),
-total_required: z.boolean().optional().describe('Indicates whether the response should include the total count of plans.'),
+  product_id: z.string().optional().describe('The ID of the product for which to get subscription plans.'),
+  page: z.number().optional().describe('The page number of the result set to fetch.'),
+  page_size: z.number().optional().describe('The number of records to return per page (maximum 100).'),
+  total_required: z.boolean().optional().describe('Indicates whether the response should include the total count of plans.'),
 });
 
 export const showSubscriptionPlanDetailsParameters = (context: Context) => z.object({
-plan_id: z.string().describe('The ID of the subscription plan to show.'),
+  plan_id: z.string().describe('The ID of the subscription plan to show.'),
 });
 
 // === SUBSCRIPTION PARAMETERS ===
 const NameSchema = z.object({
-given_name: z.string().describe('The subscriber given name.'),
-surname: z.string().optional().describe('The subscriber last name.'),
+  given_name: z.string().describe('The subscriber given name.'),
+  surname: z.string().optional().describe('The subscriber last name.'),
 }).describe('The subscriber name.');
 
 const AddressSchema = z.object({
-address_line_1: z.string().describe('The first line of the address.'),
-address_line_2: z.string().optional().describe('The second line of the address.'),
-admin_area_1: z.string().describe('The city or locality.'),
-admin_area_2: z.string().describe('The state or province.'),
-postal_code: z.string().describe('The postal code.'),
-country_code: z.enum(['US']).describe('The country code.'),
+  address_line_1: z.string().describe('The first line of the address.'),
+  address_line_2: z.string().optional().describe('The second line of the address.'),
+  admin_area_1: z.string().describe('The city or locality.'),
+  admin_area_2: z.string().describe('The state or province.'),
+  postal_code: z.string().describe('The postal code.'),
+  country_code: z.enum(['US']).describe('The country code.'),
 }).passthrough().describe('The shipping address.');
 
 const ShippingAddressSchema = z.object({
-name: NameSchema.describe('The subscriber shipping address name.'),
-address: AddressSchema,
+  name: NameSchema.describe('The subscriber shipping address name.'),
+  address: AddressSchema,
 }).optional().describe('The subscriber shipping address.');
 
 const PaymentMethodSchema = z.object({
-payer_selected: z.enum(['PAYPAL', 'CREDIT_CARD']).describe('The payment method selected by the payer.'),
-payee_preferred: z.enum(['IMMEDIATE_PAYMENT_REQUIRED', 'INSTANT_FUNDING_SOURCE']).optional().describe('The preferred payment method for the payee.'),
+  payer_selected: z.enum(['PAYPAL', 'CREDIT_CARD']).describe('The payment method selected by the payer.'),
+  payee_preferred: z.enum(['IMMEDIATE_PAYMENT_REQUIRED', 'INSTANT_FUNDING_SOURCE']).optional().describe('The preferred payment method for the payee.'),
 }).passthrough().describe('The payment method details.');
 
 const ShippingAmount = z.object({
-currency_code: z.enum(['USD']).describe('The currency code for the shipping amount.'),
-value: z.string().describe('The value of the shipping amount.'),
+  currency_code: z.enum(['USD']).describe('The currency code for the shipping amount.'),
+  value: z.string().describe('The value of the shipping amount.'),
 }).optional().describe('The shipping amount for the subscription.');
 
 const Subscriber = z.object({
-name: NameSchema,
-email_address: z.string().describe('The subscriber email address.'),
-shipping_address: ShippingAddressSchema,
+  name: NameSchema,
+  email_address: z.string().describe('The subscriber email address.'),
+  shipping_address: ShippingAddressSchema,
 }).passthrough().describe('The subscriber details.');
 
 const ApplicationContext = z.object({
-brand_name: z.string().describe('The brand name.'),
-locale: z.string().optional().describe('The locale for the subscription.'),
-shipping_preference: z.enum(['SET_PROVIDED_ADDRESS', 'GET_FROM_FILE']).optional().describe('The shipping preference.'),
-user_action: z.enum(['SUBSCRIBE_NOW', 'CONTINUE']).optional().describe('The user action.'),
-return_url: z.string().describe('The return URL after the subscription is created.'),
-cancel_url: z.string().describe('The cancel URL if the user cancels the subscription.'),
-payment_method: PaymentMethodSchema,
+  brand_name: z.string().describe('The brand name.'),
+  locale: z.string().optional().describe('The locale for the subscription.'),
+  shipping_preference: z.enum(['SET_PROVIDED_ADDRESS', 'GET_FROM_FILE']).optional().describe('The shipping preference.'),
+  user_action: z.enum(['SUBSCRIBE_NOW', 'CONTINUE']).optional().describe('The user action.'),
+  return_url: z.string().describe('The return URL after the subscription is created.'),
+  cancel_url: z.string().describe('The cancel URL if the user cancels the subscription.'),
+  payment_method: PaymentMethodSchema,
 }).optional().describe('The application context for the subscription.');
 
 
 export const createSubscriptionParameters = (context: Context) => z.object({
-plan_id: z.string().describe('The ID of the subscription plan to create.'),
-quantity: z.number().optional().describe('The quantity of the product in the subscription.'),
-shipping_amount: ShippingAmount,
-subscriber: Subscriber,
-application_context: ApplicationContext,
+  plan_id: z.string().describe('The ID of the subscription plan to create.'),
+  quantity: z.number().optional().describe('The quantity of the product in the subscription.'),
+  shipping_amount: ShippingAmount,
+  subscriber: Subscriber,
+  application_context: ApplicationContext,
 });
 
 export const showSubscriptionDetailsParameters = (context: Context) => z.object({
