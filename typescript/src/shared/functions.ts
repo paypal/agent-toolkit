@@ -25,7 +25,8 @@ import {
   listSubscriptionPlansParameters,
   showSubscriptionPlanDetailsParameters,
   createSubscriptionParameters,
-  showSubscriptionDetailsParameters
+  showSubscriptionDetailsParameters,
+  cancelSubscriptionParameters
 } from "./parameters";
 import { parseOrderDetails } from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -342,12 +343,9 @@ export async function createProduct(
   
   const headers = await paypal.getHeaders();
   const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products`;
+  logger('[createProduct] Payload: ${JSON.stringify(data, null, 3)}');
   try {
-    const response = await axios.post(apiUrl, {
-      headers: headers,
-      data,
-    });
-
+    const response = await axios.post(apiUrl, data, { headers });
     return response.data;
   } catch (error) {
     // @ts-ignore
@@ -364,11 +362,10 @@ export async function listProducts(
 
   const headers = await paypal.getHeaders();
   const { page = 1, page_size = 2, total_required = true } = data;
-  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products?page_size=${data}&page=${page}&total_required=${total_required}`;
+  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products?page_size=${page_size}&page=${page}&total_required=${total_required}`;
+  
   try {
-    const response = await axios.get(apiUrl, {
-      headers: headers,
-    });
+    const response = await axios.get(apiUrl, { headers });
     return response.data;
   } catch (error) {
     // @ts-ignore
@@ -376,7 +373,6 @@ export async function listProducts(
     throw error;
   }
 };
-
 
 export async function showProductDetails(
   paypal: PayPalAPI, 
@@ -390,13 +386,15 @@ export async function showProductDetails(
       headers: headers,
     });
 
+
     return response.data;
   } catch (error) {
     // @ts-ignore
     console.error("Error Show Product Details:", error.response?.data || error);
     throw error;
   }
-}
+};
+
 
 
 // === SUBSCRIPTION PLAN FUNCTIONS ===
@@ -407,11 +405,9 @@ export async function createSubscriptionPlan(
     
   const headers = await paypal.getHeaders();
   const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans`;
+  logger('[createSubscriptionPlan] Payload: ${JSON.stringify(data, null, 3)}');
   try {
-    const response = await axios.post(apiUrl, {
-      headers: headers,
-      data,
-    });
+    const response = await axios.post(apiUrl, data, { headers });
     return response.data;
   } catch (error) {
     // @ts-ignore
@@ -424,13 +420,14 @@ export async function listSubscriptionPlans(
   paypal: PayPalAPI, 
   context: Context, 
   data: TypeOf<typeof listSubscriptionPlansParameters>){
-
-  const headers = await paypal.getHeaders();
+               
   const { page = 1, page_size = 10, total_required = true, product_id } = data;
   let apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans?page_size=${page_size}&page=${page}&total_required=${total_required}`;
   if (product_id) {
     apiUrl += `&product_id=${product_id}`;
   }
+  const headers = await paypal.getHeaders();
+  
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -438,11 +435,10 @@ export async function listSubscriptionPlans(
     return response.data;
   } catch (error) {
     // @ts-ignore
-    console.error("Error Listing Plans:", error.response?.data || error);
+    console.error("Error Creating Plan:", error.response?.data || error);
     throw error;
   }
 }
-
 
 export async function showSubscriptionPlanDetails(
   paypal: PayPalAPI, 
@@ -451,6 +447,7 @@ export async function showSubscriptionPlanDetails(
 
   const headers = await paypal.getHeaders();
   const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans/${data.plan_id}`;
+  
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -464,6 +461,7 @@ export async function showSubscriptionPlanDetails(
   }
 }
 
+
 // === SUBSCRIPTION  FUNCTIONS ===
 export async function createSubscription(
   paypal: PayPalAPI, 
@@ -472,11 +470,10 @@ export async function createSubscription(
 
   const headers = await paypal.getHeaders();
   const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions`;
+  
+  logger('[createSubscription] Payload: ${JSON.stringify(data, null, 3)}');
   try {
-    const response = await axios.post(apiUrl, {
-      headers: headers,
-      data,
-    });
+    const response = await axios.post(apiUrl, data, { headers });
     return response.data;
   } catch (error) {
     // @ts-ignore
@@ -493,6 +490,7 @@ export async function showSubscriptionDetails(
 
   const headers = await paypal.getHeaders();
   const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions/${data.subscription_id}`;
+
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -502,6 +500,26 @@ export async function showSubscriptionDetails(
   } catch (error) {
     // @ts-ignore
     console.error("Error Show Subscription Details:", error.response?.data || error);
+    throw error;
+  }
+}
+
+export async function cancelSubscription(
+  paypal: PayPalAPI, 
+  context: Context, 
+  data: TypeOf<typeof cancelSubscriptionParameters>){
+  
+  const headers = await paypal.getHeaders();
+  const { subscription_id, payload } = data;
+  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}/cancel`;
+  
+  logger('[cancelSubscription] Payload: ${JSON.stringify(data, null, 3)}');
+  try {
+    const response = await axios.post(apiUrl, payload, { headers });
+    return response.data;
+  } catch (error) {
+    // @ts-ignore
+    console.error("Error Creating Subscription:", error.response?.data || error);
     throw error;
   }
 }

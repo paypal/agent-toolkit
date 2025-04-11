@@ -26,7 +26,7 @@ import {
   showSubscriptionPlanDetailsPrompt,
   createSubscriptionPrompt,
   showSubscriptionDetailsPrompt,
-  
+  cancelSubscriptionPrompt,
 } from './prompts';
 
 import {
@@ -55,6 +55,7 @@ import {
   showSubscriptionPlanDetailsParameters,
   createSubscriptionParameters,
   showSubscriptionDetailsParameters,
+  cancelSubscriptionParameters,
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -245,6 +246,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       subscriptions: {
         show: true,
+      },
+    },
+  },
+  {
+    method: 'cancel_subscription',
+    name: 'Cancel Subscription',
+    description: cancelSubscriptionPrompt(context),
+    parameters: cancelSubscriptionParameters(context),
+    actions: {
+      subscriptions: {
+        cancel: true,
       },
     },
   },

@@ -22,6 +22,7 @@ import {
   showProductDetails,
   showSubscriptionPlanDetails,
   showSubscriptionDetails,
+  cancelSubscription,
 } from './functions';
 
 import type { Context } from './configuration';
@@ -120,6 +121,8 @@ class PayPalAPI {
         return createSubscription(this, this.context, arg);
       case 'show_subscription_details':
         return showSubscriptionDetails(this, this.context, arg);
+      case 'cancel_subscription':
+        return cancelSubscription(this, this.context, arg);
       case 'create_shipment':
         return createShipment(this, this.context, arg);
       case 'get_shipment_tracking':

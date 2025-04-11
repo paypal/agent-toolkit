@@ -320,7 +320,8 @@ user_action: z.enum(['SUBSCRIBE_NOW', 'CONTINUE']).optional().describe('The user
 return_url: z.string().describe('The return URL after the subscription is created.'),
 cancel_url: z.string().describe('The cancel URL if the user cancels the subscription.'),
 payment_method: PaymentMethodSchema,
-}).passthrough().describe('The application context for the subscription.');
+}).optional().describe('The application context for the subscription.');
+
 
 export const createSubscriptionParameters = (context: Context) => z.object({
 plan_id: z.string().describe('The ID of the subscription plan to create.'),
@@ -331,6 +332,13 @@ application_context: ApplicationContext,
 });
 
 export const showSubscriptionDetailsParameters = (context: Context) => z.object({
-subscription_id: z.string().describe('The ID of the subscription to show details.'),
+  subscription_id: z.string().describe('The ID of the subscription to show details.'),
+});
+
+export const cancelSubscriptionParameters = (context: Context) => z.object({
+  subscription_id: z.string().describe('The ID of the subscription to show details.'),
+  payload: z.object({
+    reason: z.string().describe('The reason for the cancellation of a subscription.'),
+  }).passthrough().describe('Payload for subscription cancellation.'),
 });
 
