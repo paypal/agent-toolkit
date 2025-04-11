@@ -1,7 +1,7 @@
 import {config} from '@dotenvx/dotenvx';
 import {openai} from '@ai-sdk/openai';
 import {generateText} from 'ai';
-import {PayPalWorkflows, PayPalAgentToolkit} from '@paypal/agent-toolkit/ai-sdk';
+import {PayPalWorkflows, PayPalAgentToolkit, ALL_TOOLS_ENABLED} from '@paypal/agent-toolkit/ai-sdk';
 
 // Get the env file path from an environment variable, with a default fallback
 const envFilePath = process.env.ENV_FILE_PATH || '.env';
@@ -14,11 +14,9 @@ config({path: envFilePath});
 const ppConfig = {
     clientId: process.env.PAYPAL_CLIENT_ID || '',
     clientSecret: process.env.PAYPAL_CLIENT_SECRET || '',
-    environment: process.env.PAYPAL_ENVIRONMENT || 'Sandbox',
-    logRequestDetails: process.env.PAYPAL_LOG_REQUESTS || 'false',
-    logResponseDetails: process.env.PAYPAL_LOG_RESPONSES || 'false',
-    debug: process.env.PAYPAL_DEBUG_FLOWS || 'false',
-    logger: console.log
+    configuration: {
+        actions: ALL_TOOLS_ENABLED
+    }
 }
 /*
  * This holds all the tools that use PayPal functionality
@@ -32,7 +30,7 @@ const paypalWorkflows = new PayPalWorkflows(ppConfig)
 /*
  * This is the merchant's typical use case. This stays the same for most requests.
  */
-const systemPrompt = `I am a plumber running a small business. I charge $120 per hour plus 50% tax. I use standard parts which typically include a new faucet costing between $50-80 and pipes for about $3 per foot. There is 12% tax for parts. My return URL is: http://localhost:3000/thank-you.`
+const systemPrompt = `I am a plumber running a small business. I charge $120 per hour plus 50% tax. I use standard parts which typically include a new faucet costing between $50-80 and pipes for about $3 per foot. There is 12% tax for parts. My return URL is: http://localhost:3000/thank-you.`;
 
 
 // User can bring their own llm
@@ -50,7 +48,7 @@ const llm = openai('gpt-4o');
     // (or) Invoke through toolkit for specific use-cases
     const {text: orderDetails} = await generateText({
         model: openai('gpt-4o'),
-        tools: await paypalToolkit.getTools(),
+        tools: paypalToolkit.getTools(),
         maxSteps: 10,
         prompt: "Retrieve the details of the order with ID: 4A572180UY881681N",
     });

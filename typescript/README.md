@@ -62,7 +62,7 @@ const paypalToolkit = new PayPalAgentToolkit({
      clientId: process.env.PAYPAL_CLIENT_ID,
      clientSecret: process.env.PAYPAL_CLIENT_SECRET,
      configuration: {
-         actions: ALL_TOOLS_ENABLED
+        actions: ALL_TOOLS_ENABLED
      }
 });
 
@@ -74,8 +74,6 @@ const {text: response}= await generateText({
 });
 
 ```
-
-
 
 
 ## PayPal Model Context Protocol
