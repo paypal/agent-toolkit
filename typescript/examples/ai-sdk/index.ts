@@ -42,7 +42,7 @@ const llm = openai('gpt-4o');
     const userPrompt = `Customer needed 3 hours of work and had a standard list of parts for replacing a kitchen faucet. Create an order.`
 
     // Invoke preconfigured workflows that will orchestrate across multiple calls.
-    const orderSummary = await paypalWorkflows.createOrder(llm, userPrompt, systemPrompt);
+    const orderSummary = await paypalWorkflows.generateOrder(llm, userPrompt, systemPrompt);
     console.log(orderSummary)
 
     // (or) Invoke through toolkit for specific use-cases
