@@ -125,7 +125,7 @@ const paypalWorkflows = new PayPalWorkflows({
 const llm: LanguageModelV1 = getModel(); // The model to be used with ai-sdk
 const { text: response } = await generateText({
   model: llm,
-  tools: this.toolkit.tools,
+  tools: paypalToolkit.getTools(),
   maxSteps: 10,
   prompt: `Create an order for $50 for custom handcrafted item and get the payment link.`,
 });
