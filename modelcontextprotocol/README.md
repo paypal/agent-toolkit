@@ -11,7 +11,7 @@ npx -y @paypal/mcp --tools=all PAYPAL_ACCESS_TOKEN="YOUR_ACCESS_TOKEN" PAYPAL_EN
 
 Replace `YOUR_ACCESS_TOKEN` with your PayPal access token. Refer this on how to [generate a PayPal access token](#generating-an-access-token). Alternatively, you could set the PAYPAL_ACCESS_TOKEN in your environment variables.
 
-### Usage with MCP host (Claude Desktop/Cline/Cursor/Github Co-Pilot)
+### Usage with MCP host (Claude Desktop/Cline/Cursor/GitHub Copilot)
 
 This guide explains how to integrate the PayPal connector with Claude Desktop.
 
