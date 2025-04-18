@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rm -rf dist ai-sdk",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "pnpm i && tsup"
+    "build": "npm i && tsup"
   },
   "exports": {
     "./ai-sdk": {
