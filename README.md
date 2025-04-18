@@ -175,7 +175,7 @@ main().catch((error) => {
 });
 ```
 
-### Usage with MCP host (Claude Desktop/Cline/Cursor/Github Co-Pilot)
+### Usage with MCP host (Claude Desktop/Cline/Cursor/GitHub Copilot)
 
 This guide explains how to integrate the PayPal connector with Claude Desktop.
 
