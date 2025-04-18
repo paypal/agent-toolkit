@@ -2,6 +2,35 @@
 
 The PayPal Agentic Toolkit integrates PayPal's REST APIs seamlessly with OpenAI Agents, allowing AI-driven management of PayPal transactions.
 
+## Available tools
+
+The PayPal Agent toolkit provides the following tools:
+
+**Orders**
+
+- `create_order`: Create an order in PayPal system based on provided details
+- `get_order`: Retrieve the details of an order
+- `capture_order`: Capture payment for an authorized order
+
+**Products**
+
+- `create_product`: Create a new product in the PayPal catalog
+- `list_products`: List products with optional pagination and filtering
+- `show_product_details`: Retrieve details of a specific product
+- `update_product`: Update an existing product
+
+**Subscription Plans**
+
+- `create_subscription_plan`: Create a new subscription plan
+- `list_subscription_plans`: List subscription plans
+- `show_subscription_plan_details`: Retrieve details of a specific subscription plan
+
+**Subscriptions**
+
+- `create_subscription`: Create a new subscription
+- `show_subscription_details`: Retrieve details of a specific subscription
+- `cancel_subscription`: Cancel an active subscription
+
 
 ## Prerequisites
 
