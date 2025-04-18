@@ -109,13 +109,12 @@ Required parameters are: plan_id (the ID of the subscription plan).
 `;
 
 export const createSubscriptionPrompt = (context: Context) => `
-Create a subscription in PayPal using subscription - create subscription API.
-This function creates a new subscription for a specific plan, allowing you to manage recurring payments.
-Required parameters are: plan_id (the ID of the subscription plan), subscriber (subscriber details).
-High level: plan_id, subscriber, start_time, tax, items are needed in payload.
-Shipping address is optional, If no shipping address is provided then set shipping_preference to GET_FROM_FILE in application context.
-Skip application context if required information is not provided and use default: {"brand_name":"Example Inc","locale":"en-US","shipping_preference":"SET_PROVIDED_ADDRESS","user_action":"SUBSCRIBE_NOW","payment_method":{"payer_selected":"PAYPAL","payee_preferred":"IMMEDIATE_PAYMENT_REQUIRED"},"return_url":"https://example.com/return","cancel_url":"https://example.com/cancel"}
-Show all the default values to the user for his conformation.
+Create a subscription in PayPal using the subscription - create subscription API.
+This function allows you to create a new subscription for a specific plan, enabling the management of recurring payments.
+The only required parameter is plan_id (the ID of the subscription plan). All other fields are optional and can be omitted if not provided.
+The subscriber field is optional. If no subscriber information is provided, omit the subscriber field in the request payload.
+The shipping address is optional. If no shipping address is provided, set the shipping_preference to GET_FROM_FILE in the application context.
+The application context is also optional. If no application context information is provided, omit the application context field in the request payload.
 `;
 
 export const showSubscriptionDetailsPrompt = (context: Context) => `

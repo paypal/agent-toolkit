@@ -1,5 +1,4 @@
 import axios from 'axios';
-import type PayPalAPI from './api';
 import type { Context } from './configuration';
 import {
   getInvoicParameters,
@@ -31,13 +30,14 @@ import {
 import { parseOrderDetails, toQueryString } from "./payloadUtils";
 import { TypeOf } from "zod";
 import debug from "debug";
+import PayPalClient from './client';
 
 const logger = debug('agent-toolkit:functions');
 
 // === INVOICE FUNCTIONS ===
 
 export async function createInvoice(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof createInvoiceParameters>>
 ) {
@@ -46,10 +46,10 @@ export async function createInvoice(
   logger(`[createInvoice] Invoice detail: ${JSON.stringify(params)}`);
 
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[createInvoice] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices`;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices`;
   logger(`[createInvoice] API URL: ${url}`);
 
   // Make API call
@@ -71,7 +71,7 @@ export async function createInvoice(
       // Automatically send the invoice with specific parameters
       logger('[createInvoice] Automatically sending invoice with thank you note');
       try {
-        const sendResult = await sendInvoice(paypal, context, {
+        const sendResult = await sendInvoice(client, context, {
           invoice_id: invoiceId,
           note: "thank you for choosing us. If there are any issues, feel free to contact us",
           send_to_recipient: true
@@ -99,7 +99,7 @@ export async function createInvoice(
 }
 
 export async function listInvoices(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof listInvoicesParameters>>
 ) {
@@ -107,10 +107,10 @@ export async function listInvoices(
   logger(`[listInvoices] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
   logger(`[listInvoices] Query parameters: ${JSON.stringify(params)}`);
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[listInvoices] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices`;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices`;
   logger(`[listInvoices] API URL: ${url}`);
 
   // Make API call
@@ -135,7 +135,7 @@ export async function listInvoices(
 }
 
 export async function getInvoice(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof getInvoicParameters>>
 ) {
@@ -143,10 +143,10 @@ export async function getInvoice(
   logger(`[getInvoice] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
   logger(`[getInvoice] Query parameters: ${JSON.stringify(params)}`);
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[getInvoice] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices/${params.invoice_id}`;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${params.invoice_id}`;
   logger(`[getInvoice] API URL: ${url}`);
 
   // Make API call
@@ -162,7 +162,7 @@ export async function getInvoice(
 }
 
 export async function sendInvoice(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof sendInvoiceParameters>>
 ) {
@@ -188,10 +188,10 @@ export async function sendInvoice(
     logger(`[sendInvoice] Additional recipients: ${additional_recipients.join(', ')}`);
   }
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[sendInvoice] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/send`;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/send`;
   logger(`[sendInvoice] API URL: ${url}`);
 
   // Make API call
@@ -207,7 +207,7 @@ export async function sendInvoice(
 }
 
 export async function sendInvoiceReminder(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof sendInvoiceReminderParameters>>,
 ) {
@@ -235,10 +235,10 @@ export async function sendInvoiceReminder(
     logger(`[sendInvoiceReminder] Additional recipients: ${additional_recipients.join(', ')}`);
   }
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[sendInvoiceReminder] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/remind`;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/remind`;
   logger(`[sendInvoiceReminder] API URL: ${url}`);
 
   logger(`[sendInvoiceReminder] Request params: ${JSON.stringify(params)}`);
@@ -256,7 +256,7 @@ export async function sendInvoiceReminder(
 }
 
 export async function cancelSentInvoice(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof cancelSentInvoiceParameters>>
 ) {
@@ -282,10 +282,10 @@ export async function cancelSentInvoice(
     logger(`[cancelSentInvoice] Additional recipients: ${additional_recipients.join(', ')}`);
   }
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[cancelSentInvoice] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/cancel`;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/cancel`;
   logger(`[cancelSentInvoice] API URL: ${url}`);
 
   logger(`[cancelSentInvoice] Request params: ${JSON.stringify(params)}`);
@@ -307,7 +307,7 @@ export async function cancelSentInvoice(
 }
 
 export async function generateInvoiceQrCode(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof generateInvoiceQrCodeParameters>>
 ) {
@@ -316,9 +316,9 @@ export async function generateInvoiceQrCode(
     width: params.width,
     height: params.height
   };
-  const url = `${paypal.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/generate-qr-code`;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/generate-qr-code`;
   // Make API call
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[generateInvoiceQrCodePrompt] Headers obtained');
   try {
     logger('[cancelSentInvoice] Sending request to PayPal API');
@@ -337,12 +337,12 @@ export async function generateInvoiceQrCode(
 
 // === PRODUCT FUNCTIONS ===
 export async function createProduct(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof createProductParameters>>) {
 
-  const headers = await paypal.getHeaders();
-  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products`;
+  const headers = await client.getHeaders();
+  const apiUrl = `${client.getBaseUrl()}/v1/catalogs/products`;
   logger(`[createProduct] Payload: ${JSON.stringify(params, null, 2)}`);
   try {
     const response = await axios.post(apiUrl, params, { headers });
@@ -356,13 +356,13 @@ export async function createProduct(
 
 
 export async function listProducts(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof listProductsParameters>>) {
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   const { page = 1, page_size = 2, total_required = true } = params;
-  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products?page_size=${page_size}&page=${page}&total_required=${total_required}`;
+  const apiUrl = `${client.getBaseUrl()}/v1/catalogs/products?page_size=${page_size}&page=${page}&total_required=${total_required}`;
 
   try {
     const response = await axios.get(apiUrl, { headers });
@@ -375,12 +375,12 @@ export async function listProducts(
 };
 
 export async function showProductDetails(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof showProductDetailsParameters>>) {
 
-  const headers = await paypal.getHeaders();
-  const apiUrl = `${paypal.getBaseUrl()}/v1/catalogs/products/${params.product_id}`;
+  const headers = await client.getHeaders();
+  const apiUrl = `${client.getBaseUrl()}/v1/catalogs/products/${params.product_id}`;
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -399,12 +399,12 @@ export async function showProductDetails(
 
 // === SUBSCRIPTION PLAN FUNCTIONS ===
 export async function createSubscriptionPlan(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof createSubscriptionPlanParameters>>) {
 
-  const headers = await paypal.getHeaders();
-  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans`;
+  const headers = await client.getHeaders();
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/plans`;
   logger(`[createSubscriptionPlan] Payload: ${JSON.stringify(params, null, 2)}`);
   try {
     const response = await axios.post(apiUrl, params, { headers });
@@ -417,16 +417,15 @@ export async function createSubscriptionPlan(
 }
 
 export async function listSubscriptionPlans(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof listSubscriptionPlansParameters>>) {
   const { page = 1, page_size = 10, total_required = true, product_id } = params;
-  let apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans?page_size=${page_size}&page=${page}&total_required=${total_required}`;
+  let apiUrl = `${client.getBaseUrl()}/v1/billing/plans?page_size=${page_size}&page=${page}&total_required=${total_required}`;
   if (product_id) {
     apiUrl += `&product_id=${product_id}`;
   }
-  const headers = await paypal.getHeaders();
-
+  const headers = await client.getHeaders();
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -440,13 +439,12 @@ export async function listSubscriptionPlans(
 }
 
 export async function showSubscriptionPlanDetails(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof showSubscriptionPlanDetailsParameters>>) {
 
-  const headers = await paypal.getHeaders();
-  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/plans/${params.plan_id}`;
-
+  const headers = await client.getHeaders();
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/plans/${params.plan_id}`;
   try {
     const response = await axios.get(apiUrl, {
       headers: headers,
@@ -463,12 +461,12 @@ export async function showSubscriptionPlanDetails(
 
 // === SUBSCRIPTION  FUNCTIONS ===
 export async function createSubscription(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof createSubscriptionParameters>>) {
 
-  const headers = await paypal.getHeaders();
-  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions`;
+  const headers = await client.getHeaders();
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions`;
 
   logger(`[createSubscription] Payload: ${JSON.stringify(params, null, 2)}`);
   try {
@@ -483,13 +481,13 @@ export async function createSubscription(
 
 
 export async function showSubscriptionDetails(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof showSubscriptionDetailsParameters>>) {
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   const { subscription_id } = params;
-  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
 
   try {
     const response = await axios.get(apiUrl, {
@@ -504,14 +502,15 @@ export async function showSubscriptionDetails(
   }
 }
 
+
 export async function cancelSubscription(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof cancelSubscriptionParameters>>) {
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   const { subscription_id, payload } = params;
-  const apiUrl = `${paypal.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}/cancel`;
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}/cancel`;
 
   logger(`[cancelSubscription] Payload: ${JSON.stringify(params, null, 3)}`);
   try {
@@ -528,15 +527,15 @@ export async function cancelSubscription(
 // === ORDER FUNCTIONS ===
 
 export const createOrder = async (
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof createOrderParameters>>
 ): Promise<any> => {
   logger('[createOrder] Starting order creation process');
   logger(`[createOrder] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
   logger(`[createOrder] Order details: ${JSON.stringify(params)}`);
-  const headers = await paypal.getHeaders();
-  const url = `${paypal.getBaseUrl()}/v2/checkout/orders`;
+  const headers = await client.getHeaders();
+  const url = `${client.getBaseUrl()}/v2/checkout/orders`;
   const orderRequest = parseOrderDetails(params);
   try {
     logger(`[createOrder] Request body: ${JSON.stringify(orderRequest)}`);
@@ -550,7 +549,7 @@ export const createOrder = async (
 };
 
 export const getOrder = async (
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof getOrderParameters>>
 ): Promise<any> => {
@@ -558,10 +557,10 @@ export const getOrder = async (
   logger(`[getOrder] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
   logger(`[getOrder] Order ID: ${params.id}`);
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[getOrder] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v2/checkout/orders/${params.id}`;
+  const url = `${client.getBaseUrl()}/v2/checkout/orders/${params.id}`;
   logger(`[getOrder] API URL: ${url}`);
 
   try {
@@ -576,15 +575,15 @@ export const getOrder = async (
 };
 
 export const captureOrder = async (
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof captureOrderParameters>>
 ) => {
   try {
     logger(`[captureOrder] Starting order capture process with params: ${JSON.stringify(params)}`);
-    const url = `${paypal.getBaseUrl()}/v2/checkout/orders/${params.id}/capture`;
+    const url = `${client.getBaseUrl()}/v2/checkout/orders/${params.id}/capture`;
     const response = await axios.post(url, {}, {
-      headers: await paypal.getHeaders()
+      headers: await client.getHeaders()
     });
     logger(`[captureOrder] Response %s`, response);
     if (response.status <= 299) {
@@ -607,7 +606,7 @@ export const captureOrder = async (
 // === TRACKING FUNCTIONS ===
 
 export async function createShipment(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof createShipmentParameters>>
 ) {
@@ -621,10 +620,10 @@ export async function createShipment(
   } = params;
   logger(`[createShipment] Tracker details: tracking_number=${tracking_number}, transaction_id=${transaction_id}, status=${status}, carrier=${carrier}`);
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[createShipment] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v1/shipping/trackers-batch`;
+  const url = `${client.getBaseUrl()}/v1/shipping/trackers-batch`;
   logger(`[createShipment] API URL: ${url}`);
 
   // Prepare trackers data - wrapping single shipment in an array
@@ -652,7 +651,7 @@ export async function createShipment(
 }
 
 export async function getShipmentTracking(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof getShipmentTrackingParameters>>
 ) {
@@ -664,7 +663,7 @@ export async function getShipmentTracking(
   } = params;
   logger(`[getShipmentTracking] Tracking details: transaction_id=${providedTransactionId}, order_id=${order_id}`);
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[getShipmentTracking] Headers obtained');
 
   let transaction_id = providedTransactionId;
@@ -673,7 +672,7 @@ export async function getShipmentTracking(
   if (order_id && !providedTransactionId) {
     logger('[getShipmentTracking] order_id provided but transaction_id is missing. Attempting to extract transaction_id from order details.');
     try {
-      const orderDetails = await getOrder(paypal, context, { id: order_id });
+      const orderDetails = await getOrder(client, context, { id: order_id });
 
       if (orderDetails && orderDetails.purchase_units && orderDetails.purchase_units.length > 0) {
         const purchaseUnit = orderDetails.purchase_units[0];
@@ -700,7 +699,8 @@ export async function getShipmentTracking(
     throw new Error("Either transaction_id or order_id must be provided.");
   }
 
-  const url = `${paypal.getBaseUrl()}/v1/shipping/trackers?transaction_id=${transaction_id}`;
+
+  const url = `${client.getBaseUrl()}/v1/shipping/trackers?transaction_id=${transaction_id}`;
   logger(`[getShipmentTracking] API URL: ${url}`);
 
   // Make API call
@@ -718,17 +718,17 @@ export async function getShipmentTracking(
 // === DISPUTE FUNCTIONS ===
 
 export async function listDisputes(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof listDisputesParameters>>
 ): Promise<any> {
   logger('[listDisputes] Starting to list disputes');
   logger(`[listDisputes] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[listDisputes] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v1/customer/disputes?${toQueryString(params)}`;
+  const url = `${client.getBaseUrl()}/v1/customer/disputes?${toQueryString(params)}`;
   logger(`[listDisputes] API URL: ${url}`);
 
   try {
@@ -743,7 +743,7 @@ export async function listDisputes(
 }
 
 export async function getDispute(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof getDisputeParameters>>
 ): Promise<any> {
@@ -752,10 +752,10 @@ export async function getDispute(
 
   const { dispute_id } = params
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[getDispute] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v1/customer/disputes/${dispute_id}`;
+  const url = `${client.getBaseUrl()}/v1/customer/disputes/${dispute_id}`;
   logger(`[getDispute] API URL: ${url}`);
 
   try {
@@ -770,17 +770,17 @@ export async function getDispute(
 }
 
 export async function acceptDisputeClaim(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof acceptDisputeClaimParameters>>
 ): Promise<any> {
   logger('[acceptClaim] Starting to list disputes');
   logger(`[acceptClaim] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[acceptClaim] Headers obtained');
 
-  const url = `${paypal.getBaseUrl()}/v1/customer/disputes/${params.dispute_id}/accept-claim`;
+  const url = `${client.getBaseUrl()}/v1/customer/disputes/${params.dispute_id}/accept-claim`;
   logger(`[acceptClaim] API URL: ${url}`);
 
   try {
@@ -795,14 +795,14 @@ export async function acceptDisputeClaim(
 }
 
 export async function listTransactions(
-  paypal: PayPalAPI,
+  client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof listTransactionsParameters>>
 ): Promise<any> {
-  logger('[listTransactions] Starting to list disputes');
+  logger('[listTransactions] Starting to list transactions');
   logger(`[listTransactions] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
 
-  const headers = await paypal.getHeaders();
+  const headers = await client.getHeaders();
   logger('[listTransactions] Headers obtained');
 
   if (!params.end_date && !params.start_date) {
@@ -820,16 +820,16 @@ export async function listTransactions(
     }
   }
 
-  const url = `${paypal.getBaseUrl()}/v1/reporting/transactions?${toQueryString(params)}`;
+  const url = `${client.getBaseUrl()}/v1/reporting/transactions?${toQueryString(params)}`;
   logger(`[listTransactions] API URL: ${url}`);
 
   try {
     logger('[listTransactions] Sending request to PayPal API');
     const response = await axios.get(url, { headers, params });
-    logger(`[listTransactions] Disputes retrieved successfully. Status: ${response.status}`);
+    logger(`[listTransactions] Transactions retrieved successfully. Status: ${response.status}`);
     return response.data;
   } catch (error: any) {
-    logger('[listTransactions] Error listing disputes:', error.message);
+    logger('[listTransactions] Error listing transactions:', error.message);
     handleAxiosError(error);
   }
 }

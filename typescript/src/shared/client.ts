@@ -4,27 +4,55 @@ import { Buffer } from 'buffer';
 import { Context } from './configuration';
 
 class PayPalClient {
-    readonly sdkClient: Client;
-    private clientId: string | undefined;
-    private clientSecret: string | undefined;
-    private isSandbox: boolean;
+    private _sdkClient: Client | undefined;
+    private _clientId: string | undefined;
+    private _clientSecret: string | undefined;
+    private _isSandbox: boolean;
+    private _accessToken: string | undefined;
+    private _baseUrl: string
+    private _context: Context
 
     constructor({ clientId, clientSecret, context }: {
         clientId: string,
         clientSecret: string,
         context: Context
+    });
+
+    constructor({ context, accessToken }: {
+        context: Context,
+        accessToken?: string
+    });
+
+    constructor({ clientId, clientSecret, context, accessToken }: {
+        clientId?: string,
+        clientSecret?: string,
+        context: Context,
+        accessToken?: string
     }) {
         const debugSdk = context.debug ?? false;
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.isSandbox = context.isSandbox ?? true;
-        this.sdkClient = new Client({
+        this._clientId = clientId;
+        this._clientSecret = clientSecret;
+        this._context = context;
+        this._isSandbox = context.isSandbox ?? true;
+        this._accessToken = accessToken;
+        if (this._clientId !== undefined && this._clientSecret !== undefined) {
+            this.createSDKClient(this._clientId, this._clientSecret, debugSdk);
+        }
+
+        this._baseUrl = this._isSandbox
+        ? 'https://api.sandbox.paypal.com'
+        : 'https://api.paypal.com';
+    }
+
+    private createSDKClient(clientId: string, clientSecret: string, debugSdk: boolean) {
+
+        this._sdkClient = new Client({
             clientCredentialsAuthCredentials: {
                 oAuthClientId: clientId,
                 oAuthClientSecret: clientSecret
             },
             timeout: 0,
-            environment: this.isSandbox ? Environment.Sandbox : Environment.Production,
+            environment: this._isSandbox ? Environment.Sandbox : Environment.Production,
             ...(debugSdk && {
                 logging: {
                     logLevel: LogLevel.Info,
@@ -42,11 +70,8 @@ class PayPalClient {
     }
 
     async getAccessToken(): Promise<string> {
-        const auth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
-        const url = this.isSandbox
-            ? 'https://api.sandbox.paypal.com/v1/oauth2/token'
-            : 'https://api.paypal.com/v1/oauth2/token';
-
+        const auth = Buffer.from(`${this._clientId}:${this._clientSecret}`).toString('base64');
+        const url = this._baseUrl+'/v1/oauth2/token';
         try {
             const response = await axios.post(
                 url,
@@ -66,6 +91,31 @@ class PayPalClient {
                 throw new Error(`Failed to fetch access token: ${error instanceof Error ? error.message : String(error)}`);
             }
         }
+    }
+
+    // Helper method to get base URL
+    getBaseUrl(): string {
+        return this._baseUrl;
+    }
+
+    // Helper method to get headers
+    async getHeaders(): Promise<Record<string, string>> {
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+
+        this._accessToken = this._accessToken || (await this.getAccessToken());
+        headers['Authorization'] = `Bearer ${this._accessToken}`;
+
+        // Add additional headers if needed
+        if (this._context.request_id) {
+            headers['PayPal-Request-Id'] = this._context.request_id;
+        }
+
+        if (this._context.tenant_context) {
+            headers['PayPal-Tenant-Context'] = JSON.stringify(this._context.tenant_context);
+        }
+        return headers;
     }
 
 }

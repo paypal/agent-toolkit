@@ -1,11 +1,11 @@
 {
   "name": "@paypal/agent-toolkit",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "PayPal toolkit for AI agent workflows in typescript",
   "scripts": {
     "clean": "rm -rf dist ai-sdk",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm i && tsup"
+    "build": "pnpm i && tsup"
   },
   "exports": {
     "./ai-sdk": {
@@ -20,6 +20,7 @@
   "author": "",
   "license": "ISC",
   "files": [
+    "src/ai-sdk/**/*",
     "ai-sdk",
     "mcp",
     "package.json"

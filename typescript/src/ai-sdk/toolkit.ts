@@ -16,7 +16,7 @@ class PayPalAgentToolkit {
         configuration: Configuration,
     }) {
         const context = configuration.context || {};
-        this.client = new PayPalClient({ clientId, clientSecret, context });
+        this.client = new PayPalClient({ clientId: clientId, clientSecret: clientSecret, context: context });
         const filteredTools = tools(context).filter((tool) =>
             isToolAllowed(tool, configuration)
         );

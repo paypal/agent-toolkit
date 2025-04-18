@@ -79,8 +79,8 @@ export const cancelSentInvoiceParameters = (context: Context) =>
 
 export const generateInvoiceQrCodeParameters = (context: Context) => z.object({
   invoice_id: z.string().describe('The invoice id to generate QR code for'),
-  width: z.number().describe("The QR code width"),
-  height: z.number().describe("The QR code height")
+  width: z.number().default(300).describe("The QR code width"),
+  height: z.number().default(300).describe("The QR code height")
 }).describe("generate invoice qr code request payload");
 
 
@@ -136,8 +136,8 @@ export const createOrderParameters = (context: Context) => z.object({
   items: z.array(z.lazy(() => lineItem)).max(50),
   discount: z.number().describe('The discount amount for the order.').default(0).optional(),
   shippingCost: z.number().describe('The cost of shipping for the order.').default(0).optional(),
-  shippingAddress: shippingAddress.describe('The shipping address for the order.').optional(),
-  notes: z.string().optional(),
+  shippingAddress: z.optional(shippingAddress.nullable()).default(null).describe('The shipping address for the order.'),
+  notes: z.string().optional().nullable().default(null),
   returnUrl: z.string().optional().default('https://example.com/returnUrl'),
   cancelUrl: z.string().optional().default('https://example.com/cancelUrl')
 });
@@ -153,14 +153,14 @@ export const captureOrderParameters = (context: Context) => z.object({
 // === Disputes Parameters ===
 
 export const listDisputesParameters = (context: Context) => z.object({
-  disputed_transaction_id: z.string().optional(),
+  disputed_transaction_id: z.string().nullable().default(null),
   dispute_state: z.enum([
     "REQUIRED_ACTION",
     "REQUIRED_OTHER_PARTY_ACTION",
     "UNDER_PAYPAL_REVIEW",
     "RESOLVED",
     "OPEN_INQUIRIES",
-    "APPEALABLE"]).optional(),
+    "APPEALABLE"]).optional().describe("OPEN_INQUIRIES"),
   page_size: z.number().default(10).optional(),
   page: z.number().default(1).optional()
 });
@@ -177,14 +177,22 @@ export const acceptDisputeClaimParameters = (context: Context) => z.object({
 // === Transaction Search ===
 
 export const listTransactionsParameters = (context: Context) => z.object({
-  transaction_id: z.string().optional().describe('The ID of the transaction to retrieve.'),
+  transaction_id: z.string().optional().describe('The ID of the transaction to retrieve.').nullable().default(null),
   transaction_status: z.enum([
     "D",
     "P",
     "S",
-    "V"]).optional(),
-  start_date: z.string().describe('Filters the transactions in the response by a start date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional.').optional(),
-  end_date: z.string().describe('Filters the transactions in the response by an end date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional. The maximum supported range is 31 days.').optional(),
+    "V"]).optional().default("S"),
+  start_date: z.string().describe('Filters the transactions in the response by a start date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional.').optional()    .default(() => {
+    const now = new Date();
+    now.setDate(now.getDate() - 31); // default to 31 days ago
+    return now.toISOString();
+  }),
+  end_date: z.string().describe('Filters the transactions in the response by an end date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional. The maximum supported range is 31 days.').optional().default(() => {
+    const now = new Date();
+    now.setDate(now.getDate());
+    return now.toISOString();
+  }),
   page_size: z.number().default(100).optional(),
   page: z.number().default(1).optional()
 });
@@ -271,9 +279,9 @@ export const showSubscriptionPlanDetailsParameters = (context: Context) => z.obj
 
 // === SUBSCRIPTION PARAMETERS ===
 const NameSchema = z.object({
-  given_name: z.string().describe('The subscriber given name.'),
+  given_name: z.string().optional().describe('The subscriber given name.'),
   surname: z.string().optional().describe('The subscriber last name.'),
-}).describe('The subscriber name.');
+}).optional().describe('The subscriber name.');
 
 const AddressSchema = z.object({
   address_line_1: z.string().describe('The first line of the address.'),
@@ -282,7 +290,7 @@ const AddressSchema = z.object({
   admin_area_2: z.string().describe('The state or province.'),
   postal_code: z.string().describe('The postal code.'),
   country_code: z.enum(['US']).describe('The country code.'),
-}).passthrough().describe('The shipping address.');
+}).optional().describe('The shipping address.');
 
 const ShippingAddressSchema = z.object({
   name: NameSchema.describe('The subscriber shipping address name.'),
@@ -292,7 +300,7 @@ const ShippingAddressSchema = z.object({
 const PaymentMethodSchema = z.object({
   payer_selected: z.enum(['PAYPAL', 'CREDIT_CARD']).describe('The payment method selected by the payer.'),
   payee_preferred: z.enum(['IMMEDIATE_PAYMENT_REQUIRED', 'INSTANT_FUNDING_SOURCE']).optional().describe('The preferred payment method for the payee.'),
-}).passthrough().describe('The payment method details.');
+}).optional().describe('The payment method details.');
 
 const ShippingAmount = z.object({
   currency_code: z.enum(['USD']).describe('The currency code for the shipping amount.'),
@@ -301,9 +309,9 @@ const ShippingAmount = z.object({
 
 const Subscriber = z.object({
   name: NameSchema,
-  email_address: z.string().describe('The subscriber email address.'),
+  email_address: z.string().optional().describe('The subscriber email address.'),
   shipping_address: ShippingAddressSchema,
-}).passthrough().describe('The subscriber details.');
+}).optional().describe('The subscriber details.');
 
 const ApplicationContext = z.object({
   brand_name: z.string().describe('The brand name.'),
