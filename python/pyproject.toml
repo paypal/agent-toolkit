@@ -1,0 +1,32 @@
+[project]
+name = "paypal-agent-toolkit"
+version = "0.1.0"
+description = "A toolkit for agent interactions with PayPal API."
+authors = [
+  { name = "PayPal", email = "support@paypal.com" }
+]
+license = {file = "LICENSE"}
+keywords = ["paypal", "payments", "checkout","api"]
+readme = "README.md"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+include = ["paypal_agent_toolkit*"]
+exclude = ["tests*", "examples*"]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/paypal/agent-toolkit/issues"
+"Source Code" = "https://github.com/paypal/agent-toolkit"
+
+[tool.pyright]
+include = [
+  "*",
+]
+exclude = ["build", "**/__pycache__"]
+reportMissingTypeArgument = true
+reportUnnecessaryCast = true
+reportUnnecessaryComparison = true
+reportUnnecessaryContains = true
+reportUnnecessaryIsInstance = true
+reportPrivateImportUsage = true
+reportUnnecessaryTypeIgnoreComment = true
