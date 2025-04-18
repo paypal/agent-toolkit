@@ -27,7 +27,7 @@ export const createInvoiceParameters = (context: Context) => z.object({
     name: z.object({
       given_name: z.string().optional().describe("given name of the invoicer"),
       surname: z.string().optional().describe("surname of the invoicer")
-    }).describe("name of the invoicer"),
+    }).optional().describe("name of the invoicer"),
     email_address: z.string().optional().describe("email address of the invoicer"),
   }).optional().describe("The invoicer business information that appears on the invoice."),
   primary_recipients: z.array(z.object({
@@ -183,16 +183,17 @@ export const listTransactionsParameters = (context: Context) => z.object({
     "P",
     "S",
     "V"]).optional().default("S"),
-  start_date: z.string().describe('Filters the transactions in the response by a start date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional.').optional()    .default(() => {
+  start_date: z.string().describe('Filters the transactions in the response by a start date and time, in ISO8601 date and time format. Seconds are required. Fractional seconds are optional.').optional()    .default(() => {
     const now = new Date();
     now.setDate(now.getDate() - 31); // default to 31 days ago
     return now.toISOString();
   }),
-  end_date: z.string().describe('Filters the transactions in the response by an end date and time, in Internet date and time format. Seconds are required. Fractional seconds are optional. The maximum supported range is 31 days.').optional().default(() => {
+  end_date: z.string().describe('Filters the transactions in the response by an end date and time, in ISO8601 date and time format. Seconds are required. Fractional seconds are optional. The maximum supported range is 31 days.').optional().default(() => {
     const now = new Date();
     now.setDate(now.getDate());
     return now.toISOString();
   }),
+  search_months: z.number().optional().describe('Number of months to search back for a transaction by ID. Default is 12 months.').default(12),
   page_size: z.number().default(100).optional(),
   page: z.number().default(1).optional()
 });

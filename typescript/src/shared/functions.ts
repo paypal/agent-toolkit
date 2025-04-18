@@ -805,32 +805,112 @@ export async function listTransactions(
   const headers = await client.getHeaders();
   logger('[listTransactions] Headers obtained');
 
-  if (!params.end_date && !params.start_date) {
-    params.end_date = new Date().toLocaleString();
-    params.start_date = new Date(new Date().getDay() - 31).toLocaleString();
-  } else if (!params.end_date) {
-    params.end_date = new Date(new Date(params.start_date as string).getDay() + 31).toLocaleString();
-  } else if (!params.start_date) {
-    params.start_date = new Date(new Date(params.end_date as string).getDay() - 31).toLocaleString();
-  } else {
-    let dayRange = new Date(params.end_date as string).getDay() - new Date(params.start_date as string).getDay();
-    if (dayRange > 31) {
-      // Reset start_date time if range > 31
-      params.start_date = new Date(new Date(params.end_date as string).getDay() - 31).toLocaleString();
+  // If we're looking for a specific transaction by ID
+  if (params.transaction_id) {
+    logger(`[listTransactions] Searching for transaction with ID: ${params.transaction_id}`);
+    
+    // Set maximum number of months to search back
+    const searchMonths = params.search_months || 12;
+    logger(`[listTransactions] Will search up to ${searchMonths} months back for the transaction`);
+    
+    // Start searching from current date
+    const endDate = new Date();
+    let startDate = new Date();
+    startDate.setDate(endDate.getDate() - 31); // Start with the past 31 days
+    
+    // For each month, query the transactions until we find the one we're looking for
+    for (let month = 0; month < searchMonths; month++) {
+      const queryParams = { ...params };
+      // Delete search_months parameter before sending to the API
+      // @ts-expect-error
+      delete queryParams.search_months;
+      queryParams.end_date = endDate.toISOString();
+      queryParams.start_date = startDate.toISOString();
+      
+      logger(`[listTransactions] Searching month ${month + 1}: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+      
+      // Construct URL for API call
+      const url = `${client.getBaseUrl()}/v1/reporting/transactions?${toQueryString(queryParams)}`;
+      logger(`[listTransactions] API URL: ${url}`);
+      
+      try {
+        logger('[listTransactions] Sending request to PayPal API');
+        const response = await axios.get(url, { headers, params: queryParams });
+        logger(`[listTransactions] Transactions retrieved successfully. Status: ${response.status}`);
+        
+        // Check if our transaction is in the results
+        if (response.data && response.data.transaction_details && response.data.transaction_details.length > 0) {
+          const foundTransaction = response.data.transaction_details.find(
+            (transaction: any) => transaction.transaction_info.transaction_id === params.transaction_id
+          );
+          
+          if (foundTransaction) {
+            logger(`[listTransactions] Found transaction with ID: ${params.transaction_id}`);
+            return {
+              found: true,
+              transaction_details: [foundTransaction],
+              total_items: 1
+            };
+          }
+        }
+        
+        // Move back one month for the next search
+        endDate.setTime(startDate.getTime());
+        startDate.setMonth(startDate.getMonth() - 1);
+        
+      } catch (error: any) {
+        logger(`[listTransactions] Error searching transactions for month ${month + 1}:`, error.message);
+        // Continue to next month instead of failing completely
+      }
     }
-  }
+    
+    // If we've gone through all months and haven't found the transaction
+    logger(`[listTransactions] Transaction with ID ${params.transaction_id} not found after searching ${searchMonths} months`);
+    return {
+      found: false,
+      transaction_details: [],
+      total_items: 0,
+      message: `The transaction ID ${params.transaction_id} was not found in the last ${searchMonths} months. Please verify the transaction ID and try again, or let me know if there's anything else I can assist you with!`
+    };
+  } else {
+    // Original behavior for listing transactions without a specific ID
+    const queryParams = { ...params };
+    // Delete search_months parameter before sending to the API
+    // @ts-expect-error
+    delete queryParams.search_months;
+    
+    if (!queryParams.end_date && !queryParams.start_date) {
+      queryParams.end_date = new Date().toISOString();
+      queryParams.start_date = new Date(new Date().getTime() - (31 * 24 * 60 * 60 * 1000)).toISOString();
+    } else if (!queryParams.end_date) {
+      const startDate = new Date(queryParams.start_date as string);
+      queryParams.end_date = new Date(startDate.getTime() + (31 * 24 * 60 * 60 * 1000)).toISOString();
+    } else if (!queryParams.start_date) {
+      const endDate = new Date(queryParams.end_date as string);
+      queryParams.start_date = new Date(endDate.getTime() - (31 * 24 * 60 * 60 * 1000)).toISOString();
+    } else {
+      const startDate = new Date(queryParams.start_date as string);
+      const endDate = new Date(queryParams.end_date as string);
+      const dayRange = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+      
+      if (dayRange > 31) {
+        // Reset start_date time if range > 31
+        queryParams.start_date = new Date(endDate.getTime() - (31 * 24 * 60 * 60 * 1000)).toISOString();
+      }
+    }
 
-  const url = `${client.getBaseUrl()}/v1/reporting/transactions?${toQueryString(params)}`;
-  logger(`[listTransactions] API URL: ${url}`);
+    const url = `${client.getBaseUrl()}/v1/reporting/transactions?${toQueryString(queryParams)}`;
+    logger(`[listTransactions] API URL: ${url}`);
 
-  try {
-    logger('[listTransactions] Sending request to PayPal API');
-    const response = await axios.get(url, { headers, params });
-    logger(`[listTransactions] Transactions retrieved successfully. Status: ${response.status}`);
-    return response.data;
-  } catch (error: any) {
-    logger('[listTransactions] Error listing transactions:', error.message);
-    handleAxiosError(error);
+    try {
+      logger('[listTransactions] Sending request to PayPal API');
+      const response = await axios.get(url, { headers, params: queryParams });
+      logger(`[listTransactions] Transactions retrieved successfully. Status: ${response.status}`);
+      return response.data;
+    } catch (error: any) {
+      logger('[listTransactions] Error listing transactions:', error.message);
+      handleAxiosError(error);
+    }
   }
 }
 
