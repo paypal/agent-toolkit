@@ -95,3 +95,6 @@ run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
 Examples for OpenAI's Agent SDK are included in [/examples](/examples).
 
 [app-keys]: https://developer.paypal.com/dashboard/applications/sandbox
+
+## Disclaimer
+AI-generated content may be inaccurate or incomplete. Users are responsible for independently verifying any information before relying on it. PayPal makes no guarantees regarding output accuracy and is not liable for any decisions, actions, or consequences resulting from its use.

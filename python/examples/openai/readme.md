@@ -30,3 +30,6 @@ python app.py
 ```
 
 
+## Disclaimer
+
+AI-generated content may be inaccurate or incomplete. Users are responsible for independently verifying any information before relying on it. PayPal makes no guarantees regarding output accuracy and is not liable for any decisions, actions, or consequences resulting from its use.
