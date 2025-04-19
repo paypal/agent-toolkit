@@ -47,8 +47,11 @@ class PayPalClient:
         if self.debug:
             logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
 
-        return response.json()
-    
+        try:
+            return response.json()
+        except ValueError:
+            logging.warning("Response body is not valid JSON or Empty")
+            return {}
 
     def get(self, uri):
 
@@ -61,8 +64,7 @@ class PayPalClient:
         logRequestPayload(self.debug, None, url, headers)
         response = requests.get( url, headers=headers)
         response.raise_for_status()
-        if self.debug:
-            logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
+        logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
         return response.json()
 
 

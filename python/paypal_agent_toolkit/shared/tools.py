@@ -1,7 +1,9 @@
-from paypal_agent_toolkit.common.prompts import (
+from paypal_agent_toolkit.shared.orders.prompts import (
     CREATE_ORDER_PROMPT,
     CAPTURE_ORDER_PROMPT,
     GET_ORDER_PROMPT,
+)
+from paypal_agent_toolkit.shared.subscriptions.prompts import (
     CREATE_PRODUCT_PROMPT,
     LIST_PRODUCTS_PROMPT,
     SHOW_PRODUCT_DETAILS_PROMPT,
@@ -12,10 +14,25 @@ from paypal_agent_toolkit.common.prompts import (
     SHOW_SUBSCRIPTION_DETAILS_PROMPT,
     CANCEL_SUBSCRIPTION_PROMPT,
 )
-from paypal_agent_toolkit.common.parameters import (
+
+from paypal_agent_toolkit.shared.invoices.prompts import (
+    CREATE_INVOICE_PROMPT,
+    LIST_INVOICE_PROMPT,
+    GET_INVOICE_PROMPT,
+    SEND_INVOICE_PROMPT,
+    SEND_INVOICE_REMINDER_PROMPT,
+    CANCEL_SENT_INVOICE_PROMPT,
+    GENERATE_INVOICE_QRCODE_PROMPT,
+)
+
+from paypal_agent_toolkit.shared.orders.parameters import (
     
     CreateOrderParameters,
     OrderIdParameters,
+)
+
+from paypal_agent_toolkit.shared.subscriptions.parameters import (
+    
     CreateProductParameters,
     ListProductsParameters,
     ShowProductDetailsParameters,
@@ -27,10 +44,23 @@ from paypal_agent_toolkit.common.parameters import (
     CancelSubscriptionParameters,
 )
 
-from paypal_agent_toolkit.common.tool_handlers import (
+from paypal_agent_toolkit.shared.invoices.parameters import (
+    CreateInvoiceParameters,
+    SendInvoiceParameters,
+    ListInvoicesParameters,
+    GetInvoiceParameters,
+    SendInvoiceReminderParameters,
+    CancelSentInvoiceParameters,
+    GenerateInvoiceQrCodeParameters,
+)
+
+from paypal_agent_toolkit.shared.orders.tool_handlers import (
     create_order,
     capture_order,
     get_order_details,
+)
+
+from paypal_agent_toolkit.shared.subscriptions.tool_handlers import (
     create_product,
     list_products,
     show_product_details,
@@ -40,6 +70,16 @@ from paypal_agent_toolkit.common.tool_handlers import (
     create_subscription,
     show_subscription_details,
     cancel_subscription,
+)
+
+from paypal_agent_toolkit.shared.invoices.tool_handlers import (
+    create_invoice,
+    send_invoice,
+    list_invoices,
+    get_invoice,
+    send_invoice_reminder,
+    cancel_sent_invoice,
+    generate_invoice_qrcode
 )
 
 from pydantic import BaseModel
@@ -133,7 +173,7 @@ tools = [
         "actions": {"subscriptions": {"show": True}},
         "execute": show_subscription_details,
     },
-        {
+    {
         "method": "cancel_subscription",
         "name": "Cancel PayPal Subscription",
         "description": CANCEL_SUBSCRIPTION_PROMPT.strip(),
@@ -141,4 +181,61 @@ tools = [
         "actions": {"subscriptions": {"cancel": True}},
         "execute": cancel_subscription,
     },
+    {
+        "method": "create_invoice",
+        "name": "Create PayPal Invoice",
+        "description": CREATE_INVOICE_PROMPT.strip(),
+        "args_schema": CreateInvoiceParameters.model_json_schema(),
+        "actions": {"invoices": {"create": True}},
+        "execute": create_invoice,
+    },
+    {
+        "method": "list_invoices",
+        "name": "List Invoices",
+        "description": LIST_INVOICE_PROMPT.strip(),
+        "args_schema": ListInvoicesParameters.model_json_schema(),
+        "actions": {"invoices": {"list": True}},
+        "execute": list_invoices,
+    },
+    {
+        "method": "get_invoice",
+        "name": "Get Invoice",
+        "description": GET_INVOICE_PROMPT.strip(),
+        "args_schema": GetInvoiceParameters.model_json_schema(),
+        "actions": {"invoices": {"get": True}},
+        "execute": get_invoice,
+    },
+    {
+        "method": "send_invoice",
+        "name": "Send Invoice",
+        "description": SEND_INVOICE_PROMPT.strip(),
+        "args_schema": SendInvoiceParameters.model_json_schema(),
+        "actions": {"invoices": {"send": True}},
+        "execute": send_invoice,
+    },
+    {
+        "method": "send_invoice_reminder",
+        "name": "Send Invoice Reminder",
+        "description": SEND_INVOICE_REMINDER_PROMPT.strip(),
+        "args_schema": SendInvoiceReminderParameters.model_json_schema(),
+        "actions": {"invoices": {"sendReminder": True}},
+        "execute": send_invoice_reminder,
+    },
+    {
+        "method": "cancel_sent_invoice",
+        "name": "Cancel Sent Invoice",
+        "description": CANCEL_SENT_INVOICE_PROMPT.strip(),
+        "args_schema": CancelSentInvoiceParameters.model_json_schema(),
+        "actions": {"invoices": {"cancel": True}},
+        "execute": cancel_sent_invoice,
+    },
+    {
+        "method": "generate_invoice_qr_code",
+        "name": "Generate Invoice QR Code",
+        "description": GENERATE_INVOICE_QRCODE_PROMPT.strip(),
+        "args_schema": GenerateInvoiceQrCodeParameters.model_json_schema(),
+        "actions": {"invoices": {"generateQRC": True}},
+        "execute": generate_invoice_qrcode,
+    },
+    
 ]

@@ -2,11 +2,11 @@
 from typing import List
 from agents import FunctionTool
 from pydantic import PrivateAttr
-from paypal_agent_toolkit.common.tools import tools
+from paypal_agent_toolkit.shared.tools import tools
 from paypal_agent_toolkit.openai.tool import PayPalTool
-from paypal_agent_toolkit.common.paypal_client import PayPalClient
-from paypal_agent_toolkit.common.configuration import Configuration, is_tool_allowed
-from paypal_agent_toolkit.common.api import PayPalAPI
+from paypal_agent_toolkit.shared.paypal_client import PayPalClient
+from paypal_agent_toolkit.shared.configuration import Configuration, is_tool_allowed
+from paypal_agent_toolkit.shared.api import PayPalAPI
 
 class PayPalToolkit:
 

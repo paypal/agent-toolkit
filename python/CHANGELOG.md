@@ -7,6 +7,6 @@ All notable changes to this project will be documented in this file.
 - Handled `204 No Content` response formatting issue.
 - Fixed parameters formatting issue.
 
-## [1.0.0] - 2025-04-10
+## [1.0.0] - 2025-04-18
 ### Added
 - First release of `paypal-agent-toolkit`
