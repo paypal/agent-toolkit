@@ -1,6 +1,6 @@
 [project]
 name = "paypal-agent-toolkit"
-version = "0.1.0"
+version = "1.0.1"
 description = "A toolkit for agent interactions with PayPal API."
 authors = [
   { name = "PayPal", email = "support@paypal.com" }
@@ -9,6 +9,11 @@ license = {file = "LICENSE"}
 keywords = ["paypal", "payments", "checkout","api"]
 readme = "README.md"
 requires-python = ">=3.11"
+dependencies = [
+  "httpx>=0.26.0",
+  "requests>=2.31.0",
+  "pydantic>=2.10"
+]
 
 [tool.setuptools.packages.find]
 include = ["paypal_agent_toolkit*"]
