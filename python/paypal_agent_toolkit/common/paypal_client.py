@@ -39,7 +39,14 @@ class PayPalClient:
         logRequestPayload(self.debug, payload, url, headers)
         response = requests.post( url, headers=headers, json=payload)
         response.raise_for_status()
-        logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
+
+        if response.status_code == 204:
+            logging.debug("Response Status: 204 No Content")
+            return {}
+        
+        if self.debug:
+            logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
+
         return response.json()
     
 
@@ -54,7 +61,8 @@ class PayPalClient:
         logRequestPayload(self.debug, None, url, headers)
         response = requests.get( url, headers=headers)
         response.raise_for_status()
-        logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
+        if self.debug:
+            logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
         return response.json()
 
 

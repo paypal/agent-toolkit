@@ -94,9 +94,9 @@ def list_subscription_plans(client, kwargs):
 
     kwargs = unwrap(kwargs)
     validated = ListSubscriptionPlansParameters(**json.loads(kwargs))
-    subscription_plan_uri = f"/v1/billing/plans?page_size={validated.page_size or 10}&page={validated.page or 1}&total_required=${validated.total_required or 'true'}"
+    subscription_plan_uri = f"/v1/billing/plans?page_size={validated.page_size or 10}&page={validated.page or 1}&total_required={validated.total_required or True}"
     if validated.product_id:
-        apiUrl += f"&product_id={validated.product_id}"
+        subscription_plan_uri += f"&product_id={validated.product_id}"
     result = client.get(uri = subscription_plan_uri)
     return json.dumps(result)
 
