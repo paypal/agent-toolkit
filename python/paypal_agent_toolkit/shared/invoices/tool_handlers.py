@@ -5,14 +5,10 @@ import httpx
 from typing import Union, Dict, Any
 
 
-def unwrap(kwargs):
-    if "kwargs" in kwargs and isinstance(kwargs["kwargs"], dict):
-        kwargs = kwargs["kwargs"]
-    return kwargs
 
-def create_invoice(client, kwargs):
-    kwargs = unwrap(kwargs)
-    validated = CreateInvoiceParameters(**json.loads(kwargs))
+def create_invoice(client, params: dict):
+    
+    validated = CreateInvoiceParameters(**params)
     invoice_payload = validated.model_dump()
 
     url = "/v2/invoicing/invoices"
@@ -40,9 +36,9 @@ def create_invoice(client, kwargs):
     return json.dumps(response)
 
 
-def send_invoice(client, kwargs):
-    kwargs = unwrap(kwargs)
-    validated = SendInvoiceParameters(**json.loads(kwargs))
+def send_invoice(client, params: dict):
+
+    validated = SendInvoiceParameters(**params)
     payload = validated.model_dump()
 
     invoice_id = payload["invoice_id"]
@@ -52,18 +48,17 @@ def send_invoice(client, kwargs):
     return json.dumps(response)
 
 
-def list_invoices(client, kwargs):
-    kwargs = unwrap(kwargs)
-    validated = ListInvoicesParameters(**json.loads(kwargs))
+def list_invoices(client, params: dict):
+
+    validated = ListInvoicesParameters(**params)
     invoice_uri = f"/v2/invoicing/invoices?page_size={validated.page_size or 10}&page={validated.page or 1}&total_required={validated.total_required or 'true'}"
     response = client.get(uri=invoice_uri)
 
     return json.dumps(response)
 
 
-def get_invoice(client, kwargs):
-    kwargs = unwrap(kwargs)
-    validated = GetInvoiceParameters(**json.loads(kwargs))
+def get_invoice(client, params: dict):
+    validated = GetInvoiceParameters(**params)
     invoice_id = validated.invoice_id
 
     url = f"/v2/invoicing/invoices/{invoice_id}"
@@ -72,10 +67,9 @@ def get_invoice(client, kwargs):
     return json.dumps(response)
 
 
-def send_invoice_reminder(client, kwargs):
+def send_invoice_reminder(client, params: dict):
 
-    kwargs = unwrap(kwargs)
-    validated = SendInvoiceReminderParameters(**json.loads(kwargs))
+    validated = SendInvoiceReminderParameters(**params)
     payload = validated.model_dump()
 
     invoice_id = payload["invoice_id"]
@@ -89,9 +83,9 @@ def send_invoice_reminder(client, kwargs):
     return json.dumps(response)
 
 
-def cancel_sent_invoice(client, kwargs):
-    kwargs = unwrap(kwargs)
-    validated = CancelSentInvoiceParameters(**json.loads(kwargs))
+def cancel_sent_invoice(client, params: dict):
+    
+    validated = CancelSentInvoiceParameters(**params)
     payload = validated.model_dump()
     invoice_id = payload["invoice_id"]
     url = f"/v2/invoicing/invoices/{invoice_id}/cancel"
@@ -105,9 +99,9 @@ def cancel_sent_invoice(client, kwargs):
     return json.dumps(response)
 
 
-def generate_invoice_qrcode(client, kwargs):
-    kwargs = unwrap(kwargs)
-    validated = GenerateInvoiceQrCodeParameters(**json.loads(kwargs))
+def generate_invoice_qrcode(client, params: dict):
+
+    validated = GenerateInvoiceQrCodeParameters(**params)
     payload = {
         "width": validated.width,
         "height": validated.height

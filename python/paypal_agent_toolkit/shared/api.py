@@ -18,11 +18,11 @@ class PayPalAPI(BaseModel):
         self._paypal_client = PayPalClient(client_id=client_id, secret=secret, context=context)
         
     
-    def run(self, method: str, kwargs) -> str:
+    def run(self, method: str, params: dict) -> str:
         for tool in tools:
             if tool.get("method") == method:
                 execute_fn = tool.get("execute")
                 if execute_fn:
-                    return execute_fn(self._paypal_client, kwargs)
-        raise ValueError("create_order method not found in tools list")
+                    return execute_fn(self._paypal_client, params)
+        raise ValueError(f"method: {method} not found in tools list")
 

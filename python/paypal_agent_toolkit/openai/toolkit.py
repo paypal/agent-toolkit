@@ -36,7 +36,7 @@ class PayPalToolkit:
                 "function": {
                     "name": tool["method"],
                     "description": tool["description"],
-                    "parameters": tool["args_schema"],
+                    "parameters": tool["args_schema"].model_json_schema(),
                 }
             }
             for tool in filtered_tools

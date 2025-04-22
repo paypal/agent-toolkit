@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 from agents import Agent, Runner
 from paypal_agent_toolkit.openai.toolkit import PayPalToolkit
 from paypal_agent_toolkit.openai.tool import PayPalTool
-from paypal_agent_toolkit.common.configuration import Configuration, Context
+from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
 #uncomment after setting the env file
 # load_dotenv()
@@ -39,6 +39,15 @@ configuration = Configuration(
             "create": True,
             "show": True,
             "cancel": True
+        },
+        "invoices": {
+            "create": True,
+            "get": True,
+            "list": True,
+            "send": True,
+            "sendReminder": True,
+            "cancel": True,
+            "generateQRC": True,
         }
     },
     context=Context(

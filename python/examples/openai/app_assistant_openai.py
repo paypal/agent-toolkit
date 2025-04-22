@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from paypal_agent_toolkit.openai.toolkit import PayPalToolkit
-from paypal_agent_toolkit.common.configuration import Configuration, Context
+from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
 #uncomment after setting the env file
 # load_dotenv()
@@ -68,7 +68,7 @@ def run_agent(prompt: str):
                 method = tool_call.function.name
                 args = tool_call.function.arguments
                 # print(f"⚙️ Calling tool: {method} with args: {args}")
-                result = json.loads(paypal_api.run( method, args))
+                result = json.loads(paypal_api.run( method, json.loads(args)))
                 # print(f"🔧 Tool result: {result}")
                 if method == "create_order":
                     for link in result.get("links", []):

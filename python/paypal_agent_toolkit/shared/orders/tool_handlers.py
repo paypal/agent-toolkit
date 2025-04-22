@@ -3,15 +3,9 @@ from .parameters import *
 from .payload_util import parse_order_details
 import json
 
-def unwrap(kwargs):
-    if "kwargs" in kwargs and isinstance(kwargs["kwargs"], dict):
-        kwargs = kwargs["kwargs"]
-    return kwargs
+def create_order(client, params: dict):
 
-def create_order(client, kwargs):
-
-    kwargs = unwrap(kwargs)
-    validated = CreateOrderParameters(**json.loads(kwargs))
+    validated = CreateOrderParameters(**params)
     order_payload = parse_order_details(validated.model_dump())
     
     order_uri = "/v2/checkout/orders"
@@ -20,8 +14,8 @@ def create_order(client, kwargs):
 
 
 
-def capture_order(client, kwargs):
-    validated = CaptureOrderParameters(**json.loads(kwargs))
+def capture_order(client, params: dict):
+    validated = CaptureOrderParameters(**params)
     order_capture_uri = f"/v2/checkout/orders/{validated.order_id}/capture"
     result = client.post(uri=order_capture_uri, payload=None)
     status = result.get("status")
@@ -36,8 +30,8 @@ def capture_order(client, kwargs):
     })
 
 
-def get_order_details(client, kwargs):
-    validated = OrderIdParameters(**json.loads(kwargs))
+def get_order_details(client, params: dict):
+    validated = OrderIdParameters(**params)
     order_get_uri = f"/v2/checkout/orders/{validated.order_id}"
     
     result = client.get(order_get_uri)

@@ -7,10 +7,10 @@ from paypal_agent_toolkit.shared.api import PayPalAPI
 
 def PayPalTool(api: PayPalAPI, tool) -> FunctionTool:
     async def on_invoke_tool(ctx: RunContextWrapper, input_str: str) -> str:
-        return api.run(tool["method"], input_str)
+        return api.run(tool["method"], json.loads(input_str))
 
-    parameters = tool["args_schema"]
-
+    parameters = tool["args_schema"].model_json_schema()
+    
     # Enforce schema constraints
     parameters.update({
         "additionalProperties": False,
