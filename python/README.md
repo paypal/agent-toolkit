@@ -31,6 +31,16 @@ The PayPal Agent toolkit provides the following tools:
 - `show_subscription_details`: Retrieve details of a specific subscription
 - `cancel_subscription`: Cancel an active subscription
 
+**Invoices**
+
+- `create_invoice`: Create a new invoice in the PayPal system
+- `list_invoices`: List invoices with optional pagination and filtering
+- `get_invoice`: Retrieve details of a specific invoice
+- `send_invoice`: Send an invoice to recipients
+- `send_invoice_reminder`: Send a reminder for an existing invoice
+- `cancel_sent_invoice`: Cancel a sent invoice
+- `generate_invoice_qr_code`: Generate a QR code for an invoice
+
 
 ## Prerequisites
 
@@ -48,15 +58,11 @@ want to use the package, just run:
 pip install paypal-agent-toolkit
 ```
 
-## Usage
+## Configuration
 
-The library needs to be configured with your PayPal developer account's API credentials which is
-available in your [PayPal Developer Dashboard][app-keys].
+To get started, configure the toolkit with your PayPal API credentials from the [PayPal Developer Dashboard][app-keys].
 
 ```python
-from paypal_agent_toolkit.openai.toolkit import PayPalToolkit
-from paypal_agent_toolkit.common.configuration import Configuration, Context
-
 configuration = Configuration(
     actions={
         "orders": {
@@ -75,10 +81,11 @@ toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, config
 
 ```
 
-This toolkit is designed to work with OpenAI's Agent SDK and Assistant API. It provides pre-built tools for managing PayPal transactions like creating, capturing, and checking orders details etc.
+## Usage Examples
 
+This toolkit is designed to work with OpenAI's Agent SDK and Assistant API, langchain. It provides pre-built tools for managing PayPal transactions like creating, capturing, and checking orders details etc.
 
-### Using with OpenAI Agent SDK
+### OpenAI Agent SDK
 ```python
 from agents import Agent
 
@@ -97,7 +104,7 @@ agent = Agent(
 ```
 
 
-### Using with OpenAI Assistants API
+### OpenAI Assistants API
 ```python
 
 tools = toolkit.get_openai_chat_tools()
@@ -121,9 +128,31 @@ thread = client.beta.threads.create()
 run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
 ```
 
-Examples for OpenAI's Agent SDK are included in [/examples](/examples).
+### LangChain Agent
+```python
+# Setup PayPal Langchain Toolkit
+toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
+tools = toolkit.get_tools()
 
-[app-keys]: https://developer.paypal.com/dashboard/applications/sandbox
+
+
+# Initialize LangChain Agent ---
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent=AgentType.OPENAI_FUNCTIONS,
+    verbose=True
+)
+```
+## Examples
+See /examples for ready-to-run samples using:
+
+ - [OpenAI Agent SDK](examples/openai/app_agents_openai.py)
+ - [Assistants API](examples/openai/app_assistant_openai.py)
+ - [LangChain integration](examples/langchain/app_agent_openai.py)
+
 
 ## Disclaimer
 AI-generated content may be inaccurate or incomplete. Users are responsible for independently verifying any information before relying on it. PayPal makes no guarantees regarding output accuracy and is not liable for any decisions, actions, or consequences resulting from its use.
+
+[app-keys]: https://developer.paypal.com/dashboard/applications/sandbox

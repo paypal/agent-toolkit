@@ -37,17 +37,28 @@ class PayPalClient:
                 "Content-Type": "application/json"
             }
         logRequestPayload(self.debug, payload, url, headers)
-        response = requests.post( url, headers=headers, json=payload)
-        response.raise_for_status()
+
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logging.error("HTTP request failed: %s", str(e))
+            raise
 
         if response.status_code == 204:
             logging.debug("Response Status: 204 No Content")
             return {}
         
-        if self.debug:
-            logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
+        try:
+            json_response = response.json()
+        except ValueError:
+            logging.warning("Response body is not valid JSON or empty")
+            return {}
 
-        return response.json()
+        if self.debug:
+            logging.debug("Response Payload: %s", json.dumps(json_response, indent=2))
+
+        return json_response
     
 
     def get(self, uri):
@@ -59,11 +70,24 @@ class PayPalClient:
             }
         
         logRequestPayload(self.debug, None, url, headers)
-        response = requests.get( url, headers=headers)
-        response.raise_for_status()
+
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logging.error("HTTP request failed: %s", str(e))
+            raise
+
+        try:
+            json_response = response.json()
+        except ValueError:
+            logging.warning("Response body is not valid JSON or empty")
+            return {}
+
         if self.debug:
-            logging.debug("Response Payload: %s", json.dumps(response.json(), indent=2))
-        return response.json()
+            logging.debug("Response Payload: %s", json.dumps(json_response, indent=2))
+
+        return json_response
 
 
 
