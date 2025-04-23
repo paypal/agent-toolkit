@@ -3,9 +3,9 @@
 from typing import List, Optional
 from pydantic import PrivateAttr
 
-from paypal_agent_toolkit.shared.api import PayPalAPI
-from paypal_agent_toolkit.shared.tools import tools
-from paypal_agent_toolkit.shared.configuration import Configuration, Context, is_tool_allowed
+from ..shared.api import PayPalAPI
+from ..shared.tools import tools
+from ..shared.configuration import Configuration, Context, is_tool_allowed
 from .tool import PayPalTool
 
 
@@ -13,11 +13,13 @@ class PayPalToolkit:
     """Toolkit for interacting with the PayPal API via tools."""
 
     _tools: List = PrivateAttr(default=[])
-
+    SOURCE = "LANGCHAIN"
     def __init__(self, client_id, secret, configuration: Configuration):
         super().__init__()
         self.configuration = configuration
-        self._paypal_api = PayPalAPI(client_id=client_id, secret=secret, context=self.configuration.context)
+        self.context = configuration.context if configuration and configuration.context else Configuration.Context.default()
+        self.context.source = self.SOURCE
+        self._paypal_api = PayPalAPI(client_id=client_id, secret=secret, context=self.context)
 
         filtered_tools = [
             tool for tool in tools if is_tool_allowed(tool, configuration)

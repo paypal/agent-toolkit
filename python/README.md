@@ -1,6 +1,6 @@
 # PayPal Agentic Toolkit
 
-The PayPal Agentic Toolkit integrates PayPal's REST APIs seamlessly with OpenAI Agents, allowing AI-driven management of PayPal transactions.
+The PayPal Agentic Toolkit integrates PayPal's REST APIs seamlessly with OpenAI, LangChain, CrewAI Agents, allowing AI-driven management of PayPal transactions.
 
 ## Available tools
 
@@ -60,6 +60,8 @@ pip install paypal-agent-toolkit
 To get started, configure the toolkit with your PayPal API credentials from the [PayPal Developer Dashboard][app-keys].
 
 ```python
+from paypal_agent_toolkit.shared.configuration import Configuration, Context
+
 configuration = Configuration(
     actions={
         "orders": {
@@ -73,21 +75,22 @@ configuration = Configuration(
     )
 )
 
-# Initialize toolkit
-toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
-
 ```
 
 ## Usage Examples
 
-This toolkit is designed to work with OpenAI's Agent SDK and Assistant API, langchain. It provides pre-built tools for managing PayPal transactions like creating, capturing, and checking orders details etc.
+This toolkit is designed to work with OpenAI's Agent SDK and Assistant API, langchain, crewai. It provides pre-built tools for managing PayPal transactions like creating, capturing, and checking orders details etc.
 
-### OpenAI Agent SDK
+### OpenAI Agent
 ```python
-from agents import Agent
+from agents import Agent, Runner
+from paypal_agent_toolkit.openai.toolkit import PayPalToolkit
 
+# Initialize toolkit
+toolkit = PayPalToolkit(PAYPAL_CLIENT_ID, PAYPAL_SECRET, configuration)
 tools = toolkit.get_tools()
 
+# Initialize OpenAI Agent
 agent = Agent(
     name="PayPal Assistant",
     instructions="""
@@ -98,14 +101,27 @@ agent = Agent(
     """,
     tools=tools
 )
+# Initialize the runner to execute agent tasks
+runner = Runner()
+
+user_input = "Create an PayPal Order for $10 for AdsService"
+# Run the agent with user input
+result = await runner.run(agent, user_input)
 ```
 
 
 ### OpenAI Assistants API
 ```python
+from openai import OpenAI
+from paypal_agent_toolkit.openai.toolkit import PayPalToolkit
 
+# Initialize toolkit
+toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
 tools = toolkit.get_openai_chat_tools()
 paypal_api = toolkit.get_paypal_api()
+
+# OpenAI client
+client = OpenAI()
 
 # Create assistant
 assistant = client.beta.assistants.create(
@@ -118,35 +134,74 @@ use the create_order tool and share the approval link. After approval, use pay_o
     tools=tools
 )
 
-# Create thread
+# Create a new thread for conversation
 thread = client.beta.threads.create()
 
-# Start or retrieve a run
+# Execute the assistant within the thread
 run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
 ```
 
 ### LangChain Agent
 ```python
-# Setup PayPal Langchain Toolkit
+from langchain.agents import initialize_agent, AgentType
+from langchain_openai import ChatOpenAI 
+from paypal_agent_toolkit.langchain.toolkit import PayPalToolkit
+
+# Initialize Langchain Toolkit
 toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
 tools = toolkit.get_tools()
 
-
-
-# Initialize LangChain Agent ---
+# Setup LangChain Agent
 agent = initialize_agent(
     tools=tools,
     llm=llm,
     agent=AgentType.OPENAI_FUNCTIONS,
     verbose=True
 )
+
+prompt = "Create an PayPal order for $50 for Premium News service."
+# Run the agent with the defined prompt
+result = agent.run(prompt)
 ```
+
+### CrewAI Agent
+```python
+from crewai import Agent, Crew, Task
+from paypal_agent_toolkit.crewai.toolkit import PayPalToolkit
+
+# Setup PayPal CrewAI Toolkit
+toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
+tools = toolkit.get_tools()
+
+# Define an agent specialized in PayPal transactions
+agent = Agent(
+    role="PayPal Assistant",
+    goal="Help users create and manage PayPal transactions",
+    backstory="You are a finance assistant skilled in PayPal operations.",
+    tools=toolkit.get_tools(),
+    allow_delegation=False
+)
+
+# Define a CrewAI Task to create a PayPal order
+task = Task(
+    description="Create an PayPal order for $50 for Premium News service.",
+    expected_output="A PayPal order ID",
+    agent=agent
+)
+
+# Assemble Crew with defined agent and task
+crew = Crew(agents=[agent], tasks=[task], verbose=True,
+    planning=True,)
+
+```
+
 ## Examples
 See /examples for ready-to-run samples using:
 
- - [OpenAI Agent SDK](examples/openai/app_agents_openai.py)
- - [Assistants API](examples/openai/app_assistant_openai.py)
- - [LangChain integration](examples/langchain/app_agent_openai.py)
+ - [OpenAI Agent SDK](examples/openai/app_agents.py)
+ - [Assistants API](examples/openai/app_assistant.py)
+ - [LangChain integration](examples/langchain/app_agent.py)
+ - [CrewAI integration](examples/crewai/app_agent.py)
 
 
 ## Disclaimer

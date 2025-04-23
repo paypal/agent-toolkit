@@ -1,6 +1,4 @@
 import os
-import httpx
-import json
 import sys
 from openai import OpenAI
 import asyncio
