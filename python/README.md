@@ -82,7 +82,7 @@ configuration = Configuration(
 
 ## Usage Examples
 
-This toolkit is designed to work with OpenAI's Agent SDK and Assistant API, langchain. It provides pre-built tools for managing PayPal transactions like creating, capturing, and checking orders details etc.
+This toolkit is designed to work with OpenAI's Agent SDK and Assistant API, langchain, crewai. It provides pre-built tools for managing PayPal transactions like creating, capturing, and checking orders details etc.
 
 ### OpenAI Agent
 ```python
