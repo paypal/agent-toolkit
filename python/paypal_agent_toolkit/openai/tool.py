@@ -3,7 +3,7 @@ import json
 from agents import FunctionTool
 from agents.run_context import RunContextWrapper
 
-from paypal_agent_toolkit.shared.api import PayPalAPI
+from ..shared.api import PayPalAPI
 
 def PayPalTool(api: PayPalAPI, tool) -> FunctionTool:
     async def on_invoke_tool(ctx: RunContextWrapper, input_str: str) -> str:

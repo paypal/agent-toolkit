@@ -1,0 +1,5 @@
+paypal-agent-toolkit
+# OpenAI
+openai==1.66.0
+openai-agents==0.0.2
+
