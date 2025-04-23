@@ -1,6 +1,6 @@
 # PayPal Agentic Toolkit
 
-The PayPal Agentic Toolkit integrates PayPal's REST APIs seamlessly with OpenAI Agents, allowing AI-driven management of PayPal transactions.
+The PayPal Agentic Toolkit integrates PayPal's REST APIs seamlessly with OpenAI, LangChain, CrewAI Agents, allowing AI-driven management of PayPal transactions.
 
 ## Available tools
 
