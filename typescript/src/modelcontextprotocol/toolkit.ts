@@ -3,6 +3,9 @@ import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.j
 import { Configuration, isToolAllowed } from '../shared/configuration';
 import PayPalAPI from '../shared/api';
 import tools from '../shared/tools';
+import { version } from '../../package.json';
+
+const SOURCE = 'MCP';
 
 class PayPalAgentToolkit extends McpServer {
   private _paypal: PayPalAPI;
@@ -16,10 +19,10 @@ class PayPalAgentToolkit extends McpServer {
   }) {
     super({
       name: 'PayPal',
-      version: '0.4.0',
+      version: version,
     });
 
-    this._paypal = new PayPalAPI(accessToken, configuration.context);
+    this._paypal = new PayPalAPI(accessToken, { ...configuration.context, source: SOURCE });
 
     const context = configuration.context || {};
     const filteredTools = tools(context).filter((tool) =>

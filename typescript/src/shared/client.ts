@@ -1,6 +1,8 @@
 import { Client, Environment, LogLevel } from '@paypal/paypal-server-sdk';
 import axios from 'axios';
 import { Buffer } from 'buffer';
+import os from 'os';
+import { version } from '../../package.json';
 import { Context } from './configuration';
 
 class PayPalClient {
@@ -80,6 +82,7 @@ class PayPalClient {
                     headers: {
                         'Authorization': `Basic ${auth}`,
                         'Content-Type': 'application/x-www-form-urlencoded',
+                        'User-Agent': this.generateUserAgent(),
                     },
                 }
             );
@@ -115,7 +118,20 @@ class PayPalClient {
         if (this._context.tenant_context) {
             headers['PayPal-Tenant-Context'] = JSON.stringify(this._context.tenant_context);
         }
+
+        headers['User-Agent'] = this.generateUserAgent();
+
         return headers;
+    }
+
+    private generateUserAgent(): string {
+        const components = [
+            `PayPal Agent Toolkit Typescript: ${this._context.source}`,
+            `Version: ${version}`,
+            `on OS: ${os.platform()} ${os.release()}`
+        ];
+
+        return components.filter(Boolean).join(', ');
     }
 
 }

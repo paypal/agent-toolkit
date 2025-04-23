@@ -1,6 +1,6 @@
 {
   "name": "@paypal/agent-toolkit",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "PayPal toolkit for AI agent workflows in typescript",
   "scripts": {
     "clean": "rm -rf dist ai-sdk mcp",
@@ -38,14 +38,15 @@
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.32.0",
-    "@paypal/paypal-server-sdk": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.6.1",
+    "@paypal/paypal-server-sdk": "^1.0.0",
     "ai": "^4.0.23",
     "axios": "^1.8.4",
     "debug": "^4.4.0",
     "fast-json-patch": "^3.1.1",
     "lodash": "^4.17.21",
     "mathjs": "^14.0.1",
+    "os": "^0.1.2",
     "zod": "^3.24.2"
   }
 }

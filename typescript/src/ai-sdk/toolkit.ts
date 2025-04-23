@@ -5,6 +5,9 @@ import { Configuration, isToolAllowed } from "../shared/configuration";
 import tools from '../shared/tools';
 import PayPalTool from './tools';
 
+
+const SOURCE = 'AI-SDK';
+
 class PayPalAgentToolkit {
     readonly client: PayPalClient;
     private _paypal: PayPalAPI;
@@ -16,7 +19,7 @@ class PayPalAgentToolkit {
         configuration: Configuration,
     }) {
         const context = configuration.context || {};
-        this.client = new PayPalClient({ clientId: clientId, clientSecret: clientSecret, context: context });
+        this.client = new PayPalClient({ clientId: clientId, clientSecret: clientSecret, context: { ...context, source: SOURCE } });
         const filteredTools = tools(context).filter((tool) =>
             isToolAllowed(tool, configuration)
         );
