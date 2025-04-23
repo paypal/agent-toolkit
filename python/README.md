@@ -10,7 +10,7 @@ The PayPal Agent toolkit provides the following tools:
 
 - `create_order`: Create an order in PayPal system based on provided details
 - `get_order`: Retrieve the details of an order
-- `capture_order`: Capture payment for an authorized order
+- `pay_order`: Process payment for an authorized order
 
 **Products**
 

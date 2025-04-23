@@ -94,8 +94,8 @@ tools = [
         "execute": create_order,
     },
     {
-        "method": "capture_order",
-        "name": "Capture PayPal Order",
+        "method": "pay_order",
+        "name": "Pay Captured PayPal Order",
         "description": CAPTURE_ORDER_PROMPT.strip(),
         "args_schema": OrderIdParameters,
         "actions": {"orders": {"capture": True}},
