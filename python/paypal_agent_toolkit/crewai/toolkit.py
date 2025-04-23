@@ -13,14 +13,15 @@ from .tool import PayPalTool
 
 class PayPalToolkit:
     _tools: List = PrivateAttr()
-
+    SOURCE = "CREWAI"
     def __init__(
         self, client_id: str, secret: str, configuration: Optional[Configuration] = None
     ):
         super().__init__()
         self._tools = []
-        context = configuration.context if configuration else None
-        paypal_api = PayPalAPI(client_id=client_id, secret=secret, context=context)
+        self.context = configuration.context if configuration and configuration.context else Configuration.Context.default()
+        self.context.source = self.SOURCE
+        paypal_api = PayPalAPI(client_id=client_id, secret=secret, context=self.context)
 
         filtered_tools = [
             tool for tool in tools if is_tool_allowed(tool, configuration)

@@ -1,6 +1,11 @@
 from typing import Optional, Dict, Any
 
 class Context:
+
+    @classmethod
+    def default(cls) -> "Context":
+        return cls(sandbox=True)
+    
     def __init__(
         self,
         merchant_id: Optional[str] = None,
@@ -9,6 +14,7 @@ class Context:
         request_id: Optional[str] = None,
         tenant_context: Optional[Any] = None,
         debug: Optional[bool] = None,
+        source: Optional[str] = None,
         **kwargs: Any
     ):
         self.merchant_id = merchant_id
@@ -17,6 +23,7 @@ class Context:
         self.request_id = request_id
         self.tenant_context = tenant_context
         self.debug = debug or False
+        self.source = source or "OPEN-AI"
         self.extra = kwargs
 
 class Configuration:

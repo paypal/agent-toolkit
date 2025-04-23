@@ -2,6 +2,8 @@ import json
 from typing import Optional
 import requests
 
+from ..shared.telemetry import Telemetry
+
 from .logger_util import configure_logging, logRequestPayload
 from .constants import *
 from .configuration import Context
@@ -12,6 +14,7 @@ class PayPalClient:
     def __init__(self, client_id, secret, context: Optional[Context]):
         self.client_id = client_id
         self.secret = secret
+        self.context = context
         self.sandbox = context.sandbox
         self.debug = context.debug
         self.base_url = SANDBOX_BASE_URL if self.sandbox  else LIVE_BASE_URL
@@ -30,6 +33,14 @@ class PayPalClient:
             logging.error("Request to %s failed: %s", url, str(e))
         else:
             logging.error("HTTP request failed: %s", str(e))
+
+    def build_headers(self):
+        headers = {
+                "Authorization": f"Bearer {self.get_access_token()}",
+                "Content-Type": "application/json",
+                "User-Agent" : Telemetry.generate_user_agent(source=self.context.source)
+            }
+        return headers
 
     def get_access_token(self):
         token_url = f"{self.base_url}/v1/oauth2/token"
@@ -58,10 +69,7 @@ class PayPalClient:
     def post(self, uri, payload):
        
         url = f"{self.base_url}{uri}"
-        headers = {
-                "Authorization": f"Bearer {self.get_access_token()}",
-                "Content-Type": "application/json"
-            }
+        headers = self.build_headers()
         logRequestPayload(self.debug, payload, url, headers)
 
         try:
@@ -91,10 +99,7 @@ class PayPalClient:
     def get(self, uri):
 
         url = f"{self.base_url}{uri}"
-        headers = {
-                "Authorization": f"Bearer {self.get_access_token()}",
-                "Content-Type": "application/json"
-            }
+        headers = self.build_headers()
         
         logRequestPayload(self.debug, None, url, headers)
 
