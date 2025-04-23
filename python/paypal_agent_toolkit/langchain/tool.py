@@ -9,7 +9,7 @@ from typing import Any, Optional, Type
 from pydantic import BaseModel
 from langchain.tools import BaseTool
 
-from paypal_agent_toolkit.shared.api import PayPalAPI
+from ..shared.api import PayPalAPI
 
 
 class PayPalTool(BaseTool):
