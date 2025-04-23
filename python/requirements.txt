@@ -1,11 +1,23 @@
-openai==1.66.0
-openai-agents==0.0.2
+# Core dependencies
 httpx>=0.26.0
 requests>=2.31.0
-python-dotenv==1.0.1
+python-dotenv>=1.0.1
 pydantic>=2.10
-azure-identity==1.15.0
+pytest>=7.4.2
+
+#Build Tools
+build
+setuptools>=61.0
+twine
+
+# OpenAI
+openai==1.66.0
+openai-agents==0.0.2
+
+# LangChain
 langchain==0.3.23
 langchain-openai==0.2.2
-pytest==7.4.2
-python-dotenv>=1.0.1
+
+# CrewAI
+crewai==0.76.2
+crewai-tools==0.13.2

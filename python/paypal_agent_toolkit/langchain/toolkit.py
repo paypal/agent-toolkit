@@ -3,9 +3,9 @@
 from typing import List, Optional
 from pydantic import PrivateAttr
 
-from paypal_agent_toolkit.shared.api import PayPalAPI
-from paypal_agent_toolkit.shared.tools import tools
-from paypal_agent_toolkit.shared.configuration import Configuration, Context, is_tool_allowed
+from ..shared.api import PayPalAPI
+from ..shared.tools import tools
+from ..shared.configuration import Configuration, Context, is_tool_allowed
 from .tool import PayPalTool
 
 
