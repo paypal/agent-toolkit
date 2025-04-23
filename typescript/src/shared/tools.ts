@@ -261,7 +261,7 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
-    method: 'create_shipment',
+    method: 'create_shipment_tracking',
     name: 'Create shipment',
     description: createShipmentPrompt(context),
     parameters: createShipmentParameters(context),
@@ -305,8 +305,8 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
-    method: 'capture_order',
-    name: 'Capture Order',
+    method: 'pay_order',
+    name: 'Process payment for an authorized order',
     description: captureOrderPrompt(context),
     parameters: captureOrderParameters(context),
     actions: {

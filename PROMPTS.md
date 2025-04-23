@@ -75,7 +75,7 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Generate a QR code for invoice {invoice_id}
 
-### **Orders**
+### **Payments**
 
 ---
 
@@ -101,14 +101,14 @@ The PayPal Agent toolkit provides the following tools:
 
 ---
 
-**`capture_order`** - Captures payment for an authorized order.
+**`pay_order`** - Captures payment for an authorized order.
 
 - `order_id` (string): The unique identifier of the order to capture.
 
 > **Example Prompt**:
 > Capture payment for order {order_id}
 
-### **Disputes**
+### **Dispute Management**
 
 ---
 
@@ -137,11 +137,11 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Accept the dispute with ID {dispute_id}
 
-### **Shipments**
+### **Shipment Tracking**
 
 ---
 
-**`create_shipment`** - Creates a shipment information for a PayPal transaction.
+**`create_shipment_tracking`** - Creates a shipment tracking record for a PayPal transaction.
 
 - `tracking_number` (string, required): The tracking number for the shipment.
 - `transaction_id` (string, required): The transaction ID associated with the shipment.
@@ -162,7 +162,7 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Get the tracking number for PayPal order ID - {order_id}
 
-### **Products**
+### **Catalog Management**
 
 ---
 
@@ -193,7 +193,7 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:  
 > Show the details for product id {product_id}.
 
-### **Subscription Plans**
+### **Subscription Management**
 
 ---
 
@@ -232,8 +232,6 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Show the details for plan id {billing_plan_id}.
 
-### **Subscriptions**
-
 ---
 
 **`create_subscription`** - Creates a new subscription.
@@ -265,7 +263,7 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Cancel the subscription id {subscription_id}
 
-### **Transactions**
+### **Reporting and Insights**
 
 ---
 

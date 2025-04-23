@@ -6,27 +6,24 @@ The PayPal Agentic Toolkit integrates PayPal's REST APIs seamlessly with OpenAI 
 
 The PayPal Agent toolkit provides the following tools:
 
-**Orders**
+**Payments**
 
 - `create_order`: Create an order in PayPal system based on provided details
 - `get_order`: Retrieve the details of an order
 - `pay_order`: Process payment for an authorized order
 
-**Products**
+**Catalog Management**
 
 - `create_product`: Create a new product in the PayPal catalog
 - `list_products`: List products with optional pagination and filtering
 - `show_product_details`: Retrieve details of a specific product
 - `update_product`: Update an existing product
 
-**Subscription Plans**
+**Subscription Management**
 
 - `create_subscription_plan`: Create a new subscription plan
 - `list_subscription_plans`: List subscription plans
 - `show_subscription_plan_details`: Retrieve details of a specific subscription plan
-
-**Subscriptions**
-
 - `create_subscription`: Create a new subscription
 - `show_subscription_details`: Retrieve details of a specific subscription
 - `cancel_subscription`: Cancel an active subscription
@@ -99,7 +96,7 @@ agent = Agent(
     instructions="""
     You're a helpful assistant specialized in managing PayPal transactions:
     - To create orders, invoke create_order.
-    - After approval by user, invoke capture_order.
+    - After approval by user, invoke pay_order.
     - To check an order status, invoke get_order_status.
     """,
     tools=tools
@@ -130,8 +127,8 @@ client = OpenAI()
 assistant = client.beta.assistants.create(
     name="PayPal Checkout Assistant",
     instructions=f"""
-You help users create and capture PayPal orders. When the user wants to make a purchase,
-use the create_order tool and share the approval link. After approval, use capture_order.
+You help users create and process payment for PayPal Orders. When the user wants to make a purchase,
+use the create_order tool and share the approval link. After approval, use pay_order.
 """,
     model="gpt-4-1106-preview",
     tools=tools
