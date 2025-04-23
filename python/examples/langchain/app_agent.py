@@ -20,7 +20,6 @@ OPENAI_API_VERSION = "2024-02-15-preview"
 
 # --- STEP 1: Setup OpenAI LLM ---
 llm = ChatOpenAI(
-    temperature=0.3,
     model="gpt-4o",  # or "gpt-3.5-turbo"
 )
 

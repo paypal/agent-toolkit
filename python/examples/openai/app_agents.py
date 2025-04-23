@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from agents import Agent, Runner
 from paypal_agent_toolkit.openai.toolkit import PayPalToolkit
-from paypal_agent_toolkit.openai.tool import PayPalTool
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
 #uncomment after setting the env file
@@ -73,19 +72,9 @@ agent = Agent(
     - After approval by user, invoke capture_order.
     - To check an order status, invoke get_order_status.
     """,
-    model="gpt-4-1106-preview",
+    model="gpt-4o",
     tools=tools
 )
-
-runner = Runner()
-
-async def main():
-    print("PayPal Assistant (OpenAI Agents). Type 'exit' to quit.")
-
-    while True:
-        user_input = input("\nYou: ")
-        if user_input.lower() in {"exit", "quit"}:
-            break
 
 runner = Runner()
 
