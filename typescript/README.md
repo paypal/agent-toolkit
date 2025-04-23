@@ -17,43 +17,40 @@ The PayPal Agent toolkit provides the following tools:
 - `cancel_sent_invoice`: Cancel a sent invoice
 - `generate_invoice_qr_code`: Generate a QR code for an invoice
 
-**Orders**
+**Payments**
 
 - `create_order`: Create an order in PayPal system based on provided details
 - `get_order`: Retrieve the details of an order
-- `capture_order`: Capture payment for an authorized order
+- `pay_order`: Process payment for an authorized order
 
-**Disputes**
+**Dispute Management**
 
 - `list_disputes`: Retrieve a summary of all open disputes
 - `get_dispute`: Retrieve detailed information of a specific dispute
 - `accept_dispute_claim`: Accept a dispute claim
 
-**Shipments**
+**Shipment Tracking**
 
-- `create_shipment`: Create a shipment tracking record
+- `create_shipment_tracking`: Create a shipment tracking record
 - `get_shipment_tracking`: Retrieve shipment tracking information
 
-**Products**
+**Catalog Management**
 
 - `create_product`: Create a new product in the PayPal catalog
 - `list_products`: List products with optional pagination and filtering
 - `show_product_details`: Retrieve details of a specific product
 - `update_product`: Update an existing product
 
-**Subscription Plans**
+**Subscription Management**
 
 - `create_subscription_plan`: Create a new subscription plan
 - `list_subscription_plans`: List subscription plans
 - `show_subscription_plan_details`: Retrieve details of a specific subscription plan
-
-**Subscriptions**
-
 - `create_subscription`: Create a new subscription
 - `show_subscription_details`: Retrieve details of a specific subscription
 - `cancel_subscription`: Cancel an active subscription
 
-**Transactions**
+**Reporting and Insights**
 
 - `list_transactions`: List transactions with optional pagination and filtering
 

@@ -99,7 +99,7 @@ class PayPalAPI {
         return showSubscriptionDetails(this.paypalClient, this.context, arg);
       case 'cancel_subscription':
         return cancelSubscription(this.paypalClient, this.context, arg);
-      case 'create_shipment':
+      case 'create_shipment_tracking':
         return createShipment(this.paypalClient, this.context, arg);
       case 'get_shipment_tracking':
         return getShipmentTracking(this.paypalClient, this.context, arg);
@@ -107,7 +107,7 @@ class PayPalAPI {
         return createOrder(this.paypalClient, this.context, arg);
       case 'get_order':
         return getOrder(this.paypalClient, this.context, arg);
-      case 'capture_order':
+      case 'pay_order':
         return captureOrder(this.paypalClient, this.context, arg);
       case 'list_disputes':
         return listDisputes(this.paypalClient, this.context, arg);

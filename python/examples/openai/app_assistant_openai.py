@@ -44,7 +44,7 @@ client = OpenAI()
 assistant = client.beta.assistants.create(
     name="PayPal Checkout Assistant",
     instructions=f"""
-You help users create and capture PayPal orders. When the user wants to make a purchase,
+You help users create and process payment for PayPal Orders. When the user wants to make a purchase,
 use the create_order tool and share the approval link. After approval, use capture_order.
 """,
     model="gpt-4-1106-preview",

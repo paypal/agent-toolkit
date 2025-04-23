@@ -70,7 +70,7 @@ agent = Agent(
     instructions="""
     You're a helpful assistant specialized in managing PayPal transactions:
     - To create orders, invoke create_order.
-    - After approval by user, invoke capture_order.
+    - After approval by user, invoke pay_order.
     - To check an order status, invoke get_order_status.
     """,
     model="gpt-4-1106-preview",

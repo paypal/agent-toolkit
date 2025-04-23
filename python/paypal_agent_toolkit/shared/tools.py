@@ -94,8 +94,8 @@ tools = [
         "execute": create_order,
     },
     {
-        "method": "capture_order",
-        "name": "Capture PayPal Order",
+        "method": "pay_order",
+        "name": "Process payment for PayPal Order",
         "description": CAPTURE_ORDER_PROMPT.strip(),
         "args_schema": OrderIdParameters,
         "actions": {"orders": {"capture": True}},
@@ -127,7 +127,7 @@ tools = [
     },
     {
         "method": "show_product_details",
-        "name": "Show PayPal Prodcut Details",
+        "name": "Show PayPal Product Details",
         "description": SHOW_PRODUCT_DETAILS_PROMPT.strip(),
         "args_schema": ShowProductDetailsParameters,
         "actions": {"products": {"show": True}},

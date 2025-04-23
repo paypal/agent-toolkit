@@ -3,7 +3,7 @@
   "version": "1.2.1",
   "description": "PayPal toolkit for AI agent workflows in typescript",
   "scripts": {
-    "clean": "rm -rf dist ai-sdk",
+    "clean": "rm -rf dist ai-sdk mcp",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm i && tsup"
   },
@@ -20,7 +20,6 @@
   "author": "",
   "license": "ISC",
   "files": [
-    "src/ai-sdk/**/*",
     "ai-sdk",
     "mcp",
     "package.json"
