@@ -198,10 +198,10 @@ crew = Crew(agents=[agent], tasks=[task], verbose=True,
 ## Examples
 See /examples for ready-to-run samples using:
 
- - [OpenAI Agent SDK](examples/openai/app_agents.py)
- - [Assistants API](examples/openai/app_assistant.py)
- - [LangChain integration](examples/langchain/app_agent.py)
- - [CrewAI integration](examples/crewai/app_agent.py)
+ - [OpenAI Agent SDK](https://github.com/paypal/agent-toolkit/tree/main/python/examples/openai/app_agents.py)
+ - [Assistants API](https://github.com/paypal/agent-toolkit/tree/main/python/examples/openai/app_assistant.py)
+ - [LangChain integration](https://github.com/paypal/agent-toolkit/tree/main/python/examples/langchain/app_agent.py)
+ - [CrewAI integration](https://github.com/paypal/agent-toolkit/tree/main/python/examples/crewai/app_agent.py)
 
 
 ## Disclaimer
