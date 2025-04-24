@@ -329,5 +329,10 @@ Once you have your access token, update the `PAYPAL_ACCESS_TOKEN` value in your 
 3. Use environment-specific tokens (sandbox for testing, production for real transactions)
 4. Avoid hardcoding tokens in application code
 
+## Submit Issues & Feedback
+
+- Go to the “Issues” tab in the GitHub repository [here](https://github.com/paypal/agent-toolkit/issues)
+- Enter the details of your bug or feature request. click `New issue`.
+
 ## Disclaimer
 *AI-generated content may be inaccurate or incomplete. Users are responsible for independently verifying any information before relying on it. PayPal makes no guarantees regarding output accuracy and is not liable for any decisions, actions, or consequences resulting from its use.*
