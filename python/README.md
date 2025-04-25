@@ -6,11 +6,32 @@ The PayPal Agentic Toolkit integrates PayPal's REST APIs seamlessly with OpenAI,
 
 The PayPal Agent toolkit provides the following tools:
 
+**Invoices**
+
+- `create_invoice`: Create a new invoice in the PayPal system
+- `list_invoices`: List invoices with optional pagination and filtering
+- `get_invoice`: Retrieve details of a specific invoice
+- `send_invoice`: Send an invoice to recipients
+- `send_invoice_reminder`: Send a reminder for an existing invoice
+- `cancel_sent_invoice`: Cancel a sent invoice
+- `generate_invoice_qr_code`: Generate a QR code for an invoice
+
 **Payments**
 
 - `create_order`: Create an order in PayPal system based on provided details
 - `get_order`: Retrieve the details of an order
 - `pay_order`: Process payment for an authorized order
+
+**Dispute Management**
+
+- `list_disputes`: Retrieve a summary of all open disputes
+- `get_dispute`: Retrieve detailed information of a specific dispute
+- `accept_dispute_claim`: Accept a dispute claim
+
+**Shipment Tracking**
+
+- `create_shipment_tracking`: Create a shipment tracking record
+- `get_shipment_tracking`: Retrieve shipment tracking information
 
 **Catalog Management**
 
@@ -28,15 +49,9 @@ The PayPal Agent toolkit provides the following tools:
 - `show_subscription_details`: Retrieve details of a specific subscription
 - `cancel_subscription`: Cancel an active subscription
 
-**Invoices**
+**Reporting and Insights**
 
-- `create_invoice`: Create a new invoice in the PayPal system
-- `list_invoices`: List invoices with optional pagination and filtering
-- `get_invoice`: Retrieve details of a specific invoice
-- `send_invoice`: Send an invoice to recipients
-- `send_invoice_reminder`: Send a reminder for an existing invoice
-- `cancel_sent_invoice`: Cancel a sent invoice
-- `generate_invoice_qr_code`: Generate a QR code for an invoice
+- `list_transactions`: List transactions with optional pagination and filtering
 
 
 ## Prerequisites
@@ -198,8 +213,8 @@ crew = Crew(agents=[agent], tasks=[task], verbose=True,
 ## Examples
 See /examples for ready-to-run samples using:
 
- - [OpenAI Agent SDK](https://github.com/paypal/agent-toolkit/tree/main/python/examples/openai/app_agents.py)
- - [Assistants API](https://github.com/paypal/agent-toolkit/tree/main/python/examples/openai/app_assistant.py)
+ - [OpenAI Agent SDK](https://github.com/paypal/agent-toolkit/tree/main/python/examples/openai/app_agent.py)
+ - [Assistants API](https://github.com/paypal/agent-toolkit/tree/main/python/examples/openai/app_assistant_chatbot.py)
  - [LangChain integration](https://github.com/paypal/agent-toolkit/tree/main/python/examples/langchain/app_agent.py)
  - [CrewAI integration](https://github.com/paypal/agent-toolkit/tree/main/python/examples/crewai/app_agent.py)
 
