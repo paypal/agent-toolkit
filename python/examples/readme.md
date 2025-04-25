@@ -10,6 +10,22 @@ Before setting up the workspace, ensure you have the following installed:
 - `pip` (Python package manager)
 - A PayPal developer account for API credentials
 
+## Installing Dependencies
+
+Set up a Python virtual environment and install the required dependencies:
+```bash
+# Step 1: Create a virtual environment
+python -m venv venv
+
+# Step 2: Activate the virtual environment
+source venv/bin/activate  # On macOS/Linux
+# For Windows:
+# venv\Scripts\activate
+
+# Step 3: Install required dependencies
+pip install -r requirements.txt
+
+```
 
 ## Environment Setup
 Create and configure an .env file in the example directory to set your environment variables:
