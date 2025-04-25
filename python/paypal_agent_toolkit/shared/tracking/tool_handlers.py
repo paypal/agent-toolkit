@@ -10,7 +10,7 @@ def create_shipment_tracking(client, params: dict) -> Dict[str, Any]:
     """
     validated = CreateShipmentParameters(**params)
     uri = "/v1/shipping/trackers-batch"
-
+   
     # Prepare trackers data - wrapping single shipment in an array
     trackers_data = {
         "trackers": [{
@@ -21,7 +21,7 @@ def create_shipment_tracking(client, params: dict) -> Dict[str, Any]:
         }]
     }
     response = client.post(uri=uri, payload=trackers_data)
-    return json.loads(response)
+    return json.dumps(response)
 
 
 
@@ -55,5 +55,5 @@ def get_shipment_tracking(client, params: dict) -> Dict[str, Any]:
 
     uri = f"/v1/shipping/trackers?transaction_id={transaction_id}"
     response = client.get(uri=uri)
-    return json.loads(response)
+    return json.dumps(response)
     

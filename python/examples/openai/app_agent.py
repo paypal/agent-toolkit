@@ -46,7 +46,20 @@ configuration = Configuration(
             "sendReminder": True,
             "cancel": True,
             "generateQRC": True,
-        }
+        },
+        "shipment": {
+            "create": True,
+            "get": True,
+            "list": True
+        },
+        "disputes": {
+            "create": True,
+            "get": True,
+            "list": True
+        },
+        "transactions": {
+            "list": True
+        },
     },
     context=Context(
         sandbox=True,

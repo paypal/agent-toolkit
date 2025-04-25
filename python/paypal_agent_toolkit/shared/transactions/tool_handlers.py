@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from typing import Dict, Any
+from urllib.parse import urlencode
 from .parameters import ListTransactionsParameters
 
 
@@ -10,7 +11,6 @@ def list_transactions(client, params: dict) -> Dict[str, Any]:
     List transactions or search for a specific transaction by ID.
     """
     validated = ListTransactionsParameters(**params)
-    headers = client.get_headers()
 
     # If searching for a specific transaction by ID
     if validated.transaction_id:
@@ -25,7 +25,7 @@ def list_transactions(client, params: dict) -> Dict[str, Any]:
 
             uri = f"/v1/reporting/transactions"
             try:
-                response = client.get(uri=uri, params=query_params, headers=headers)
+                response = client.get(uri=uri, payload=query_params)
                 response_data = json.loads(response)
 
                 if response_data.get("transaction_details"):
@@ -74,9 +74,10 @@ def list_transactions(client, params: dict) -> Dict[str, Any]:
             if day_range > 31:
                 query_params["start_date"] = (end_date - timedelta(days=31)).isoformat() + "Z"
 
-        uri = f"/v1/reporting/transactions"
+        query_string = urlencode(query_params)
+        uri = f"/v1/reporting/transactions?" + query_string
 
-        response = client.get(uri=uri, params=query_params, headers=headers)
-        return json.loads(response)
+        response = client.get(uri=uri)
+        return json.dumps(response)
 
 

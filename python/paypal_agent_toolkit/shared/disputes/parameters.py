@@ -16,7 +16,6 @@ class ListDisputesParameters(BaseModel):
         ]
     ] = Field(default=None, description="OPEN_INQUIRIES")
     page_size: Optional[int] = Field(default=10)
-    page: Optional[int] = Field(default=1)
 
 
 class GetDisputeParameters(BaseModel):
