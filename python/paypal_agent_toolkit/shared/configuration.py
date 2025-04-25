@@ -13,7 +13,6 @@ class Context:
         access_token: Optional[str] = None,
         request_id: Optional[str] = None,
         tenant_context: Optional[Any] = None,
-        debug: Optional[bool] = None,
         source: Optional[str] = None,
         **kwargs: Any
     ):
@@ -22,7 +21,6 @@ class Context:
         self.access_token = access_token
         self.request_id = request_id
         self.tenant_context = tenant_context
-        self.debug = debug or False
         self.source = source or "OPEN-AI"
         self.extra = kwargs
 
