@@ -92,6 +92,29 @@ configuration = Configuration(
 
 ```
 
+### Logging Information
+The toolkit uses Python’s standard logging module to output logs. By default, logs are sent to the console. It is recommended to configure logging to a file to capture any errors or debugging information for easier troubleshooting.
+
+Recommendations:
+- Error Logging: Set the logging output to a file to ensure all errors are recorded.
+- Debugging Payloads/Headers: To see detailed request payloads and headers, set the logging level to DEBUG.
+
+```python
+import logging
+
+# Basic configuration: logs to a file with INFO level
+logging.basicConfig(
+    filename='paypal_agent_toolkit.log', 
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s %(message)s'
+)
+
+# To enable debug-level logs (for seeing payloads and headers)
+# logging.getLogger().setLevel(logging.DEBUG)
+
+```
+
+
 ## Usage Examples
 
 This toolkit is designed to work with OpenAI's Agent SDK and Assistant API, langchain, crewai. It provides pre-built tools for managing PayPal transactions like creating, capturing, and checking orders details etc.

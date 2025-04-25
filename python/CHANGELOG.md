@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.3.0] - 2025-04-23
+### Added
+- Added support for PayPal Disputes, Shipment tracking and Transactions Search.
+- Improved and streamlined error logging mechanisms.
 
 ## [1.2.1] - 2025-04-23
 ### Added
