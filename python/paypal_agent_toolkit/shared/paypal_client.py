@@ -4,7 +4,7 @@ import requests
 
 from ..shared.telemetry import Telemetry
 
-from .logger_util import configure_logging, logRequestPayload
+from .logger_util import logRequestPayload, logResponsePayload
 from .constants import *
 from .configuration import Context
 import logging
@@ -16,9 +16,8 @@ class PayPalClient:
         self.secret = secret
         self.context = context
         self.sandbox = context.sandbox
-        self.debug = context.debug
         self.base_url = SANDBOX_BASE_URL if self.sandbox  else LIVE_BASE_URL
-        configure_logging(self.debug)
+    
 
 
     def log_request_exception(self, e: requests.exceptions.RequestException, url: Optional[str] = None):
@@ -33,6 +32,7 @@ class PayPalClient:
             logging.error("Request to %s failed: %s", url, str(e))
         else:
             logging.error("HTTP request failed: %s", str(e))
+
 
     def build_headers(self):
         headers = {
@@ -56,8 +56,8 @@ class PayPalClient:
             self.log_request_exception(e, token_url)
             raise RuntimeError("Failed to obtain access token from PayPal") from e
         
-        if self.debug:
-            logging.debug("PayPal Response Headers: %s", json.dumps(dict(response.headers), indent=2))
+        
+        logging.debug("PayPal Response Headers: %s", json.dumps(dict(response.headers), indent=2))
 
         token_data = response.json()
         if "access_token" not in token_data:
@@ -70,7 +70,7 @@ class PayPalClient:
        
         url = f"{self.base_url}{uri}"
         headers = self.build_headers()
-        logRequestPayload(self.debug, payload, url, headers)
+        logRequestPayload(payload, url, headers)
 
         try:
             response = requests.post(url, headers=headers, json=payload)
@@ -89,19 +89,18 @@ class PayPalClient:
             logging.warning("Response body is not valid JSON or empty, Headers: %s", json.dumps(dict(response.headers), indent=2))
             return {}
 
-        if self.debug:
-            logging.debug("PayPal Response Headers: %s", json.dumps(dict(response.headers), indent=2))
-            logging.debug("PayPal Response Payload: %s", json.dumps(json_response, indent=2))
+        logResponsePayload(response, json_response)
 
         return json_response
-    
+
+
 
     def get(self, uri):
 
         url = f"{self.base_url}{uri}"
         headers = self.build_headers()
         
-        logRequestPayload(self.debug, None, url, headers)
+        logRequestPayload( None, url, headers)
 
         try:
             response = requests.get(url, headers=headers)
@@ -117,9 +116,7 @@ class PayPalClient:
             logging.warning("Response body is not valid JSON or empty")
             return {}
 
-        if self.debug:
-            logging.debug("PayPal Response Headers: %s", json.dumps(dict(response.headers), indent=2))
-            logging.debug("PayPal Response Payload: %s", json.dumps(json_response, indent=2))
+        logResponsePayload(response, json_response)
 
         return json_response
 

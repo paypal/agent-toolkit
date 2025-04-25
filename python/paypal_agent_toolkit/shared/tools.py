@@ -1,9 +1,9 @@
-from paypal_agent_toolkit.shared.orders.prompts import (
+from ..shared.orders.prompts import (
     CREATE_ORDER_PROMPT,
     CAPTURE_ORDER_PROMPT,
     GET_ORDER_PROMPT,
 )
-from paypal_agent_toolkit.shared.subscriptions.prompts import (
+from ..shared.subscriptions.prompts import (
     CREATE_PRODUCT_PROMPT,
     LIST_PRODUCTS_PROMPT,
     SHOW_PRODUCT_DETAILS_PROMPT,
@@ -15,7 +15,7 @@ from paypal_agent_toolkit.shared.subscriptions.prompts import (
     CANCEL_SUBSCRIPTION_PROMPT,
 )
 
-from paypal_agent_toolkit.shared.invoices.prompts import (
+from ..shared.invoices.prompts import (
     CREATE_INVOICE_PROMPT,
     LIST_INVOICE_PROMPT,
     GET_INVOICE_PROMPT,
@@ -25,13 +25,28 @@ from paypal_agent_toolkit.shared.invoices.prompts import (
     GENERATE_INVOICE_QRCODE_PROMPT,
 )
 
-from paypal_agent_toolkit.shared.orders.parameters import (
+from ..shared.disputes.prompts import (
+    LIST_DISPUTES_PROMPT,
+    GET_DISPUTE_PROMPT,
+    ACCEPT_DISPUTE_CLAIM_PROMPT,
+)
+
+from ..shared.tracking.prompts import (
+    CREATE_SHIPMENT_PROMPT,
+    GET_SHIPMENT_TRACKING_PROMPT,
+)
+
+from ..shared.transactions.prompt import (
+    LIST_TRANSACTIONS_PROMPT
+)
+
+from ..shared.orders.parameters import (
     
     CreateOrderParameters,
     OrderIdParameters,
 )
 
-from paypal_agent_toolkit.shared.subscriptions.parameters import (
+from ..shared.subscriptions.parameters import (
     
     CreateProductParameters,
     ListProductsParameters,
@@ -44,7 +59,7 @@ from paypal_agent_toolkit.shared.subscriptions.parameters import (
     CancelSubscriptionParameters,
 )
 
-from paypal_agent_toolkit.shared.invoices.parameters import (
+from ..shared.invoices.parameters import (
     CreateInvoiceParameters,
     SendInvoiceParameters,
     ListInvoicesParameters,
@@ -54,13 +69,28 @@ from paypal_agent_toolkit.shared.invoices.parameters import (
     GenerateInvoiceQrCodeParameters,
 )
 
-from paypal_agent_toolkit.shared.orders.tool_handlers import (
+from ..shared.disputes.parameters import (
+   ListDisputesParameters,
+   GetDisputeParameters,
+   AcceptDisputeClaimParameters,
+)
+
+from ..shared.tracking.parameters import (
+    CreateShipmentParameters,
+    GetShipmentTrackingParameters,
+)
+
+from ..shared.transactions.parameters import (
+    ListTransactionsParameters
+)
+
+from ..shared.orders.tool_handlers import (
     create_order,
     capture_order,
     get_order_details,
 )
 
-from paypal_agent_toolkit.shared.subscriptions.tool_handlers import (
+from ..shared.subscriptions.tool_handlers import (
     create_product,
     list_products,
     show_product_details,
@@ -72,7 +102,7 @@ from paypal_agent_toolkit.shared.subscriptions.tool_handlers import (
     cancel_subscription,
 )
 
-from paypal_agent_toolkit.shared.invoices.tool_handlers import (
+from ..shared.invoices.tool_handlers import (
     create_invoice,
     send_invoice,
     list_invoices,
@@ -80,6 +110,22 @@ from paypal_agent_toolkit.shared.invoices.tool_handlers import (
     send_invoice_reminder,
     cancel_sent_invoice,
     generate_invoice_qrcode
+)
+
+
+from ..shared.disputes.tool_handlers import (
+    list_disputes,
+    get_dispute,
+    accept_dispute_claim
+)
+
+from ..shared.tracking.tool_handlers import (
+    create_shipment_tracking,
+    get_shipment_tracking,
+)
+
+from ..shared.transactions.tool_handlers import (
+    list_transactions
 )
 
 from pydantic import BaseModel
@@ -237,5 +283,54 @@ tools = [
         "actions": {"invoices": {"generateQRC": True}},
         "execute": generate_invoice_qrcode,
     },
+    {
+        "method": "list_disputes",
+        "name": "List Disputes",
+        "description": LIST_DISPUTES_PROMPT.strip(),
+        "args_schema": ListDisputesParameters,
+        "actions": {"disputes": {"list": True}},
+        "execute": list_disputes,
+    },
+    {
+        "method": "get_dispute",
+        "name": "Get Dispute",
+        "description": GET_DISPUTE_PROMPT.strip(),
+        "args_schema": GetDisputeParameters,
+        "actions": {"disputes": {"get": True}},
+        "execute": get_dispute,
+    },
+    {
+        "method": "accept_dispute_claim",
+        "name": "Accept Dispute Claim",
+        "description": ACCEPT_DISPUTE_CLAIM_PROMPT.strip(),
+        "args_schema": AcceptDisputeClaimParameters,
+        "actions": {"disputes": {"create": True}},
+        "execute": accept_dispute_claim,
+    },
+    {
+        "method": "create_shipment_tracking",
+        "name": "Create Shipment",
+        "description": CREATE_SHIPMENT_PROMPT.strip(),
+        "args_schema": CreateShipmentParameters,
+        "actions": {"shipment": {"create": True}},
+        "execute": create_shipment_tracking,
+    },
+    {
+        "method": "get_shipment_tracking",
+        "name": "Get Shipment Tracking",
+        "description": GET_SHIPMENT_TRACKING_PROMPT.strip(),
+        "args_schema": GetShipmentTrackingParameters,
+        "actions": {"shipment": {"get": True}},
+        "execute": get_shipment_tracking,
+    },
+
+    {
+        "method": "list_transactions",
+        "name": "List Transactions",
+        "description": LIST_TRANSACTIONS_PROMPT.strip(),
+        "args_schema": ListTransactionsParameters,
+        "actions": {"transactions": {"list": True}},
+        "execute": list_transactions,
+    }
     
 ]
