@@ -17,12 +17,17 @@ import {
   listDisputes,
   getDispute,
   acceptDisputeClaim,
-  captureOrder, listTransactions,
+  captureOrder,
+  listTransactions,
   createSubscription,
   showProductDetails,
   showSubscriptionPlanDetails,
   showSubscriptionDetails,
   cancelSubscription,
+  createPaymentLink,
+  getPaymentLinkByID,
+  updatePaymentLink,
+  getAllPaymentLinks
 } from './functions';
 
 import type { Context } from './configuration';
@@ -117,6 +122,14 @@ class PayPalAPI {
         return acceptDisputeClaim(this.paypalClient, this.context, arg);
       case 'list_transactions':
         return listTransactions(this.paypalClient, this.context, arg);
+      case 'create_payment_link':
+        return createPaymentLink(this.paypalClient, this.context, arg);
+      case 'get_payment_link':
+        return getPaymentLinkByID(this.paypalClient, this.context, arg);
+      case 'get_all_payment_links':
+        return getAllPaymentLinks(this.paypalClient, this.context, arg);
+      case 'update_payment_link':
+        return updatePaymentLink(this.paypalClient, this.context, arg);
       default:
         throw new Error(`Invalid method: ${method}`);
     }

@@ -25,7 +25,11 @@ import {
   showSubscriptionPlanDetailsParameters,
   createSubscriptionParameters,
   showSubscriptionDetailsParameters,
-  cancelSubscriptionParameters
+  cancelSubscriptionParameters,
+  createPaymentLinkParameters,
+  getPaymentLinkParameters,
+  getAllPaymentLinksParameters,
+  updatePaymentLinkParameters
 } from "./parameters";
 import { parseOrderDetails, toQueryString } from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -911,6 +915,183 @@ export async function listTransactions(
       logger('[listTransactions] Error listing transactions:', error.message);
       handleAxiosError(error);
     }
+  }
+}
+
+export async function createPaymentLink(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createPaymentLinkParameters>>
+): Promise<any> {
+  try {
+    logger(`[createPaymentLink] Starting create a payment link process with Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
+    if(process.env.PAYPAL_ENVIRONMENT?.toUpperCase() !== 'SANDBOX') {
+      return {
+        status: "error",
+        response: "This is a limited release and only supports specific accounts on sandbox at the moment"
+      };
+    }
+    const request = {
+      "type": "BUY_NOW",
+      "items": [
+        {
+          "name": params.item_name,
+          "description": params.description,
+          "max_allowed_quantity": params.quantity,
+          "amount": {
+            "currency_code": params.currency_code,
+            "value": params.value
+          }
+        }
+      ]
+    }
+    const url = `${client.getBaseUrl()}/v1/checkout/payment-links`;
+
+    const response = await axios.post(url, request, {
+      headers: await client.getHeaders()
+    });
+    if (response.status <= 299) {
+      logger(`[createPaymentLink] Payment link created successfully. Status: ${response.status}`);
+      return {
+        status: "success",
+        response: response.data
+      };
+    } else {
+      logger(`[createPaymentLink] Payment link creation failed. Status: ${response.status}`);
+      return {
+        status: "error",
+        response: response.data
+      };
+    }
+  } catch (error: any) {
+    logger('[createPaymentLink] Error creating a payment link:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getPaymentLinkByID(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getPaymentLinkParameters>>
+): Promise<any> {
+  logger('[getPaymentLinkByID] Starting to get a payment link by ID');
+  logger(`[getPaymentLinkByID] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
+  if(process.env.PAYPAL_ENVIRONMENT !== 'Sandbox') {
+    return {
+      status: "error",
+      response: "This is a limited release and only supports specific accounts on sandbox at the moment"
+    };
+  }
+
+  const url = `${client.getBaseUrl()}/v1/checkout/payment-links/${params.link_id}`;
+  logger(`[getPaymentLinkByID] API URL: ${url}`);
+
+  try {
+    logger('[getPaymentLinkByID] Sending request to PayPal API');
+    const response = await axios.get(url, {
+      headers: await client.getHeaders()
+    });
+    logger(`[getPaymentLinkByID] Payment link retrieved successfully. Status: ${response.status}`);
+    return { status: "success", data: response.data };
+  } catch (error: any) {
+    logger('[getPaymentLinkByID] Error getting the payment link:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updatePaymentLink(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updatePaymentLinkParameters>>
+): Promise<any> {
+  logger('[updatePaymentLink] Starting to update a payment link');
+  logger(`[updatePaymentLink] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
+  if(process.env.PAYPAL_ENVIRONMENT?.toUpperCase() !== 'SANDBOX') {
+    return {
+      status: "error",
+      response: "This is a limited release and only supports specific accounts on sandbox at the moment"
+    };
+  }
+
+  const url = `${client.getBaseUrl()}/v1/checkout/payment-links/${params.link_id}`;
+  logger(`[updatePaymentLink] API URL: ${url}`);
+
+  const request = [];
+
+        if(params.item_name) {
+            request.push({
+                "op": "replace",
+                "path": "/details/items/0/name",
+                "value": params.item_name
+            });
+        }
+
+        if(params.currency_code || params.value) {
+            request.push({ 
+                "op": "replace",
+                "path": "/details/items/0/amount",
+                "value": {
+                    ...(params.currency_code && { currency_code: params.currency_code }),
+                    ...(params.value && { value: params.value })
+                }
+            });
+        }
+
+        if(params.description) {
+            request.push({
+                "op": "add",
+                "path": "/details/items/0/description",
+                "value": params.description
+            });
+        }
+
+        if(params.quantity) {
+            request.push({
+                "op": "add",
+                "path": "/details/items/0/max_allowed_quantity",
+                "value": params.quantity
+            });
+        }
+
+  try {
+    logger('[updatePaymentLink] Sending request to PayPal API');
+    const response = await axios.patch(url, request, {
+      headers: await client.getHeaders()
+    });
+    logger(`[updatePaymentLink] payment link updated successfully. Status: ${response.status}`);
+    return { status: "success", data: response.data };
+  } catch (error: any) {
+    logger('[updatePaymentLink] Error updating the payment link:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getAllPaymentLinks(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getAllPaymentLinksParameters>>): Promise<any> {
+  logger('[getAllPaymentLinks] Starting to get all payment links');
+  logger(`[getAllPaymentLinks] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
+  if(process.env.PAYPAL_ENVIRONMENT?.toUpperCase() !== 'SANDBOX') {
+    return {
+      status: "error",
+      response: "This is a limited release and only supports specific accounts on sandbox at the moment"
+    };
+  }
+
+  const url = `${client.getBaseUrl()}/v1/checkout/payment-links?limit=20`;
+  logger(`[getAllPaymentLinks] API URL: ${url}`);
+
+  try {
+    logger('[getAllPaymentLinks] Sending request to PayPal API', params);
+    const response = await axios.get(url, {
+      headers: await client.getHeaders()
+    });
+    logger(`[getAllPaymentLinks] Payment links retrieved successfully. Status: ${response.status}`);
+    return { status: "success", data: response.data };
+  } catch (error: any) {
+    logger('[getAllPaymentLinks] Error getting payment links:', error.message);
+    handleAxiosError(error);
   }
 }
 

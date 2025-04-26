@@ -215,3 +215,38 @@ This tool is used to list transactions with optional filtering parameters within
     4. "V" - represents transactions that were reversed.
 - The transaction_id is the unique identifier for the transaction.
 `
+// === PAYMENT LINK PROMPTS ===
+export const createPaymentLinkPrompt = (context: Context) => `
+Creates a new payment link.
+This tool is used to create a multi use payment link in the PayPal system. This link can be used by buyers to pay for the product from merchants.
+
+When creating a payment link, you need to specify the details of the item or service being sold, the currency, and the amount.
+
+Required parameters:
+  - Item Name: (string) The name of the item or service.
+  - Currency Code: (string) The currency for the payment (e.g., USD, EUR, GBP).
+  - Value: (string) The amount to be charged for the item or service. Should be numeric and up to 2 decimals.
+Optional parameters:
+  - Description: (string) A brief description of the item.
+  - Quantity: (number) max quantity per transaction.
+
+Shipping & tax has to be added to the cost of the product. User needs to confirm this.
+`;
+
+export const getPaymentLinkByIdPrompt = (context: Context) => `
+Retrieves details for payment link.
+
+This tool is used to retrieve a payment link by ID.
+`;
+
+export const getAllPaymentLinksPrompt = (context: Context) => `
+Lists all payment links created by the merchant.
+
+This tool is used to edit/update a payment link by link ID.
+`;
+
+export const updatePaymentLinkByIDPrompt = (context: Context) => `
+Updates an existing Payment Link.
+
+This tool is used to retrieve all the payment links that have been created
+`;

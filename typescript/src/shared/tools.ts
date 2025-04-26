@@ -27,6 +27,10 @@ import {
   createSubscriptionPrompt,
   showSubscriptionDetailsPrompt,
   cancelSubscriptionPrompt,
+  createPaymentLinkPrompt,
+  getPaymentLinkByIdPrompt,
+  getAllPaymentLinksPrompt,
+  updatePaymentLinkByIDPrompt
 } from './prompts';
 
 import {
@@ -56,6 +60,10 @@ import {
   createSubscriptionParameters,
   showSubscriptionDetailsParameters,
   cancelSubscriptionParameters,
+  createPaymentLinkParameters,
+  getPaymentLinkParameters,
+  getAllPaymentLinksParameters,
+  updatePaymentLinkParameters
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -359,6 +367,51 @@ const tools = (context: Context): Tool[] => [
       },
     },
   },
+  {
+    method: "create_payment_link",
+    name: "Create Payment Link",
+    description: createPaymentLinkPrompt(context),
+    parameters: createPaymentLinkParameters(context),
+    actions: {
+      paymentlink: {
+        create: true
+      }
+    }
+  },
+  {
+    method: 'get_payment_link',
+    name: 'Get Payment Link By ID',
+    description: getPaymentLinkByIdPrompt(context),
+    parameters: getPaymentLinkParameters(context),
+    actions: {
+      paymentlink: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'get_all_payment_links',
+    name: 'Get All Created Payment Links',
+    description: getAllPaymentLinksPrompt(context),
+    parameters: getAllPaymentLinksParameters(context),
+    actions: {
+      paymentlink: {
+        getAll: true,
+      },
+    },
+  },
+  {
+    method: 'update_payment_link',
+    name: 'Update Payment Links By ID',
+    description: updatePaymentLinkByIDPrompt(context),
+    parameters: updatePaymentLinkParameters(context),
+    actions: {
+      paymentlink: {
+        update: true,
+      },
+    },
+  },
+
 ];
 const allActions = tools({}).reduce((acc, tool) => {
   Object.keys(tool.actions).forEach(product => {

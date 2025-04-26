@@ -344,3 +344,28 @@ export const cancelSubscriptionParameters = (context: Context) => z.object({
   }).passthrough().describe('Payload for subscription cancellation.'),
 });
 
+//== PAYMENT LINK PARAMETERS ===
+
+export const createPaymentLinkParameters = (context: Context) => z.object({
+  item_name: z.string().describe("The name of the item"),
+  description: z.string().optional().describe("description of the item you are trying to sell"),
+  currency_code: z.string().describe("currency code of the payment link"),
+  value: z.string().describe("value of the payment link, upto 2 decimals"),
+  quantity: z.number().optional().describe("max quantity per transaction")
+}).describe("create a payment link request payload");
+
+export const updatePaymentLinkParameters = (context: Context) => z.object({
+  link_id: z.string().describe("The ID of the link you are trying to edit"),
+  item_name: z.string().optional().describe("The name of the item"),
+  description: z.string().optional().describe("description of the item you are trying to sell"),
+  value: z.string().optional().describe("value of the payment link, upto 2 decimals"),
+  currency_code: z.string().optional().describe("currency code of the payment link"),
+  quantity: z.number().optional().describe("max quantity per transaction")
+}).describe("update a payment link request payload");
+
+export const getPaymentLinkParameters = (context: Context) => z.object({
+  link_id: z.string().describe("The ID of the link you are trying to delete")
+}).describe("get a payment link request payload");
+
+export const getAllPaymentLinksParameters = (context: Context) => z.object({}).describe("get all payment links");
+

@@ -48,6 +48,10 @@ const ACCEPTED_TOOLS = [
   'subscriptions.show',
   'subscriptions.cancel',
   'transactions.list',
+  'paymentlink.getAll',
+  'paymentlink.create',
+  'paymentlink.get',
+  'paymentlink.update'
 ];
 
 export function parseArgs(args: string[]): Options {

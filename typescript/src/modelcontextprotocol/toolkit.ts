@@ -34,7 +34,7 @@ class PayPalAgentToolkit extends McpServer {
         tool.method,
         tool.description,
         tool.parameters.shape,
-        async (arg: any, _extra: RequestHandlerExtra) => {
+        async (arg: any) => {
           const result = await this._paypal.run(tool.method, arg);
           return {
             content: [
