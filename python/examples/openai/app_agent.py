@@ -14,7 +14,6 @@ from paypal_agent_toolkit.shared.configuration import Configuration, Context
 # load_dotenv()
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
-OPENAI_API_VERSION = "2024-02-15-preview"
 
 configuration = Configuration(
     actions={
@@ -79,52 +78,72 @@ client = OpenAI()
 agent = Agent(
     name="PayPal Assistant",
     instructions="""
-    You're a helpful assistant specialized in managing PayPal transactions:
-    - To create orders, invoke create_order.
-    - After approval by user, invoke pay_order.
-    - To check an order status, invoke get_order_status.
+    You are a helpful assistant that manages PayPal transactions.
+    Help users with tasks like creating an order, capturing payment after approval, and checking order status.
     """,
-    model="gpt-4-1106-preview",
+    model="gpt-4o",
     tools=tools
 )
 
 runner = Runner()
 
+# Step 1: Create Order
+# Step 2: Get Order Details (to show approval link)
+# Step 3: Wait for User to Approve
+# Step 4: Capture Payment
 async def main():
-    print("PayPal Assistant (OpenAI Agents). Type 'exit' to quit.")
+    print("🚀 Starting PayPal Order Workflow...")
 
-    while True:
-        user_input = input("\nYou: ")
-        if user_input.lower() in {"exit", "quit"}:
-            break
+    try:
+        # Step 1: Create Order
+        user_prompt_create = "I want to buy a gaming keyboard for $100. Help me create the order."
+        print("\n🛒 Step 1: Creating Order...")
+        result_create = await runner.run(agent, user_prompt_create)
 
-runner = Runner()
+        if not hasattr(result_create, "final_output") or not result_create.final_output:
+            raise Exception("Failed to create order.")
 
-async def main():
-    print("PayPal Assistant (OpenAI Agents). Type 'exit' to quit.")
+        order_id = result_create.final_output.strip()
+        print(f"✅ Order Created: {order_id}")
 
-    while True:
-        try:
-            user_input = input("\nYou: ")
-            if user_input.lower() in {"exit", "quit"}:
-                break
 
-            try:
-                result = await runner.run(agent, user_input)
+        # Step 2: Get Order Details (to show approval link)
+        user_prompt_details = f"Can you show me the details for my recent order ID: {order_id}?"
+        print("\n🔎 Step 2: Retrieving Order Details...")
+        result_details = await runner.run(agent, user_prompt_details)
 
-                # Print final response if no tools were involved
-                if hasattr(result, "final_output") and result.final_output:
-                    print("🤖 Assistant:", result.final_output)
-                else:
-                    print("🤖 Assistant: No response generated.")
-            except Exception as e:
-                print("❌ Error running agent:", e)
+        if not hasattr(result_details, "final_output") or not result_details.final_output:
+            raise Exception("Failed to retrieve order details.")
 
-        except KeyboardInterrupt:
-            print("\n👋 Exiting...")
-            break
-        except Exception as e:
-            print("❌ Unexpected error:", e)
+        order_details = result_details.final_output.strip()
+        print(f"\n📄 Order Details:\n{order_details}")
 
-# Run the main loop
-asyncio.run(main())
+        print("\n🔗 Please approve the order using the approval URL shown above.")
+
+
+        # Step 3: Wait for User to Approve
+        input("\n⏳ Press Enter once buyer has approved the order in PayPal...")
+
+
+        # Step 4: Capture Payment
+        user_prompt_capture = f"I have approved the order. Can you process the payment for order ID: {order_id}?"
+        print("\n💳 Step 4: Capturing Payment after approval...")
+        result_capture = await runner.run(agent, user_prompt_capture)
+
+        if not hasattr(result_capture, "final_output") or not result_capture.final_output:
+            raise Exception("Failed to capture payment.")
+
+        capture_response = result_capture.final_output.strip()
+        print(f"✅ Payment Captured: {capture_response}")
+
+        print("\n🏁 PayPal Order Workflow Completed Successfully.")
+
+    except Exception as e:
+        print(f"❌ Error during workflow: {e}")
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except RuntimeError:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main())

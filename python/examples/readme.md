@@ -32,7 +32,6 @@ Create and configure an .env file in the example directory to set your environme
 ```env
 # OpenAI Configuration
 OPENAI_API_KEY=<your_openai_api_key>
-OPENAI_API_VERSION=<openai_api_version>
 
 # PayPal Configuration
 PAYPAL_CLIENT_ID=<your_paypal_client_id>
