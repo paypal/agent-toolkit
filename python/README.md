@@ -38,7 +38,6 @@ The PayPal Agent toolkit provides the following tools:
 - `create_product`: Create a new product in the PayPal catalog
 - `list_products`: List products with optional pagination and filtering
 - `show_product_details`: Retrieve details of a specific product
-- `update_product`: Update an existing product
 
 **Subscription Management**
 
