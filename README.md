@@ -19,7 +19,7 @@ The PayPal Agent toolkit provides the following tools:
 
 **Payments**
 
-- `create_order`: Create an order in PayPal system based on provided details
+- `create_order`: Create an order in the PayPal system based on provided details
 - `get_order`: Retrieve the details of an order
 - `pay_order`: Process payment for an authorized order
 
@@ -73,7 +73,7 @@ npm install @paypal/agent-toolkit
 The library needs to be configured with your account's client id and secret which is available in your [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/). 
 
 
-The toolkit works with Vercel's AI SDK and can be passed as a list of tools. For more details, refer our [examples](./typescript/examples)
+The toolkit works with Vercel's AI SDK and can be passed as a list of tools. For more details, refer to our [examples](./typescript/examples)
 
 ```typescript
 import { PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk';
@@ -215,7 +215,7 @@ We will show the integration with Claude desktop. You can use your favorite MCP 
 }
 ```
 Make sure to replace `YOUR_PAYPAL_ACCESS_TOKEN` with your actual PayPal Access Token. Alternatively, you could set the PAYPAL_ACCESS_TOKEN as an environment variable. You can also pass it as an argument using --access-token in "args"
-Set `PAYPAL_ENVIRONMENT` value as either `SANDBOX` for stage testing and `PRODUCTION` for production environment.
+Set the `PAYPAL_ENVIRONMENT` value as either `SANDBOX` for stage testing and `PRODUCTION` for production environment.
 
 6. Save your configuration changes
 
