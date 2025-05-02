@@ -185,7 +185,7 @@ const tools = (context: Context): Tool[] => [
   },
   {
     method: 'show_product_details',
-    name: 'Show Products Details',
+    name: 'Show Product Details',
     description: showProductDetailsPrompt(context),
     parameters: showProductDetailsParameters(context),
     actions: {

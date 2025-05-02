@@ -59,7 +59,7 @@ class PayPalWorkflows {
         const { text: summary } = await generateText({
             model: llm,
             maxSteps: 10,
-            system: 'You are tasked with generating an summary text for the order. Use the provided order details. For each item in order, update item level tax to be the tax amount*quantity of the item. Show the payment approval link only at the end of the page for the customer and hide all other links related to the order.',
+            system: 'You are tasked with generating a summary text for the order. Use the provided order details. For each item in order, update item level tax to be the tax amount*quantity of the item. Show the payment approval link only at the end of the page for the customer and hide all other links related to the order.',
             prompt: `
                 Generate a summary for the following order details: ${orderDetails}.
             `,
