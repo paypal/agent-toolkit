@@ -10,7 +10,7 @@ The PayPal Agent toolkit provides the following tools:
 
 - `create_invoice`: Create a new invoice in the PayPal system
 - `list_invoices`: List invoices with optional pagination and filtering
-- `get_invoice`: Retrieve details of a specific invoice
+- `get_invoice`: Retrieve details about a specific invoice
 - `send_invoice`: Send an invoice to recipients
 - `send_invoice_reminder`: Send a reminder for an existing invoice
 - `cancel_sent_invoice`: Cancel a sent invoice
@@ -18,14 +18,14 @@ The PayPal Agent toolkit provides the following tools:
 
 **Payments**
 
-- `create_order`: Create an order in PayPal system based on provided details
+- `create_order`: Create an order in the PayPal system based on provided details
 - `get_order`: Retrieve the details of an order
 - `pay_order`: Process payment for an authorized order
 
 **Dispute Management**
 
 - `list_disputes`: Retrieve a summary of all open disputes
-- `get_dispute`: Retrieve detailed information of a specific dispute
+- `get_dispute`: Retrieve detailed information about a specific dispute
 - `accept_dispute_claim`: Accept a dispute claim
 
 **Shipment Tracking**
@@ -37,15 +37,15 @@ The PayPal Agent toolkit provides the following tools:
 
 - `create_product`: Create a new product in the PayPal catalog
 - `list_products`: List products with optional pagination and filtering
-- `show_product_details`: Retrieve details of a specific product
+- `show_product_details`: Retrieve details about a specific product
 
 **Subscription Management**
 
 - `create_subscription_plan`: Create a new subscription plan
 - `list_subscription_plans`: List subscription plans
-- `show_subscription_plan_details`: Retrieve details of a specific subscription plan
+- `show_subscription_plan_details`: Retrieve details about a specific subscription plan
 - `create_subscription`: Create a new subscription
-- `show_subscription_details`: Retrieve details of a specific subscription
+- `show_subscription_details`: Retrieve details about a specific subscription
 - `cancel_subscription`: Cancel an active subscription
 
 **Reporting and Insights**
@@ -141,7 +141,7 @@ agent = Agent(
 # Initialize the runner to execute agent tasks
 runner = Runner()
 
-user_input = "Create an PayPal Order for $10 for AdsService"
+user_input = "Create a PayPal Order for $10 for AdsService"
 # Run the agent with user input
 result = await runner.run(agent, user_input)
 ```
@@ -196,7 +196,7 @@ agent = initialize_agent(
     verbose=True
 )
 
-prompt = "Create an PayPal order for $50 for Premium News service."
+prompt = "Create a PayPal order for $50 for Premium News service."
 # Run the agent with the defined prompt
 result = agent.run(prompt)
 ```
@@ -221,7 +221,7 @@ agent = Agent(
 
 # Define a CrewAI Task to create a PayPal order
 task = Task(
-    description="Create an PayPal order for $50 for Premium News service.",
+    description="Create a PayPal order for $50 for Premium News service.",
     expected_output="A PayPal order ID",
     agent=agent
 )
