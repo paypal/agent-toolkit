@@ -1,4 +1,4 @@
-package com.paypal.mcphost;
+package com.paypal.mcphost.service;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;

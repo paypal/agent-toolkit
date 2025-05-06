@@ -1,5 +1,6 @@
-package com.paypal.mcphost;
+package com.paypal.mcphost.controller;
 
+import com.paypal.mcphost.service.LLMChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;

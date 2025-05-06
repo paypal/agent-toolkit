@@ -1,5 +1,6 @@
 package com.paypal.mcphost;
 
+import com.paypal.mcphost.service.LLMChatService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

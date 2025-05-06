@@ -1,4 +1,4 @@
-package com.paypal.mcphost;
+package com.paypal.mcphost.config;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ChatClientConfiguration {
     @Bean
-    ChatClient chatClient(ChatModel chatModel, SyncMcpToolCallbackProvider toolCallbackProvider) {
+    public ChatClient chatClient(ChatModel chatModel, SyncMcpToolCallbackProvider toolCallbackProvider) {
         return ChatClient
                 .builder(chatModel)
                 .defaultTools(toolCallbackProvider.getToolCallbacks())

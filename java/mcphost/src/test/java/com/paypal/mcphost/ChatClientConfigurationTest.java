@@ -1,5 +1,6 @@
 package com.paypal.mcphost;
 
+import com.paypal.mcphost.config.ChatClientConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
