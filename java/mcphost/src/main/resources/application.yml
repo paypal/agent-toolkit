@@ -1,0 +1,39 @@
+spring:
+  management:
+    endpoints:
+      web:
+        exposure:
+          include=*:
+  ai:
+    anthropic:
+      api-key: YOUR_LLM_API_KEY
+      embedding:
+        model: claude-3-7-sonnet-latest
+      chat:
+        options:
+          model: claude-3-7-sonnet-latest
+    mcp:
+      client:
+        toolcallback:
+          enabled: true
+        stdio:
+          connections:
+            paypal:
+              command: cmd
+              args:
+                - "/c"
+                - "npx"
+                - "-y"
+                - "@paypal/mcp"
+                - "--tools=all"
+              env:
+                "PAYPAL_ENVIRONMENT": SANDBOX
+                "PAYPAL_ACCESS_TOKEN": YOUR_PAYPAL_ACCESS_TOKEN
+  config:
+    use-legacy-processing: true
+
+server:
+  port: 8080
+  include-debug-info: true
+  error:
+    include-message: always
