@@ -176,7 +176,7 @@ The PayPal Agent toolkit provides the following tools:
 
 ---
 
-**`list_product`** - Lists products from the PayPal catalog with optional pagination.
+**`list_products`** - Lists products from the PayPal catalog with optional pagination.
 
 - `page` (number, optional): The specific page number to retrieve. Defaults to the first page if not provided.
 - `page_size` (number, optional): The maximum number of products to return per page. Defaults to a system-defined limit if not provided.
