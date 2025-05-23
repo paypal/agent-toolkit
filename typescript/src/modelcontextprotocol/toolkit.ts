@@ -1,14 +1,16 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer, RegisteredTool } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { Configuration, isToolAllowed } from '../shared/configuration';
 import PayPalAPI from '../shared/api';
 import tools from '../shared/tools';
 import { version } from '../../package.json';
 
+
 const SOURCE = 'MCP';
 
 class PayPalAgentToolkit extends McpServer {
   private _paypal: PayPalAPI;
+  private readonly _localRegisteredTools: RegisteredTool[] = [];
 
   constructor({
     accessToken,
@@ -30,11 +32,11 @@ class PayPalAgentToolkit extends McpServer {
     );
 
     filteredTools.forEach((tool) => {
-      this.tool(
+      const regTool = this.tool(
         tool.method,
         tool.description,
         tool.parameters.shape,
-        async (arg: any, _extra: RequestHandlerExtra) => {
+        async (arg: any, _extra: RequestHandlerExtra<any, any>) => {
           const result = await this._paypal.run(tool.method, arg);
           return {
             content: [
@@ -46,7 +48,14 @@ class PayPalAgentToolkit extends McpServer {
           };
         }
       );
+
+      this._localRegisteredTools.push(regTool);
     });
+  }
+
+
+  public getTools(): RegisteredTool[] {
+    return this._localRegisteredTools;
   }
 }
 
