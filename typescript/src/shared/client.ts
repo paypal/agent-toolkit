@@ -4,6 +4,10 @@ import { Buffer } from 'buffer';
 import os from 'os';
 import { version } from '../../package.json';
 import { Context } from './configuration';
+import debug from "debug";
+
+
+const logger = debug('agent-toolkit:client');
 
 class PayPalClient {
     private _sdkClient: Client | undefined;
@@ -31,11 +35,12 @@ class PayPalClient {
         context: Context,
         accessToken?: string
     }) {
-        const debugSdk = context.debug ?? false;
+
+        this._context = context;
+        const debugSdk = this._context.debug ?? false;
         this._clientId = clientId;
         this._clientSecret = clientSecret;
-        this._context = context;
-        this._isSandbox = context.isSandbox ?? true;
+        this._isSandbox = this._context?.sandbox ?? false;
         this._accessToken = accessToken;
         if (this._clientId !== undefined && this._clientSecret !== undefined) {
             this.createSDKClient(this._clientId, this._clientSecret, debugSdk);
@@ -44,6 +49,9 @@ class PayPalClient {
         this._baseUrl = this._isSandbox
         ? 'https://api.sandbox.paypal.com'
         : 'https://api.paypal.com';
+
+        logger(`[PayPal Setttings] Environment: ${this._isSandbox ? "Sandbox" : "Live"}`);
+        logger(`[PayPal Setttings] API Base: ${this._baseUrl}`);
     }
 
     private createSDKClient(clientId: string, clientSecret: string, debugSdk: boolean) {

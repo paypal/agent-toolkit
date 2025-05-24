@@ -37,6 +37,10 @@ class PayPalAPI {
   constructor(paypalClientOrAccessToken: PayPalClient | string, context?: Context) {
     this.context = context || {};
 
+    // Set default sandbox mode if not provided
+    this.context.sandbox = this.context.sandbox ?? false;
+    this.baseUrl = this.context.sandbox ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+
     if (typeof paypalClientOrAccessToken === 'string') {
       this.accessToken = paypalClientOrAccessToken;
       this.paypalClient = new PayPalClient({context: this.context, accessToken: this.accessToken });
@@ -44,9 +48,8 @@ class PayPalAPI {
       this.paypalClient = paypalClientOrAccessToken;
     }
 
-    // Set default sandbox mode if not provided
-    this.context.sandbox = this.context.sandbox ?? true; // Default to sandbox for safety
-    this.baseUrl = this.context.sandbox ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+    
+
   }
 
 
