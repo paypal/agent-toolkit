@@ -42,10 +42,7 @@ export async function createInvoice(
   params: TypeOf<ReturnType<typeof createInvoiceParameters>>
 ) {
   logger('[createInvoice] Starting invoice creation process');
-  logger(`[createInvoice] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-  logger(`[createInvoice] Invoice detail: ${JSON.stringify(params)}`);
-
-
+  
   const headers = await client.getHeaders();
   logger('[createInvoice] Headers obtained');
 
@@ -66,7 +63,6 @@ export async function createInvoice(
       // Extract invoice ID from the href URL
       const hrefParts = response.data.href.split('/');
       const invoiceId = hrefParts[hrefParts.length - 1];
-      logger(`[createInvoice] Invoice ID extracted from href: ${invoiceId}`);
 
       // Automatically send the invoice with specific parameters
       logger('[createInvoice] Automatically sending invoice with thank you note');
@@ -76,7 +72,6 @@ export async function createInvoice(
           note: "thank you for choosing us. If there are any issues, feel free to contact us",
           send_to_recipient: true
         });
-        logger(`[createInvoice] Auto-send invoice result: ${JSON.stringify(sendResult)}`);
 
         // Return both the create and send results
         return {
@@ -104,8 +99,6 @@ export async function listInvoices(
   params: TypeOf<ReturnType<typeof listInvoicesParameters>>
 ) {
   logger('[listInvoices] Starting to list invoices');
-  logger(`[listInvoices] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-  logger(`[listInvoices] Query parameters: ${JSON.stringify(params)}`);
 
   const headers = await client.getHeaders();
   logger('[listInvoices] Headers obtained');
@@ -118,14 +111,6 @@ export async function listInvoices(
     logger('[listInvoices] Sending request to PayPal API');
     const response = await axios.get(url, { headers, params });
     logger(`[listInvoices] Invoices retrieved successfully. Status: ${response.status}`);
-
-    if (response.data.total_items !== undefined) {
-      logger(`[listInvoices] Total items: ${response.data.total_items}`);
-    }
-
-    if (response.data.items && Array.isArray(response.data.items)) {
-      logger(`[listInvoices] Retrieved ${response.data.items.length} invoices`);
-    }
 
     return response.data;
   } catch (error: any) {
@@ -140,14 +125,11 @@ export async function getInvoice(
   params: TypeOf<ReturnType<typeof getInvoicParameters>>
 ) {
   logger('[getInvoice] Starting to get invoice');
-  logger(`[getInvoice] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-  logger(`[getInvoice] Query parameters: ${JSON.stringify(params)}`);
 
   const headers = await client.getHeaders();
   logger('[getInvoice] Headers obtained');
 
   const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${params.invoice_id}`;
-  logger(`[getInvoice] API URL: ${url}`);
 
   // Make API call
   try {
@@ -176,18 +158,6 @@ export async function sendInvoice(
     additional_recipients,
   } = params;
 
-  logger(`[sendInvoice] Invoice ID: ${invoice_id}`);
-
-  if (note) {
-    logger(`[sendInvoice] Note: ${note}`);
-  }
-
-  logger(`[sendInvoice] Send to recipient: ${send_to_recipient}`);
-
-  if (additional_recipients && additional_recipients.length > 0) {
-    logger(`[sendInvoice] Additional recipients: ${additional_recipients.join(', ')}`);
-  }
-
   const headers = await client.getHeaders();
   logger('[sendInvoice] Headers obtained');
 
@@ -212,8 +182,6 @@ export async function sendInvoiceReminder(
   params: TypeOf<ReturnType<typeof sendInvoiceReminderParameters>>,
 ) {
   logger('[sendInvoiceReminder] Starting to send invoice reminder');
-  logger(`[sendInvoiceReminder] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-
   const {
     invoice_id,
     note,
@@ -221,27 +189,10 @@ export async function sendInvoiceReminder(
     additional_recipients,
   } = params;
 
-  logger(`[sendInvoiceReminder] Invoice ID: ${invoice_id}`);
-
-  if (subject) {
-    logger(`[sendInvoiceReminder] Subject: ${subject}`);
-  }
-
-  if (note) {
-    logger(`[sendInvoiceReminder] Note: ${note}`);
-  }
-
-  if (additional_recipients && additional_recipients.length > 0) {
-    logger(`[sendInvoiceReminder] Additional recipients: ${additional_recipients.join(', ')}`);
-  }
-
   const headers = await client.getHeaders();
   logger('[sendInvoiceReminder] Headers obtained');
 
   const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/remind`;
-  logger(`[sendInvoiceReminder] API URL: ${url}`);
-
-  logger(`[sendInvoiceReminder] Request params: ${JSON.stringify(params)}`);
 
   // Make API call
   try {
@@ -261,8 +212,7 @@ export async function cancelSentInvoice(
   params: TypeOf<ReturnType<typeof cancelSentInvoiceParameters>>
 ) {
   logger('[cancelSentInvoice] Starting to cancel sent invoice');
-  logger(`[cancelSentInvoice] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-
+  
   const {
     invoice_id,
     note,
@@ -270,25 +220,10 @@ export async function cancelSentInvoice(
     additional_recipients,
   } = params;
 
-  logger(`[cancelSentInvoice] Invoice ID: ${invoice_id}`);
-
-  if (note) {
-    logger(`[cancelSentInvoice] Note: ${note}`);
-  }
-
-  logger(`[cancelSentInvoice] Send to recipient: ${send_to_recipient}`);
-
-  if (additional_recipients && additional_recipients.length > 0) {
-    logger(`[cancelSentInvoice] Additional recipients: ${additional_recipients.join(', ')}`);
-  }
-
   const headers = await client.getHeaders();
   logger('[cancelSentInvoice] Headers obtained');
 
   const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/cancel`;
-  logger(`[cancelSentInvoice] API URL: ${url}`);
-
-  logger(`[cancelSentInvoice] Request params: ${JSON.stringify(params)}`);
 
   // Make API call
   try {
@@ -512,7 +447,6 @@ export async function cancelSubscription(
   const { subscription_id, payload } = params;
   const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}/cancel`;
 
-  logger(`[cancelSubscription] Payload: ${JSON.stringify(params, null, 3)}`);
   try {
     const response = await axios.post(apiUrl, payload, { headers });
     return response.data;
@@ -532,13 +466,10 @@ export const createOrder = async (
   params: TypeOf<ReturnType<typeof createOrderParameters>>
 ): Promise<any> => {
   logger('[createOrder] Starting order creation process');
-  logger(`[createOrder] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-  logger(`[createOrder] Order details: ${JSON.stringify(params)}`);
   const headers = await client.getHeaders();
   const url = `${client.getBaseUrl()}/v2/checkout/orders`;
   const orderRequest = parseOrderDetails(params);
   try {
-    logger(`[createOrder] Request body: ${JSON.stringify(orderRequest)}`);
     const response = await axios.post(url, orderRequest, { headers });
     logger(`[createOrder] Order created successfully. Status: ${response.status}`);
     return response.data;
@@ -561,7 +492,7 @@ export const getOrder = async (
   logger('[getOrder] Headers obtained');
 
   const url = `${client.getBaseUrl()}/v2/checkout/orders/${params.id}`;
-  logger(`[getOrder] API URL: ${url}`);
+
 
   try {
     logger('[getOrder] Sending GET request to PayPal API');
@@ -611,15 +542,13 @@ export async function createShipment(
   params: TypeOf<ReturnType<typeof createShipmentParameters>>
 ) {
   logger('[createShipment] Starting shipment tracking creation process');
-  logger(`[createShipment] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
   const {
     tracking_number,
     transaction_id,
     status,
     carrier
   } = params;
-  logger(`[createShipment] Tracker details: tracking_number=${tracking_number}, transaction_id=${transaction_id}, status=${status}, carrier=${carrier}`);
-
+  
   const headers = await client.getHeaders();
   logger('[createShipment] Headers obtained');
 
@@ -636,7 +565,6 @@ export async function createShipment(
     }]
   };
 
-  logger(`[createShipment] Trackers params: ${JSON.stringify(trackersData)}`);
 
   // Make API call
   try {
@@ -656,13 +584,11 @@ export async function getShipmentTracking(
   params: TypeOf<ReturnType<typeof getShipmentTrackingParameters>>
 ) {
   logger('[getShipmentTracking] Starting to get shipment tracking information');
-  logger(`[getShipmentTracking] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
   const {
     transaction_id: providedTransactionId,
     order_id
   } = params;
-  logger(`[getShipmentTracking] Tracking details: transaction_id=${providedTransactionId}, order_id=${order_id}`);
-
+ 
   const headers = await client.getHeaders();
   logger('[getShipmentTracking] Headers obtained');
 
@@ -680,7 +606,6 @@ export async function getShipmentTracking(
         if (purchaseUnit.payments && purchaseUnit.payments.captures && purchaseUnit.payments.captures.length > 0) {
           const captureDetails = purchaseUnit.payments.captures[0];
           transaction_id = captureDetails.id;
-          logger(`[getShipmentTracking] transaction_id extracted from order details: ${transaction_id}`);
 
         } else {
           throw new Error("Could not find capture id in the purchase unit details.")
@@ -723,13 +648,11 @@ export async function listDisputes(
   params: TypeOf<ReturnType<typeof listDisputesParameters>>
 ): Promise<any> {
   logger('[listDisputes] Starting to list disputes');
-  logger(`[listDisputes] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
 
   const headers = await client.getHeaders();
   logger('[listDisputes] Headers obtained');
 
   const url = `${client.getBaseUrl()}/v1/customer/disputes?${toQueryString(params)}`;
-  logger(`[listDisputes] API URL: ${url}`);
 
   try {
     logger('[listDisputes] Sending request to PayPal API');
@@ -747,8 +670,6 @@ export async function getDispute(
   context: Context,
   params: TypeOf<ReturnType<typeof getDisputeParameters>>
 ): Promise<any> {
-  logger(`[getDispute] Starting to get dispute details for ID: ${params.dispute_id}`);
-  logger(`[getDispute] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
 
   const { dispute_id } = params
 
@@ -775,7 +696,6 @@ export async function acceptDisputeClaim(
   params: TypeOf<ReturnType<typeof acceptDisputeClaimParameters>>
 ): Promise<any> {
   logger('[acceptClaim] Starting to list disputes');
-  logger(`[acceptClaim] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
 
   const headers = await client.getHeaders();
   logger('[acceptClaim] Headers obtained');
@@ -799,9 +719,7 @@ export async function listTransactions(
   context: Context,
   params: TypeOf<ReturnType<typeof listTransactionsParameters>>
 ): Promise<any> {
-  logger('[listTransactions] Starting to list transactions');
-  logger(`[listTransactions] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-
+  
   const headers = await client.getHeaders();
   logger('[listTransactions] Headers obtained');
 
