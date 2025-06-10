@@ -27,6 +27,7 @@ import {
   createSubscriptionPrompt,
   showSubscriptionDetailsPrompt,
   cancelSubscriptionPrompt,
+  updateSubscriptionPrompt,
   getRefundPrompt,
   createRefundPrompt,
 } from './prompts';
@@ -58,6 +59,7 @@ import {
   createSubscriptionParameters,
   showSubscriptionDetailsParameters,
   cancelSubscriptionParameters,
+  updateSubscriptionParameters,
   getRefundParameters,
   createRefundParameters,
 } from './parameters';
@@ -261,6 +263,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       subscriptions: {
         cancel: true,
+      },
+    },
+  },
+  {
+    method: 'update_subscription',
+    name: 'Update Subscription',
+    description: updateSubscriptionPrompt(context),
+    parameters: updateSubscriptionParameters(context),
+    actions: {
+      subscriptions: {
+        update: true,
       },
     },
   },

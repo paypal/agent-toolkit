@@ -225,11 +225,13 @@ const frequencySchema = z.object({
   interval_count: z.number().describe('The number of units for the billing cycle.'),
 }).passthrough();
 
+const fixedPriceSchema = z.object({
+  currency_code: z.enum(['USD']).describe('The currency code for the fixed price.'),
+  value: z.string().describe('The value of the fixed price.'),
+}).passthrough().optional().describe('The fixed price for the subscription plan.')
+
 const pricingSchemeSchema = z.object({
-  fixed_price: z.object({
-    currency_code: z.enum(['USD']).describe('The currency code for the fixed price.'),
-    value: z.string().describe('The value of the fixed price.'),
-  }).passthrough().optional().describe('The fixed price for the subscription plan.'),
+  fixed_price: fixedPriceSchema,
   version: z.string().optional().describe('The version of the pricing scheme.'),
 }).passthrough();
 
@@ -246,16 +248,23 @@ const setupFeeSchema = z.object({
   value: z.string().optional().describe('The value of the setup fee.'),
 }).passthrough().optional();
 
+const autoBillOutstandingSchema = z.boolean().optional().describe('Indicates whether to automatically bill outstanding amounts.');
+const paymentFailureThresholdSchema = z.number().optional().describe('The number of failed payments before the subscription is canceled.');
+
+
 const paymentPreferencesSchema = z.object({
-  auto_bill_outstanding: z.boolean().optional().describe('Indicates whether to automatically bill outstanding amounts.'),
+  auto_bill_outstanding: autoBillOutstandingSchema,
   setup_fee: setupFeeSchema.describe('The setup fee for the subscription plan.'),
   setup_fee_failure_action: z.enum(['CONTINUE', 'CANCEL']).optional().describe('The action to take if the setup fee payment fails.'),
-  payment_failure_threshold: z.number().optional().describe('The number of failed payments before the subscription is canceled.'),
+  payment_failure_threshold: paymentFailureThresholdSchema,
 }).passthrough().optional();
 
+const taxPercentageSchema = z.string().optional().describe('The tax percentage.');
+const taxInclusiveSchema = z.boolean().optional().describe('Indicates whether the tax is inclusive.');
+
 const taxesSchema = z.object({
-  percentage: z.string().optional().describe('The tax percentage.'),
-  inclusive: z.boolean().optional().describe('Indicates whether the tax is inclusive.'),
+  percentage: taxPercentageSchema,
+  inclusive: taxInclusiveSchema,
 }).passthrough().optional();
 
 export const createSubscriptionPlanParameters = (context: Context) => z.object({
@@ -343,6 +352,59 @@ export const cancelSubscriptionParameters = (context: Context) => z.object({
     reason: z.string().describe('The reason for the cancellation of a subscription.'),
   }).passthrough().describe('Payload for subscription cancellation.'),
 });
+
+export const updateSubscriptionParameters = (context: Context) =>
+  z.object({
+    subscription_id: z.string().describe('The ID of the product to update.'),
+    operations: z.array(z.discriminatedUnion("key", [
+      z.object({
+        op: z.enum(["replace"]),
+        key: z.literal("outstanding_balance"),
+        value: fixedPriceSchema.describe("Outstanding Balance in the subscription"),
+      }),
+      z.object({
+        op: z.enum(["add", "replace"]),
+        key: z.literal("custom_id"),
+        value: z.string().describe("he custom id for the subscription"),
+      }),
+      z.object({
+        op: z.enum(["add", "replace"]),
+        key: z.literal("fixed_price"),
+        sequence: z.number().describe('Target the Billing Cycle at sequence'),
+        value: fixedPriceSchema
+      }),
+      z.object({
+        op: z.enum(["replace"]),
+        key: z.literal("payment_failure_threshold"),
+        value: paymentFailureThresholdSchema
+      }),
+      z.object({
+        op: z.enum(["replace"]),
+        key: z.literal("auto_bill_outstanding"),
+        value: autoBillOutstandingSchema
+      }),
+      z.object({
+        op: z.enum(["add", "replace"]),
+        key: z.literal("taxes_inclusive"),
+        value: taxInclusiveSchema
+      }),
+      z.object({
+        op: z.enum(["add", "replace"]),
+        key: z.literal("taxes_percentage"),
+        value: taxPercentageSchema
+      }),
+      z.object({
+        op: z.enum(["add", "replace"]),
+        key: z.literal("shipping_amount"),
+        value: ShippingAmount.describe("The shipping charges.")
+      }),
+      z.object({
+        op: z.enum(["add", "replace"]),
+        key: z.literal("shipping_address"),
+        value: ShippingAddressSchema
+      })
+    ]))
+  });
 
 // === REFUND PARAMETERS ===
 

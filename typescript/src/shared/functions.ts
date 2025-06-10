@@ -27,7 +27,8 @@ import {
   showSubscriptionDetailsParameters,
   cancelSubscriptionParameters,
   getRefundParameters,
-  createRefundParameters
+  createRefundParameters,
+  updateSubscriptionParameters
 } from "./parameters";
 import { parseOrderDetails, toQueryString } from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -456,6 +457,52 @@ export async function cancelSubscription(
     // @ts-ignore
     console.error("Error Creating Subscription:", error.response?.data || error);
     throw error;
+  }
+}
+
+const keyToPathMapping: Record<string, string> = {
+  "outstanding_balance": "/billing_info/outstanding_balance",
+  "custom_id": "/custom_id",
+  "fixed_price": "/plan/billing_cycles/@sequence==1/pricing_scheme/fixed_price",
+  "payment_failure_threshold": "/plan/payment_preferences/payment_failure_threshold",
+  "auto_bill_outstanding": "/plan/payment_preferences/auto_bill_outstanding",
+  "taxes_inclusive": "/plan/taxes/inclusive",
+  "taxes_percentage": "/plan/taxes/percentage",
+  "shipping_amount": "/shipping_amount",
+  "shipping_address": "/subscriber/shipping_address",
+}
+
+type opType = {
+  key?: string,
+  value: any
+}
+
+const updatePathForKeys = (operation: opType)=> {
+  const key = operation.key;
+  if(key && keyToPathMapping[key]) {
+    delete operation.key;
+    const path = keyToPathMapping[key];
+    return {...operation, path};
+  }
+  throw new Error(`Unsupported field for update: ${key}`);
+}
+
+export async function updateSubscription(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateSubscriptionParameters>>){
+
+  const headers = await client.getHeaders();
+  const { subscription_id, operations } = params;
+  const mappedOperations = operations.map((op: opType) => updatePathForKeys(op as opType))
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
+
+  try {
+    const response = await axios.patch(apiUrl, mappedOperations, { headers });
+    return response.data;
+  } catch(error: any){
+    logger('[updateSubscription] Error updating subscription:', error.message);
+    handleAxiosError(error);
   }
 }
 
@@ -935,7 +982,6 @@ function handleAxiosError(error: any): never {
     logger(`[handleAxiosError] Throwing error with message: PayPal API error: ${error.message}`);
     throw new Error(`PayPal API error: ${error.message}`);
   }
-
 }
 
 

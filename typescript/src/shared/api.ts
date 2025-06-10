@@ -24,7 +24,8 @@ import {
   showSubscriptionDetails,
   cancelSubscription,
   createRefund,
-  getRefund
+  getRefund,
+  updateSubscription
 } from './functions';
 
 import type { Context } from './configuration';
@@ -104,6 +105,8 @@ class PayPalAPI {
         return showSubscriptionDetails(this.paypalClient, this.context, arg);
       case 'cancel_subscription':
         return cancelSubscription(this.paypalClient, this.context, arg);
+      case 'update_subscription':
+        return updateSubscription(this.paypalClient, this.context, arg);
       case 'create_shipment_tracking':
         return createShipment(this.paypalClient, this.context, arg);
       case 'get_shipment_tracking':
