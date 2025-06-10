@@ -344,3 +344,19 @@ export const cancelSubscriptionParameters = (context: Context) => z.object({
   }).passthrough().describe('Payload for subscription cancellation.'),
 });
 
+// === REFUND PARAMETERS ===
+
+export const getRefundParameters = (context: Context) => z.object({
+  refund_id: z.string().describe('The ID of the refund to get details for.'),
+});
+
+export const createRefundParameters = (context: Context) => z.object({
+  capture_id: z.string().describe('The ID of the capture to refund.'),
+  amount: z.object({
+    currency_code: z.string(),
+    value: z.string(),
+  }).optional().describe('The amount to refund. If not specified, the full captured amount is refunded.'),
+  invoice_id: z.string().optional().describe('The invoice ID that is used to track this payment.'),
+  note_to_payer: z.string().optional().describe('A note to the payer.'),
+});
+

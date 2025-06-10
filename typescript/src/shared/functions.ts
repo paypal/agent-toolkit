@@ -25,7 +25,9 @@ import {
   showSubscriptionPlanDetailsParameters,
   createSubscriptionParameters,
   showSubscriptionDetailsParameters,
-  cancelSubscriptionParameters
+  cancelSubscriptionParameters,
+  getRefundParameters,
+  createRefundParameters
 } from "./parameters";
 import { parseOrderDetails, toQueryString } from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -832,6 +834,59 @@ export async function listTransactions(
   }
 }
 
+
+  export async function createRefund(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createRefundParameters>>
+): Promise<any> {
+  logger(`[createRefund] Starting to refund capture for ID: ${params.capture_id}`);
+
+  const { capture_id } = params;
+
+  const headers = await client.getHeaders();
+  logger('[createRefund] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/payments/captures/${capture_id}/refund`;
+  logger(`[createRefund] API URL: ${url}`);
+
+  try {
+    logger('[createRefund] Sending request to PayPal API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[createRefund] Capture refunded successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger(`[createRefund] Error refunding capture for ID: ${capture_id}:`, error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getRefund(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getRefundParameters>>
+): Promise<any> {
+  logger(`[getRefund] Starting to get refund details for ID: ${params.refund_id}`);
+
+  const { refund_id } = params;
+
+  const headers = await client.getHeaders();
+  logger('[getRefund] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/payments/refunds/${refund_id}`;
+  logger(`[getRefund] API URL: ${url}`);
+
+  try {
+    logger('[getRefund] Sending request to PayPal API');
+    const response = await axios.get(url, { headers });
+    logger(`[getRefund] Refund details retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger(`[getRefund] Error retrieving refund details for ID: ${refund_id}:`, error.message);
+    handleAxiosError(error);
+  }
+}
+
 // Helper function to handle Axios errors
 function handleAxiosError(error: any): never {
   logger('[handleAxiosError] Processing error from PayPal API');
@@ -880,6 +935,7 @@ function handleAxiosError(error: any): never {
     logger(`[handleAxiosError] Throwing error with message: PayPal API error: ${error.message}`);
     throw new Error(`PayPal API error: ${error.message}`);
   }
+
 }
 
 
