@@ -27,6 +27,7 @@ import {
   createSubscriptionPrompt,
   showSubscriptionDetailsPrompt,
   cancelSubscriptionPrompt,
+  updatePlanPrompt,
 } from './prompts';
 
 import {
@@ -56,6 +57,7 @@ import {
   createSubscriptionParameters,
   showSubscriptionDetailsParameters,
   cancelSubscriptionParameters,
+  updatePlanParameters,
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -356,6 +358,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       transactions: {
         list: true,
+      },
+    },
+  },
+  {
+    method: 'update_plan',
+    name: 'Update Plan',
+    description: updatePlanPrompt(context),
+    parameters: updatePlanParameters(context),
+    actions: {
+      plan: {
+        update: true,
       },
     },
   },
