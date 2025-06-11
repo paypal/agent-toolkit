@@ -1,7 +1,11 @@
-import { TypeOf } from "zod";
-import { createOrderParameters } from "./parameters";
+import {TypeOf, z} from "zod";
+import {createOrderParameters, updateSubscriptionParameters} from "./parameters";
 import { round } from "mathjs";
 import { snakeCase, camelCase } from "lodash";
+import {subscriptionKeys, updateSubscriptionPathMapping} from "./constants";
+import debug from "debug";
+
+const logger = debug('agent-toolkit:payloadUtils');
 
 export function parseOrderDetails(params: TypeOf<ReturnType<typeof createOrderParameters>>) {
     try {
@@ -77,6 +81,62 @@ export function parseOrderDetails(params: TypeOf<ReturnType<typeof createOrderPa
         console.error(error);
         throw new Error('Failed to parse order details');
     }
+}
+
+type opType = {
+    op: string,
+    path: string,
+    value?: any
+}
+
+const subscriptionKeysWithAddOperations = [subscriptionKeys.customId, subscriptionKeys.taxesInclusive, subscriptionKeys.taxesPercentage, subscriptionKeys.shippingAmount, subscriptionKeys.shippingAddress]
+// These keys have an "add" possible operation in the update subscription payload
+
+export const parseUpdateSubscriptionPayload = (params: TypeOf<ReturnType<typeof updateSubscriptionParameters>>, subscriptionDetails: any) => {
+
+    const currCode = params.currency_code || "USD";
+    const operations = [];
+
+    for(let key in params){
+        if(key === subscriptionKeys.subscriptionId || key === subscriptionKeys.currencyCode) continue;
+        const path = updateSubscriptionPathMapping[key];
+        if(!path) {
+            throw new Error(`Unsupported field for update: ${key}`);
+        }
+
+        let op = "replace";
+
+        if(subscriptionKeysWithAddOperations.includes(key as subscriptionKeys)){
+            const pathArray = path.split("/");
+            pathArray.shift()
+            const doesValueExist = pathArray.reduce((obj, key) => obj?.[key], subscriptionDetails);
+            if(doesValueExist === undefined) op = "add";
+        }
+
+        let opItem: opType = { op, path}
+        let opValue = params[key as keyof typeof params];
+
+        // Custom logic for fixed price to handle sequence replacement in path
+        if(key === subscriptionKeys.fixedPrice){
+            opItem.path = path.replace("{0}", opValue?.sequence || 1)
+            delete opValue?.sequence
+            opValue = opValue?.value;
+        }
+
+        // Creating the value structure expected in the payload
+        if([subscriptionKeys.outstandingBalance, subscriptionKeys.shippingAmount, subscriptionKeys.fixedPrice].includes(key as subscriptionKeys)){
+            opItem.value = {
+                currency_code: currCode,
+                value: opValue
+            }
+        } else{
+            opItem.value = opValue
+        }
+        operations.push(opItem);
+    }
+
+    logger("Update Subscription Operations", JSON.stringify(operations));
+    return operations;
 }
 
 export const toSnakeCaseKeys = (obj: any): any => {

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
+import {subscriptionKeys} from "./constants";
 
 // === INVOICE PARAMETERS ===
 const invoiceItem = z.object({
@@ -344,6 +345,7 @@ export const createSubscriptionParameters = (context: Context) => z.object({
 
 export const showSubscriptionDetailsParameters = (context: Context) => z.object({
   subscription_id: z.string().describe('The ID of the subscription to show details.'),
+  get_additional_details: z.boolean().optional().describe('Get all detailed information for the subscription.'),
 });
 
 export const cancelSubscriptionParameters = (context: Context) => z.object({
@@ -353,58 +355,22 @@ export const cancelSubscriptionParameters = (context: Context) => z.object({
   }).passthrough().describe('Payload for subscription cancellation.'),
 });
 
-export const updateSubscriptionParameters = (context: Context) =>
-  z.object({
-    subscription_id: z.string().describe('The ID of the product to update.'),
-    operations: z.array(z.discriminatedUnion("key", [
-      z.object({
-        op: z.enum(["replace"]),
-        key: z.literal("outstanding_balance"),
-        value: fixedPriceSchema.describe("Outstanding Balance in the subscription"),
-      }),
-      z.object({
-        op: z.enum(["add", "replace"]),
-        key: z.literal("custom_id"),
-        value: z.string().describe("he custom id for the subscription"),
-      }),
-      z.object({
-        op: z.enum(["add", "replace"]),
-        key: z.literal("fixed_price"),
-        sequence: z.number().describe('Target the Billing Cycle at sequence'),
-        value: fixedPriceSchema
-      }),
-      z.object({
-        op: z.enum(["replace"]),
-        key: z.literal("payment_failure_threshold"),
-        value: paymentFailureThresholdSchema
-      }),
-      z.object({
-        op: z.enum(["replace"]),
-        key: z.literal("auto_bill_outstanding"),
-        value: autoBillOutstandingSchema
-      }),
-      z.object({
-        op: z.enum(["add", "replace"]),
-        key: z.literal("taxes_inclusive"),
-        value: taxInclusiveSchema
-      }),
-      z.object({
-        op: z.enum(["add", "replace"]),
-        key: z.literal("taxes_percentage"),
-        value: taxPercentageSchema
-      }),
-      z.object({
-        op: z.enum(["add", "replace"]),
-        key: z.literal("shipping_amount"),
-        value: ShippingAmount.describe("The shipping charges.")
-      }),
-      z.object({
-        op: z.enum(["add", "replace"]),
-        key: z.literal("shipping_address"),
-        value: ShippingAddressSchema
-      })
-    ]))
-  });
+export const updateSubscriptionParameters = (context: Context) => z.object({
+  [subscriptionKeys.subscriptionId]: z.string().describe('The ID of the subscription to update.'),
+  [subscriptionKeys.currencyCode]: z.enum(['USD']).optional().default("USD").describe('Currency code of the amount.'),
+  [subscriptionKeys.outstandingBalance]: z.string().optional().describe('Outstanding Balance in the subscription'),
+  [subscriptionKeys.customId]: z.string().optional().describe("The custom id for the subscription"),
+  [subscriptionKeys.fixedPrice]: z.object({
+    value: z.string().describe('The fixed price for the subscription.'),
+    sequence: z.number().describe('The order sequence for the billing cycles'),
+  }).optional().describe('The fixed price for a billing cycle.'),
+  [subscriptionKeys.paymentFailureThreshold]: paymentFailureThresholdSchema,
+  [subscriptionKeys.autoBillOutstanding]: autoBillOutstandingSchema,
+  [subscriptionKeys.taxesInclusive]: taxInclusiveSchema,
+  [subscriptionKeys.taxesPercentage]: taxPercentageSchema,
+  [subscriptionKeys.shippingAmount]: z.string().optional().describe('The value of the shipping amount.'),
+  [subscriptionKeys.shippingAddress]: ShippingAddressSchema.optional().describe('The shipping address.'),
+})
 
 // === REFUND PARAMETERS ===
 

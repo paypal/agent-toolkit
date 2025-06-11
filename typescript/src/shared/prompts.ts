@@ -144,40 +144,7 @@ export const updateSubscriptionPrompt = (context: Context) => `
 Update a customer subscription in PayPal.
 
 This function updates an active or suspended subscription for a customer. It requires the subscription ID and payload of allowed keys to update to the subscription.
-Required parameters are: subscription_id (the ID of the subscription to be updated), at-least one operation
-
-- First, Ask the user for the subscription ID
-- Then, ask the user which field they would like to update ("Add" or "Replace", Default is "Replace").
-- Then, explain the expected value format or constraints for that field and ask the user for the value.
-- After the user gives the value, store the field and value in memory (internally or as part of a structured update).
-- Ask if they want to update another field. If yes, repeat the process.
-- If no, summarize the collected updates and confirm that you are proceeding to patch the transaction with those values.
-- Do not call the patch function until the user has finished all desired updates.
-- Collect all the different operations ans send then as an array to the function.
-
-If the user provides data points at one go, skip the steps for which you have received data and continue the sequence of steps.
-
-Make the experience feel conversational and structured.
-
-An operation is of the following structure:
-{
-  op: "add" | "Replace",
-  key: (this is the field to update, this needs to passed as snake case in parameters) 
-  value: {data} (this is the supported value for the field being edited)
-}
-
-Possible Fields and the possible operations are : 
-Outstanding Balance - Replace
-Custom Id - Add, Replace
-Fixed Price - Add, Replace
-Auto Bill Outstanding - Replace
-Payment Failure Threshold - Replace
-Taxes Inclusive - Add, Replace
-Taxes Percentage - Add, Replace
-Shipping Amount - Add, Replace
-Shipping Address - Replace
-
-Forward this parameter to the tool for "key" in parameters in snake case format
+Required parameters are: subscription_id (the ID of the subscription to be updated), and at-least one key to update
 
 Return response as structured JSON in your response.
 `;

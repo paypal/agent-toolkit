@@ -30,7 +30,7 @@ import {
   createRefundParameters,
   updateSubscriptionParameters
 } from "./parameters";
-import { parseOrderDetails, toQueryString } from "./payloadUtils";
+import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
 import debug from "debug";
 import PayPalClient from './client';
@@ -424,8 +424,8 @@ export async function showSubscriptionDetails(
   params: TypeOf<ReturnType<typeof showSubscriptionDetailsParameters>>) {
 
   const headers = await client.getHeaders();
-  const { subscription_id } = params;
-  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
+  const { subscription_id, get_additional_details } = params;
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}${get_additional_details? "?fields=plan" : ""}`;
 
   try {
     const response = await axios.get(apiUrl, {
@@ -460,48 +460,21 @@ export async function cancelSubscription(
   }
 }
 
-const keyToPathMapping: Record<string, string> = {
-  "outstanding_balance": "/billing_info/outstanding_balance",
-  "custom_id": "/custom_id",
-  "fixed_price": "/plan/billing_cycles/@sequence==1/pricing_scheme/fixed_price",
-  "payment_failure_threshold": "/plan/payment_preferences/payment_failure_threshold",
-  "auto_bill_outstanding": "/plan/payment_preferences/auto_bill_outstanding",
-  "taxes_inclusive": "/plan/taxes/inclusive",
-  "taxes_percentage": "/plan/taxes/percentage",
-  "shipping_amount": "/shipping_amount",
-  "shipping_address": "/subscriber/shipping_address",
-}
-
-type opType = {
-  key?: string,
-  value: any
-}
-
-const updatePathForKeys = (operation: opType)=> {
-  const key = operation.key;
-  if(key && keyToPathMapping[key]) {
-    delete operation.key;
-    const path = keyToPathMapping[key];
-    return {...operation, path};
-  }
-  throw new Error(`Unsupported field for update: ${key}`);
-}
-
 export async function updateSubscription(
   client: PayPalClient,
   context: Context,
   params: TypeOf<ReturnType<typeof updateSubscriptionParameters>>){
 
   const headers = await client.getHeaders();
-  const { subscription_id, operations } = params;
-  const mappedOperations = operations.map((op: opType) => updatePathForKeys(op as opType))
-  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
-
+  const { subscription_id } = params;
   try {
-    const response = await axios.patch(apiUrl, mappedOperations, { headers });
+    const subscriptionDetails = await showSubscriptionDetails(client, context, { subscription_id, get_additional_details: true});
+    const operations = parseUpdateSubscriptionPayload(params, subscriptionDetails);
+    const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
+    const response = await axios.patch(apiUrl, operations, { headers });
     return response.data;
   } catch(error: any){
-    logger('[updateSubscription] Error updating subscription:', error.message);
+    logger('[updateSubscription] Error updating subscription:', JSON.stringify(error.message));
     handleAxiosError(error);
   }
 }

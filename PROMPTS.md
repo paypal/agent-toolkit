@@ -285,6 +285,38 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Cancel the subscription id {subscription_id}
 
+---
+
+**`update_subscription`** - Update an active or suspended subscription.
+
+- `subscription_id` (string, required): The ID of the subscription to be updated.
+- `currency_code` (string, optional): The currency for the subscription update for pricing fields.
+- `outstanding_balance` (string, optional): Outstanding Balance in the subscription
+- `custom_id` (string, optional): The custom id for the subscription
+- `fixed_price` (optional)
+  - `value` (string): The fixed price for the billing cycle of subscription.
+  - `sequence` (number): The sequence for the billing cycles
+- `payment_failure_threshold` (number, optional):
+- `auto_bill_outstanding` (boolean, optional):
+- `taxes_inclusive` (boolean, optional):
+- `taxes_percentage` (string, optional):
+- `shipping_amount` (string, optional):
+- `shipping_address` (optional):
+  - `name` (optional):
+    - `given_name` (string, optional): The subscriber given name.
+    - `surname` (string, optional): The subscriber last name.
+  - `address` (optional):
+    - `address_line_1` (string, optional): The first line of the address.
+    - `address_line_2` (string, optional): The second line of the address.
+    - `admin_area_1` (string, optional): The city or locality.
+    - `admin_area_2` (string, optional): The state or province.
+    - `postal_code` (string, optional): The postal code.
+    - `country_code` (string, optional): The country code.
+
+> **Example Prompt**:
+> Update the subscription with id {subscription_id}, update values for Fixed price with {fixed_price}, Auto Bill Outstanding with {auto_bill_outstanding} and Tax Inclusive with {taxes_inclusive}
+
+
 ### **Reporting and Insights**
 
 ---
