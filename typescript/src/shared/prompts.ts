@@ -215,3 +215,32 @@ This tool is used to list transactions with optional filtering parameters within
     4. "V" - represents transactions that were reversed.
 - The transaction_id is the unique identifier for the transaction.
 `
+
+export const updatePlanPrompt = (context: Context) => `
+Update a billing plan in PayPal using the Plans API (PATCH).
+
+This function updates an existing plan with status CREATED or ACTIVE. For INACTIVE plans, only status updates are allowed.
+You can patch the following attributes and objects using JSON Patch operations (op: "replace"):
+
+    - name
+    - description
+    - payment_preferences.auto_bill_outstanding
+    - payment_preferences.payment_failure_threshold
+    - payment_preferences.setup_fee
+    - payment_preferences.setup_fee_failure_action
+    - taxes.percentage
+
+Below is an example PATCH request payload:
+[
+  {
+    "op": "replace",
+    "path": "/payment_preferences/payment_failure_threshold",
+    "value": 7
+  },
+  {
+    "op": "replace",
+    "path": "/name",
+    "value": "Updated Video Streaming Service Plan"
+  }
+]
+`;
