@@ -23,6 +23,7 @@ import {
   showSubscriptionPlanDetails,
   showSubscriptionDetails,
   cancelSubscription,
+  updatePlan,
 } from './functions';
 
 import type { Context } from './configuration';
@@ -120,6 +121,8 @@ class PayPalAPI {
         return acceptDisputeClaim(this.paypalClient, this.context, arg);
       case 'list_transactions':
         return listTransactions(this.paypalClient, this.context, arg);
+      case 'update_plan':
+        return updatePlan(this.paypalClient, this.context, arg);
       default:
         throw new Error(`Invalid method: ${method}`);
     }
