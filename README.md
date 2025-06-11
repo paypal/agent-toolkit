@@ -22,8 +22,8 @@ The PayPal Agent toolkit provides the following tools:
 - `create_order`: Create an order in PayPal system based on provided details
 - `get_order`: Retrieve the details of an order
 - `pay_order`: Process payment for an authorized order
-- `create_refund`: Create a refund for a captured payment
-- `get_refund`: Retrieve details of a specific refund
+- `create_refund`: Process a refund for a captured payment.
+- `get_refund`: Get the details for a specific refund.
 
 **Dispute Management**
 
