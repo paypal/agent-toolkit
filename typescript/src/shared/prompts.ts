@@ -215,3 +215,28 @@ This tool is used to list transactions with optional filtering parameters within
     4. "V" - represents transactions that were reversed.
 - The transaction_id is the unique identifier for the transaction.
 `
+
+export const getRefundPrompt = (context: Context) => `
+Retrieve detailed information about a PayPal payment refund.
+If you have an order ID instead of a refund ID, first use the get order tool to obtain the refund ID from the order details. 
+This function returns comprehensive details about a refund, including its current status (completed, pending, cancelled), refunded amount, and processing information.
+When multiple refunds exist for an order or capture, request clarification on which specific refund to retrieve. 
+Response details include:
+- Refund status and ID
+- Refunded amount and currency
+- Reason for refund (if provided)
+- Source transaction details
+`;
+
+export const createRefundPrompt = (context: Context) => `
+Initiate a refund for a PayPal payment capture.
+If you have an order ID instead of a capture ID, first use the get order tool to obtain the capture ID from the order details.
+This function allows you to return funds to a customer by refunding a previously captured payment. You can issue a full refund or specify a partial amount. If multiple captures exist for an order, request clarification on which specific capture to refund.
+Required parameters:
+- Capture ID: The ID of the capture to refund
+- Amount (optional): For partial refunds, specify the amount to refund (must be less than or equal to the captured amount)
+- Note to Payer (optional): Additional explanation visible to the customer
+Response details include:
+- Refund ID and status
+- Refunded amount and currency
+`;

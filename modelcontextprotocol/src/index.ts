@@ -48,6 +48,8 @@ const ACCEPTED_TOOLS = [
   'subscriptions.show',
   'subscriptions.cancel',
   'transactions.list',
+  'payments.createRefund',
+  'payments.getRefunds',
 ];
 
 export function parseArgs(args: string[]): Options {
