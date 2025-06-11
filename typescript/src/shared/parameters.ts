@@ -344,3 +344,16 @@ export const cancelSubscriptionParameters = (context: Context) => z.object({
   }).passthrough().describe('Payload for subscription cancellation.'),
 });
 
+export const updatePlanParameters = (context: Context) =>
+  z.object({
+    plan_id: z.string().describe('The ID of the plan to update.'),
+    description: z.string().optional().describe('Plan description.'),
+    auto_bill_outstanding: z.string().optional().describe('Auto bill outstanding'),
+    percentage: z.string().optional().describe('Taxes percentage'),
+    payment_failure_threshold: z.string().optional().describe('Payment failure threshold'),
+    setup_fee: z.string().optional().describe('Setup fee'),
+    setup_fee_failure_action: z.string().optional().describe('Setup fee failure action'),
+    name: z.string().optional().describe('Plan name'),
+    operations: z.array(z.object({}).passthrough()).describe('The PATCH operations to perform on the plan'),
+  });
+
