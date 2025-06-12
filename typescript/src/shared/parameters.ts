@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
+import {subscriptionKeys} from "./constants";
 
 // === INVOICE PARAMETERS ===
 const invoiceItem = z.object({
@@ -225,11 +226,13 @@ const frequencySchema = z.object({
   interval_count: z.number().describe('The number of units for the billing cycle.'),
 }).passthrough();
 
+const fixedPriceSchema = z.object({
+  currency_code: z.enum(['USD']).describe('The currency code for the fixed price.'),
+  value: z.string().describe('The value of the fixed price.'),
+}).passthrough().optional().describe('The fixed price for the subscription plan.')
+
 const pricingSchemeSchema = z.object({
-  fixed_price: z.object({
-    currency_code: z.enum(['USD']).describe('The currency code for the fixed price.'),
-    value: z.string().describe('The value of the fixed price.'),
-  }).passthrough().optional().describe('The fixed price for the subscription plan.'),
+  fixed_price: fixedPriceSchema,
   version: z.string().optional().describe('The version of the pricing scheme.'),
 }).passthrough();
 
@@ -246,16 +249,23 @@ const setupFeeSchema = z.object({
   value: z.string().optional().describe('The value of the setup fee.'),
 }).passthrough().optional();
 
+const autoBillOutstandingSchema = z.boolean().optional().describe('Indicates whether to automatically bill outstanding amounts.');
+const paymentFailureThresholdSchema = z.number().optional().describe('The number of failed payments before the subscription is canceled.');
+
+
 const paymentPreferencesSchema = z.object({
-  auto_bill_outstanding: z.boolean().optional().describe('Indicates whether to automatically bill outstanding amounts.'),
+  auto_bill_outstanding: autoBillOutstandingSchema,
   setup_fee: setupFeeSchema.describe('The setup fee for the subscription plan.'),
   setup_fee_failure_action: z.enum(['CONTINUE', 'CANCEL']).optional().describe('The action to take if the setup fee payment fails.'),
-  payment_failure_threshold: z.number().optional().describe('The number of failed payments before the subscription is canceled.'),
+  payment_failure_threshold: paymentFailureThresholdSchema,
 }).passthrough().optional();
 
+const taxPercentageSchema = z.string().optional().describe('The tax percentage.');
+const taxInclusiveSchema = z.boolean().optional().describe('Indicates whether the tax is inclusive.');
+
 const taxesSchema = z.object({
-  percentage: z.string().optional().describe('The tax percentage.'),
-  inclusive: z.boolean().optional().describe('Indicates whether the tax is inclusive.'),
+  percentage: taxPercentageSchema,
+  inclusive: taxInclusiveSchema,
 }).passthrough().optional();
 
 export const createSubscriptionPlanParameters = (context: Context) => z.object({
@@ -335,6 +345,7 @@ export const createSubscriptionParameters = (context: Context) => z.object({
 
 export const showSubscriptionDetailsParameters = (context: Context) => z.object({
   subscription_id: z.string().describe('The ID of the subscription to show details.'),
+  get_additional_details: z.boolean().optional().describe('Get all detailed information for the subscription.'),
 });
 
 export const cancelSubscriptionParameters = (context: Context) => z.object({
@@ -343,6 +354,23 @@ export const cancelSubscriptionParameters = (context: Context) => z.object({
     reason: z.string().describe('The reason for the cancellation of a subscription.'),
   }).passthrough().describe('Payload for subscription cancellation.'),
 });
+
+export const updateSubscriptionParameters = (context: Context) => z.object({
+  [subscriptionKeys.subscriptionId]: z.string().describe('The ID of the subscription to update.'),
+  [subscriptionKeys.currencyCode]: z.enum(['USD']).optional().default("USD").describe('Currency code of the amount.'),
+  [subscriptionKeys.outstandingBalance]: z.string().optional().describe('Outstanding Balance in the subscription'),
+  [subscriptionKeys.customId]: z.string().optional().describe("The custom id for the subscription"),
+  [subscriptionKeys.fixedPrice]: z.object({
+    value: z.string().describe('The fixed price for the subscription.'),
+    sequence: z.number().describe('The order sequence for the billing cycles'),
+  }).optional().describe('The fixed price for a billing cycle.'),
+  [subscriptionKeys.paymentFailureThreshold]: paymentFailureThresholdSchema,
+  [subscriptionKeys.autoBillOutstanding]: autoBillOutstandingSchema,
+  [subscriptionKeys.taxesInclusive]: taxInclusiveSchema,
+  [subscriptionKeys.taxesPercentage]: taxPercentageSchema,
+  [subscriptionKeys.shippingAmount]: z.string().optional().describe('The value of the shipping amount.'),
+  [subscriptionKeys.shippingAddress]: ShippingAddressSchema.optional().describe('The shipping address.'),
+})
 
 // === REFUND PARAMETERS ===
 

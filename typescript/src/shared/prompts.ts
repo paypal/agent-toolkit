@@ -140,6 +140,15 @@ You MUST ask the user for:
 Return all of the above as structured JSON in your response.
 `;
 
+export const updateSubscriptionPrompt = (context: Context) => `
+Update a customer subscription in PayPal.
+
+This function updates an active or suspended subscription for a customer. It requires the subscription ID and payload of allowed keys to update to the subscription.
+Required parameters are: subscription_id (the ID of the subscription to be updated), and at-least one key to update
+
+Return response as structured JSON in your response.
+`;
+
 
 export const createShipmentPrompt = (context: Context) => `
 Create a shipment for a transaction in PayPal.

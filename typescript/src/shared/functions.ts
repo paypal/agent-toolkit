@@ -27,9 +27,10 @@ import {
   showSubscriptionDetailsParameters,
   cancelSubscriptionParameters,
   getRefundParameters,
-  createRefundParameters
+  createRefundParameters,
+  updateSubscriptionParameters
 } from "./parameters";
-import { parseOrderDetails, toQueryString } from "./payloadUtils";
+import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
 import debug from "debug";
 import PayPalClient from './client';
@@ -423,8 +424,8 @@ export async function showSubscriptionDetails(
   params: TypeOf<ReturnType<typeof showSubscriptionDetailsParameters>>) {
 
   const headers = await client.getHeaders();
-  const { subscription_id } = params;
-  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
+  const { subscription_id, get_additional_details } = params;
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}${get_additional_details? "?fields=plan" : ""}`;
 
   try {
     const response = await axios.get(apiUrl, {
@@ -456,6 +457,25 @@ export async function cancelSubscription(
     // @ts-ignore
     console.error("Error Creating Subscription:", error.response?.data || error);
     throw error;
+  }
+}
+
+export async function updateSubscription(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateSubscriptionParameters>>){
+
+  const headers = await client.getHeaders();
+  const { subscription_id } = params;
+  try {
+    const subscriptionDetails = await showSubscriptionDetails(client, context, { subscription_id, get_additional_details: true});
+    const operations = parseUpdateSubscriptionPayload(params, subscriptionDetails);
+    const apiUrl = `${client.getBaseUrl()}/v1/billing/subscriptions/${subscription_id}`;
+    const response = await axios.patch(apiUrl, operations, { headers });
+    return response.data;
+  } catch(error: any){
+    logger('[updateSubscription] Error updating subscription:', JSON.stringify(error.message));
+    handleAxiosError(error);
   }
 }
 
@@ -935,7 +955,6 @@ function handleAxiosError(error: any): never {
     logger(`[handleAxiosError] Throwing error with message: PayPal API error: ${error.message}`);
     throw new Error(`PayPal API error: ${error.message}`);
   }
-
 }
 
 

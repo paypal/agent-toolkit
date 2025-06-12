@@ -285,6 +285,20 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Cancel the subscription id {subscription_id}
 
+---
+
+**`update_subscription`** - Update an active or suspended subscription.
+
+- `subscription_id` (string, required): The ID of the subscription to be updated.
+- `fixed_price` (optional)
+  - `value` (string): The fixed price for the billing cycle of subscription.
+  - `sequence` (number): The sequence for the billing cycles
+- `shipping_amount` (string, optional):
+
+> **Example Prompt**:
+> Update the subscription with id {subscription_id}, update values for Fixed price with {fixed_price}, Auto Bill Outstanding with {auto_bill_outstanding} and Tax Inclusive with {taxes_inclusive}
+
+
 ### **Reporting and Insights**
 
 ---
