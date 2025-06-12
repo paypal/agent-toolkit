@@ -28,6 +28,9 @@ import {
   showSubscriptionDetailsPrompt,
   cancelSubscriptionPrompt,
   updatePlanPrompt,
+  updateSubscriptionPrompt,
+  getRefundPrompt,
+  createRefundPrompt,
 } from './prompts';
 
 import {
@@ -58,6 +61,9 @@ import {
   showSubscriptionDetailsParameters,
   cancelSubscriptionParameters,
   updatePlanParameters,
+  updateSubscriptionParameters,
+  getRefundParameters,
+  createRefundParameters,
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -263,6 +269,17 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
+    method: 'update_subscription',
+    name: 'Update Subscription',
+    description: updateSubscriptionPrompt(context),
+    parameters: updateSubscriptionParameters(context),
+    actions: {
+      subscriptions: {
+        update: true,
+      },
+    },
+  },
+  {
     method: 'create_shipment_tracking',
     name: 'Create shipment',
     description: createShipmentPrompt(context),
@@ -372,6 +389,28 @@ const tools = (context: Context): Tool[] => [
       },
     },
   },
+  {
+    method: 'create_refund',
+    name: 'Create Refund',
+    description: createRefundPrompt(context),
+    parameters: createRefundParameters(context),
+    actions: {
+      payments: {
+        createRefund: true,
+      },
+    },
+  },
+  {
+    method: 'get_refund',
+    name: 'Get Refund',
+    description: getRefundPrompt(context),
+    parameters: getRefundParameters(context),
+    actions: {
+      payments: {
+        getRefunds: true,
+      },
+    },
+  }
 ];
 const allActions = tools({}).reduce((acc, tool) => {
   Object.keys(tool.actions).forEach(product => {

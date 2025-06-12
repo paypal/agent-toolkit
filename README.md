@@ -22,6 +22,8 @@ The PayPal Agent toolkit provides the following tools:
 - `create_order`: Create an order in PayPal system based on provided details
 - `get_order`: Retrieve the details of an order
 - `pay_order`: Process payment for an authorized order
+- `create_refund`: Process a refund for a captured payment.
+- `get_refund`: Get the details for a specific refund.
 
 **Dispute Management**
 
@@ -47,7 +49,9 @@ The PayPal Agent toolkit provides the following tools:
 - `show_subscription_plan_details`: Retrieve details of a specific subscription plan
 - `create_subscription`: Create a new subscription
 - `show_subscription_details`: Retrieve details of a specific subscription
+- `update_subscription`: update an existing subscription
 - `cancel_subscription`: Cancel an active subscription
+
 
 **Reporting and Insights**
 

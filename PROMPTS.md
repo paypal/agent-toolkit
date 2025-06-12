@@ -108,6 +108,28 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Capture payment for order {order_id}
 
+---
+
+**`create_refund`** - Process a refund for a captured payment.
+
+- `capture_id` (string): The unique identifier of the captured payment to refund.
+- `amount` (number, optional): The refund amount. If not specified, refunds the full amount.
+- `currency` (string, optional): Currency code for the refund (e.g., USD, EUR).
+
+> **Example Prompt**:
+> Process a refund for capture {capture_id}
+> Process a refund for Order {order_id}
+
+---
+
+**`get_refund`** - Get the details for a specific refund.
+
+- `refund_id` (string): The unique identifier of the refund.
+
+> **Example Prompt**:
+> Get details for refund {refund_id}
+> Get details for Order {order_id}
+
 ### **Dispute Management**
 
 ---
@@ -262,6 +284,20 @@ The PayPal Agent toolkit provides the following tools:
 
 > **Example Prompt**:
 > Cancel the subscription id {subscription_id}
+
+---
+
+**`update_subscription`** - Update an active or suspended subscription.
+
+- `subscription_id` (string, required): The ID of the subscription to be updated.
+- `fixed_price` (optional)
+  - `value` (string): The fixed price for the billing cycle of subscription.
+  - `sequence` (number): The sequence for the billing cycles
+- `shipping_amount` (string, optional):
+
+> **Example Prompt**:
+> Update the subscription with id {subscription_id}, update values for Fixed price with {fixed_price}, Auto Bill Outstanding with {auto_bill_outstanding} and Tax Inclusive with {taxes_inclusive}
+
 
 ### **Reporting and Insights**
 
