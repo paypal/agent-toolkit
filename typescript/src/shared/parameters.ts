@@ -351,9 +351,13 @@ export const updatePlanParameters = (context: Context) =>
     auto_bill_outstanding: z.string().optional().describe('Auto bill outstanding'),
     percentage: z.string().optional().describe('Taxes percentage'),
     payment_failure_threshold: z.string().optional().describe('Payment failure threshold'),
-    setup_fee: z.string().optional().describe('Setup fee'),
+    setup_fee: z.object({
+      value: z.string().describe('The setup fee amount.'),
+      currency_code: z.string().describe('The currency code for the setup fee.')
+    }).optional().describe('Setup fee'),
     setup_fee_failure_action: z.string().optional().describe('Setup fee failure action'),
     name: z.string().optional().describe('Plan name'),
-    operations: z.array(z.object({}).passthrough()).describe('The PATCH operations to perform on the plan'),
+    operations: z.string().describe('The PATCH operations to perform on the plan'),
   });
+
 
