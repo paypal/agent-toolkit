@@ -838,47 +838,65 @@ export async function updatePlan(
   context: Context,
   params: TypeOf<ReturnType<typeof updatePlanParameters>>
 ) {
-  const headers = await client.getHeaders();
-  const apiUrl = `${client.getBaseUrl()}/v1/billing/plans/${params.plan_id}`;
-
-  // If 'operations' is provided, use it directly
-  let patchOperations = params.operations;
-
-  console.log("print patch operations");
-  console.log(patchOperations);
-
-  // If not, build from optional parameters
-  if (!patchOperations || patchOperations.length === 0) {
-    const optionalKeysToPaths: Record<string, string> = {
-      description: '/description',
-      auto_bill_outstanding: '/payment_preferences/auto_bill_outstanding',
-      percentage: '/taxes/percentage',
-      payment_failure_threshold: '/payment_preferences/payment_failure_threshold',
-      setup_fee: '/payment_preferences/setup_fee',
-      setup_fee_failure_action: '/payment_preferences/setup_fee_failure_action',
-      name: '/name'
-    };
-
-    const receivedParams: Record<string, unknown> = {};
-    for (const key of Object.keys(optionalKeysToPaths)) {
-      if (params[key as keyof typeof params] !== undefined) {
-        receivedParams[key] = params[key as keyof typeof params];
-      }
-    }
-
-    if (Object.keys(receivedParams).length === 0) {
-      logger('[updatePlan] No optional parameters or operations received.');
-      return "Unable to update plan";
-    }
-
-    patchOperations = Object.entries(receivedParams).map(([key, value]) => ({
-      op: 'replace',
-      path: optionalKeysToPaths[key],
-      value
-    }));
+  const planId = params.plan_id;
+  if (!planId) {
+    logger('[updatePlan] No plan_id provided.');
+    return "No plan_id provided.";
   }
 
-  logger(`[updatePlan] PATCH operations: ${JSON.stringify(patchOperations, null, 2)}`);
+  // Check if the plan exists using showSubscriptionPlanDetails
+  const planDetails = await showSubscriptionPlanDetails(client, context, { plan_id: planId });
+
+  if (!planDetails || planDetails.error || planDetails.status === 'RESOURCE_NOT_FOUND') {
+    logger(`[updatePlan] Plan Id ${planId} not available.`);
+    return "Plan Id not available";
+  }
+
+  // Map of optional parameter keys to their JSON Patch paths
+  const optionalKeysToPaths: Record<string, string> = {
+    description: '/description',
+    auto_bill_outstanding: '/payment_preferences/auto_bill_outstanding',
+    percentage: '/taxes/percentage',
+    payment_failure_threshold: '/payment_preferences/payment_failure_threshold',
+    setup_fee: '/payment_preferences/setup_fee',
+    setup_fee_failure_action: '/payment_preferences/setup_fee_failure_action',
+    name: '/name'
+  };
+
+  // Collect received optional parameters
+  const receivedParams: Record<string, unknown> = {};
+  for (const key of Object.keys(optionalKeysToPaths)) {
+    if (params[key as keyof typeof params] !== undefined) {
+      receivedParams[key] = params[key as keyof typeof params];
+    }
+  }
+
+
+  if (Object.keys(receivedParams).length === 0) {
+    logger('[updatePlan] No params to patch.');
+    return "No params to patch";
+  }
+
+  // Helper to check if a nested property exists in planDetails
+  function hasNestedProperty(obj: any, path: string): boolean {
+    return path
+      .replace(/^\//, '')
+      .split('/')
+      .reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), obj) !== undefined;
+  }
+
+  // Build patch operations array using 'replace' or 'add' as needed
+  const patchOperations = Object.entries(receivedParams).map(([key, value]) => {
+    const path = optionalKeysToPaths[key];
+    const op = hasNestedProperty(planDetails, path) ? 'replace' : 'add';
+    return { op, path, value };
+  });
+
+  logger(`[updatePlan] Built patch operations from params: ${JSON.stringify(patchOperations, null, 2)}`);
+
+  const headers = await client.getHeaders();
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/plans/${planId}`;
+
   try {
     const response = await axios.patch(apiUrl, patchOperations, { headers });
     return response.data;
