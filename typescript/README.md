@@ -49,8 +49,8 @@ The PayPal Agent toolkit provides the following tools:
 - `show_subscription_plan_details`: Retrieve details of a specific subscription plan
 - `create_subscription`: Create a new subscription
 - `show_subscription_details`: Retrieve details of a specific subscription
-- `cancel_subscription`: Cancel an active subscription
 - `update_subscription`: update an existing subscription
+- `cancel_subscription`: Cancel an active subscription
 
 **Reporting and Insights**
 
