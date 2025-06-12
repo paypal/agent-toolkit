@@ -220,7 +220,7 @@ export const updatePlanPrompt = (context: Context) => `
 Update a billing plan in PayPal using the Plans API (PATCH).
 
 This function updates an existing plan with status CREATED or ACTIVE. For INACTIVE plans, only status updates are allowed.
-You can patch the following attributes and objects using JSON Patch operations (op: "replace"):
+You can patch the following attributes and objects in one call:
 
     - name
     - description
@@ -230,17 +230,4 @@ You can patch the following attributes and objects using JSON Patch operations (
     - payment_preferences.setup_fee_failure_action
     - taxes.percentage
 
-Below is an example PATCH request payload:
-[
-  {
-    "op": "replace",
-    "path": "/payment_preferences/payment_failure_threshold",
-    "value": 7
-  },
-  {
-    "op": "replace",
-    "path": "/name",
-    "value": "Updated Video Streaming Service Plan"
-  }
-]
 `;
