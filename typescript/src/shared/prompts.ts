@@ -225,6 +225,24 @@ This tool is used to list transactions with optional filtering parameters within
 - The transaction_id is the unique identifier for the transaction.
 `
 
+
+export const updatePlanPrompt = (context: Context) => `
+Update a billing plan in PayPal using the Plans API (PATCH).
+
+This function updates an existing plan with status CREATED or ACTIVE. For INACTIVE plans, only status updates are allowed.
+You can patch the following attributes and objects in one call:
+
+    - name
+    - description
+    - payment_preferences.auto_bill_outstanding
+    - payment_preferences.payment_failure_threshold
+    - payment_preferences.setup_fee
+    - payment_preferences.setup_fee_failure_action
+    - taxes.percentage
+
+`;
+
+
 export const getRefundPrompt = (context: Context) => `
 Retrieve detailed information about a PayPal payment refund.
 If you have an order ID instead of a refund ID, first use the get order tool to obtain the refund ID from the order details. 
@@ -248,4 +266,5 @@ Required parameters:
 Response details include:
 - Refund ID and status
 - Refunded amount and currency
+
 `;

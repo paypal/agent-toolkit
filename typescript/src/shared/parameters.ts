@@ -355,6 +355,24 @@ export const cancelSubscriptionParameters = (context: Context) => z.object({
   }).passthrough().describe('Payload for subscription cancellation.'),
 });
 
+
+export const updatePlanParameters = (context: Context) =>
+  z.object({
+    plan_id: z.string().describe('The ID of the plan to update.'),
+    description: z.string().optional().describe('Plan description.'),
+    auto_bill_outstanding: z.string().optional().describe('Auto bill outstanding'),
+    percentage: z.string().optional().describe('Taxes percentage'),
+    payment_failure_threshold: z.string().optional().describe('Payment failure threshold'),
+    setup_fee: z.object({
+      value: z.string().describe('The setup fee amount.'),
+      currency_code: z.string().describe('The currency code for the setup fee.')
+    }).optional().describe('Setup fee'),
+    setup_fee_failure_action: z.string().optional().describe('Setup fee failure action'),
+    name: z.string().optional().describe('Plan name'),
+    operations: z.string().describe('The PATCH operations to perform on the plan'),
+  });
+
+
 export const updateSubscriptionParameters = (context: Context) => z.object({
   [subscriptionKeys.subscriptionId]: z.string().describe('The ID of the subscription to update.'),
   [subscriptionKeys.currencyCode]: z.enum(['USD']).optional().default("USD").describe('Currency code of the amount.'),
@@ -387,4 +405,5 @@ export const createRefundParameters = (context: Context) => z.object({
   invoice_id: z.string().optional().describe('The invoice ID that is used to track this payment.'),
   note_to_payer: z.string().optional().describe('A note to the payer.'),
 });
+
 
