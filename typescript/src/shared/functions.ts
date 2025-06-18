@@ -967,8 +967,6 @@ export async function updatePlan(
     return { op, path, value };
   });
 
-  logger(`[updatePlan] Built patch operations from params: ${JSON.stringify(patchOperations, null, 2)}`);
-
   const headers = await client.getHeaders();
   const apiUrl = `${client.getBaseUrl()}/v1/billing/plans/${planId}`;
 
