@@ -111,6 +111,7 @@ Set `PAYPAL_ENVIRONMENT` value as either `SANDBOX` for stage testing and `PRODUC
 - `create_subscription`: Create a new subscription
 - `show_subscription_details`: Retrieve details of a specific subscription
 - `cancel_subscription`: Cancel an active subscription
+- `update_plan`: Update an existing plan
 
 **Reporting and Insights**
 
