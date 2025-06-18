@@ -28,7 +28,8 @@ import {
   cancelSubscriptionParameters,
   getRefundParameters,
   createRefundParameters,
-  updateSubscriptionParameters
+  updateSubscriptionParameters,
+  updatePlanParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -907,6 +908,77 @@ export async function getRefund(
   }
 }
 
+export async function updatePlan(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updatePlanParameters>>
+) {
+  const planId = params.plan_id;
+  if (!planId) {
+    logger('[updatePlan] No plan_id provided.');
+    return "No plan_id provided.";
+  }
+
+  // Check if the plan exists using showSubscriptionPlanDetails
+  const planDetails = await showSubscriptionPlanDetails(client, context, { plan_id: planId });
+
+  if (!planDetails || planDetails.error || planDetails.status === 'RESOURCE_NOT_FOUND') {
+    logger(`[updatePlan] Plan Id ${planId} not available.`);
+    return "Plan Id not available";
+  }
+
+  // Map of optional parameter keys to their JSON Patch paths
+  const optionalKeysToPaths: Record<string, string> = {
+    description: '/description',
+    auto_bill_outstanding: '/payment_preferences/auto_bill_outstanding',
+    percentage: '/taxes/percentage',
+    payment_failure_threshold: '/payment_preferences/payment_failure_threshold',
+    setup_fee: '/payment_preferences/setup_fee',
+    setup_fee_failure_action: '/payment_preferences/setup_fee_failure_action',
+    name: '/name'
+  };
+
+  // Collect received optional parameters
+  const receivedParams: Record<string, unknown> = {};
+  for (const key of Object.keys(optionalKeysToPaths)) {
+    if (params[key as keyof typeof params] !== undefined) {
+      receivedParams[key] = params[key as keyof typeof params];
+    }
+  }
+
+
+  if (Object.keys(receivedParams).length === 0) {
+    logger('[updatePlan] No params to patch.');
+    return "No params to patch";
+  }
+
+  // Helper to check if a nested property exists in planDetails
+  function hasNestedProperty(obj: any, path: string): boolean {
+    return path
+      .replace(/^\//, '')
+      .split('/')
+      .reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), obj) !== undefined;
+  }
+
+  // Build patch operations array using 'replace' or 'add' as needed
+  const patchOperations = Object.entries(receivedParams).map(([key, value]) => {
+    const path = optionalKeysToPaths[key];
+    const op = hasNestedProperty(planDetails, path) ? 'replace' : 'add';
+    return { op, path, value };
+  });
+
+  const headers = await client.getHeaders();
+  const apiUrl = `${client.getBaseUrl()}/v1/billing/plans/${planId}`;
+
+  try {
+    const response = await axios.patch(apiUrl, patchOperations, { headers });
+    return response.data;
+  } catch (error: any) {
+    logger('[updatePlan] Error updating plan:', error.message);
+    handleAxiosError(error);
+  }
+}
+
 // Helper function to handle Axios errors
 function handleAxiosError(error: any): never {
   logger('[handleAxiosError] Processing error from PayPal API');
@@ -956,5 +1028,4 @@ function handleAxiosError(error: any): never {
     throw new Error(`PayPal API error: ${error.message}`);
   }
 }
-
 

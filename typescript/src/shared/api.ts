@@ -23,6 +23,7 @@ import {
   showSubscriptionPlanDetails,
   showSubscriptionDetails,
   cancelSubscription,
+  updatePlan,
   createRefund,
   getRefund,
   updateSubscription
@@ -125,6 +126,8 @@ class PayPalAPI {
         return acceptDisputeClaim(this.paypalClient, this.context, arg);
       case 'list_transactions':
         return listTransactions(this.paypalClient, this.context, arg);
+      case 'update_plan':
+        return updatePlan(this.paypalClient, this.context, arg);
       case 'create_refund':
         return createRefund(this.paypalClient, this.context, arg);
       case 'get_refund':
