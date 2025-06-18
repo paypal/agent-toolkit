@@ -310,3 +310,19 @@ The PayPal Agent toolkit provides the following tools:
 
 > **Example Prompt**:
 > Get the list of my transactions for last {days} days.
+
+---
+
+**`update_plan`** - Updates an existing plan with new details.
+
+- `plan_id` (string, required): The ID of the plan to update.
+- `description` (string, optional): Plan description.
+- `auto_bill_outstanding` (string, optional): Auto bill outstanding.
+- `percentage` (string, optional): Taxes percentage.
+- `payment_failure_threshold` (string, optional): Payment failure threshold.
+- `setup_fee` (string, optional): Setup fee.
+- `setup_fee_failure_action` (string, optional): Setup fee failure action.
+- `name` (string, optional): Plan name.
+
+> **Example Prompt**:  
+> Update the plan with id {plan_id} to set the name to '{name}' and description to '{description}'.
