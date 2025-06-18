@@ -51,6 +51,7 @@ The PayPal Agent toolkit provides the following tools:
 - `show_subscription_details`: Retrieve details of a specific subscription
 - `update_subscription`: update an existing subscription
 - `cancel_subscription`: Cancel an active subscription
+- `update_plan`: Update an existing plan
 
 **Reporting and Insights**
 
