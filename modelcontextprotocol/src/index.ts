@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import {PayPalAgentToolkit} from '@paypal/agent-toolkit/mcp';
+// If you are developing mcp tools locally, you can update this import to point to your local mcp changes
+// import {PayPalAgentToolkit} from '../../typescript/mcp';
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import {green, red, yellow} from 'colors';
 
@@ -50,6 +52,31 @@ const ACCEPTED_TOOLS = [
   'transactions.list',
   'payments.createRefund',
   'payments.getRefunds',
+  // UBB tools
+  'ubbMetrics.list',
+  'ubbMetrics.create',
+  'ubbMetrics.get',
+  'ubbMetrics.update',
+  'ubbMetrics.delete',
+  'ubbPlans.list',
+  'ubbPlans.create',
+  'ubbPlans.get',
+  'ubbPlans.update',
+  'ubbCustomers.list',
+  'ubbCustomers.create',
+  'ubbCustomers.get',
+  'ubbCustomers.update',
+  'ubbCustomers.delete',
+  'ubbCustomerUsage.getCurrent',
+  'ubbCustomerUsage.getPast',
+  'ubbSubscriptions.list',
+  'ubbSubscriptions.create',
+  'ubbSubscriptions.get',
+  'ubbSubscriptions.update',
+  'ubbSubscriptions.cancel',
+  'ubbEvents.list',
+  'ubbEvents.create',
+  'ubbEvents.createBatch',
 ];
 
 export function parseArgs(args: string[]): Options {

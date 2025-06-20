@@ -29,7 +29,31 @@ import {
   getRefundParameters,
   createRefundParameters,
   updateSubscriptionParameters,
-  updatePlanParameters
+  updatePlanParameters,
+  getUBBMetricsParameters,
+  createUBBMetricParameters,
+  getUBBMetricByIdParameters,
+  updateUBBMetricParameters,
+  deleteUBBMetricParameters,
+  getUBBPlansParameters,
+  createUBBPlanParameters,
+  getUBBPlanByIdParameters,
+  updateUBBPlanParameters,
+  getUBBCustomersParameters,
+  createUBBCustomerParameters,
+  getUBBCustomerByIdParameters,
+  updateUBBCustomerParameters,
+  deleteUBBCustomerParameters,
+  getUBBCustomerCurrentUsageParameters,
+  getUBBCustomerPastUsageParameters,
+  getUBBSubscriptionsParameters,
+  createUBBSubscriptionParameters,
+  getUBBSubscriptionByIdParameters,
+  updateUBBSubscriptionParameters,
+  cancelUBBSubscriptionParameters,
+  getUBBEventsParameters,
+  createUBBEventParameters,
+  createUBBEventsBatchParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -975,6 +999,598 @@ export async function updatePlan(
     return response.data;
   } catch (error: any) {
     logger('[updatePlan] Error updating plan:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+// === USAGE BASED BILLING API FUNCTIONS ===
+export async function getUBBMetrics(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBMetricsParameters>>
+) {
+  logger('[getUBBMetrics] Starting to list metrics');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBMetrics] Headers obtained');
+  
+  const queryParams = new URLSearchParams();
+  if (params.per_page) queryParams.append('per_page', params.per_page.toString());
+  if (params.page) queryParams.append('page', params.page.toString());
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/metrics${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  logger(`[getUBBMetrics] API URL: ${url}`);
+  try {
+    logger('[getUBBMetrics] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBMetrics] Metrics retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBMetrics] Error listing metrics:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createUBBMetric(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createUBBMetricParameters>>
+) {
+  logger('[createUBBMetric] Starting metric creation process');
+  
+  const headers = await client.getHeaders();
+  logger('[createUBBMetric] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/metrics`;
+  
+  try {
+    logger('[createUBBMetric] Sending request to UBB API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[createUBBMetric] Metric created successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createUBBMetric] Error creating metric:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBMetricById(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBMetricByIdParameters>>
+) {
+  logger('[getUBBMetricById] Starting to get metric');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBMetricById] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/metrics/${params.id}`;
+  
+  try {
+    logger('[getUBBMetricById] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBMetricById] Metric retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBMetricById] Error getting metric:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updateUBBMetric(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateUBBMetricParameters>>
+) {
+  logger('[updateUBBMetric] Starting to update metric');
+  
+  const headers = await client.getHeaders();
+  logger('[updateUBBMetric] Headers obtained');
+  
+  const { id, ...updateData } = params;
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/metrics/${id}`;
+  
+  try {
+    logger('[updateUBBMetric] Sending request to UBB API');
+    const response = await axios.put(url, updateData, { headers });
+    logger(`[updateUBBMetric] Metric updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateUBBMetric] Error updating metric:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function deleteUBBMetric(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof deleteUBBMetricParameters>>
+) {
+  logger('[deleteUBBMetric] Starting to delete metric');
+  
+  const headers = await client.getHeaders();
+  logger('[deleteUBBMetric] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/metrics/${params.id}`;
+  
+  try {
+    logger('[deleteUBBMetric] Sending request to UBB API');
+    const response = await axios.delete(url, { headers });
+    logger(`[deleteUBBMetric] Metric deleted successfully. Status: ${response.status}`);
+    return response.status === 204 ? { success: true, id: params.id } : response.data;
+  } catch (error: any) {
+    logger('[deleteUBBMetric] Error deleting metric:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBPlans(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBPlansParameters>>
+) {
+  logger('[getUBBPlans] Starting to list plans');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBPlans] Headers obtained');
+  
+  const queryParams = new URLSearchParams();
+  if (params.per_page) queryParams.append('per_page', params.per_page.toString());
+  if (params.page) queryParams.append('page', params.page.toString());
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/plans${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  
+  try {
+    logger('[getUBBPlans] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBPlans] Plans retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBPlans] Error listing plans:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createUBBPlan(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createUBBPlanParameters>>
+) {
+  logger('[createUBBPlan] Starting plan creation process');
+  
+  const headers = await client.getHeaders();
+  logger('[createUBBPlan] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/plans`;
+  
+  try {
+    logger('[createUBBPlan] Sending request to UBB API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[createUBBPlan] Plan created successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createUBBPlan] Error creating plan:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBPlanById(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBPlanByIdParameters>>
+) {
+  logger('[getUBBPlanById] Starting to get plan');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBPlanById] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/plans/${params.id}`;
+  
+  try {
+    logger('[getUBBPlanById] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBPlanById] Plan retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBPlanById] Error getting plan:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updateUBBPlan(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateUBBPlanParameters>>
+) {
+  logger('[updateUBBPlan] Starting to update plan');
+  
+  const headers = await client.getHeaders();
+  logger('[updateUBBPlan] Headers obtained');
+  
+  const { id, ...updateData } = params;
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/plans/${id}`;
+  
+  try {
+    logger('[updateUBBPlan] Sending request to UBB API');
+    const response = await axios.put(url, updateData, { headers });
+    logger(`[updateUBBPlan] Plan updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateUBBPlan] Error updating plan:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBCustomers(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBCustomersParameters>>
+) {
+  logger('[getUBBCustomers] Starting to list customers');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBCustomers] Headers obtained');
+  
+  const queryParams = new URLSearchParams();
+  if (params.per_page) queryParams.append('per_page', params.per_page.toString());
+  if (params.page) queryParams.append('page', params.page.toString());
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/customers${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  
+  try {
+    logger('[getUBBCustomers] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBCustomers] Customers retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBCustomers] Error listing customers:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createUBBCustomer(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createUBBCustomerParameters>>
+) {
+  logger('[createUBBCustomer] Starting customer creation process');
+  
+  const headers = await client.getHeaders();
+  logger('[createUBBCustomer] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/customers`;
+  
+  try {
+    logger('[createUBBCustomer] Sending request to UBB API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[createUBBCustomer] Customer created successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createUBBCustomer] Error creating customer:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBCustomerById(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBCustomerByIdParameters>>
+) {
+  logger('[getUBBCustomerById] Starting to get customer');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBCustomerById] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/customers/${params.id}`;
+  logger(`[getUBBCustomerById] API URL: ${url}`);
+  try {
+    logger('[getUBBCustomerById] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBCustomerById] Customer retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBCustomerById] Error getting customer:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updateUBBCustomer(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateUBBCustomerParameters>>
+) {
+  logger('[updateUBBCustomer] Starting to update customer');
+  
+  const headers = await client.getHeaders();
+  logger('[updateUBBCustomer] Headers obtained');
+  
+  const { id, ...updateData } = params;
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/customers/${id}`;
+  
+  try {
+    logger('[updateUBBCustomer] Sending request to UBB API');
+    const response = await axios.put(url, updateData, { headers });
+    logger(`[updateUBBCustomer] Customer updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateUBBCustomer] Error updating customer:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function deleteUBBCustomer(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof deleteUBBCustomerParameters>>
+) {
+  logger('[deleteUBBCustomer] Starting to delete customer');
+  
+  const headers = await client.getHeaders();
+  logger('[deleteUBBCustomer] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/customers/${params.id}`;
+  
+  try {
+    logger('[deleteUBBCustomer] Sending request to UBB API');
+    const response = await axios.delete(url, { headers });
+    logger(`[deleteUBBCustomer] Customer deleted successfully. Status: ${response.status}`);
+    return response.status === 204 ? { success: true, id: params.id } : response.data;
+  } catch (error: any) {
+    logger('[deleteUBBCustomer] Error deleting customer:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBCustomerCurrentUsage(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBCustomerCurrentUsageParameters>>
+) {
+  logger('[getUBBCustomerCurrentUsage] Starting to get customer current usage');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBCustomerCurrentUsage] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/customers/${params.id}/current_usage?subscription_id=${params.subscription_id}`;
+  
+  try {
+    logger('[getUBBCustomerCurrentUsage] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBCustomerCurrentUsage] Customer current usage retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBCustomerCurrentUsage] Error getting customer current usage:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBCustomerPastUsage(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBCustomerPastUsageParameters>>
+) {
+  logger('[getUBBCustomerPastUsage] Starting to get customer past usage');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBCustomerPastUsage] Headers obtained');
+  
+  const queryParams = new URLSearchParams();
+  queryParams.append('subscription_id', params.subscription_id);
+  if (params.per_page) queryParams.append('per_page', params.per_page.toString());
+  if (params.page) queryParams.append('page', params.page.toString());
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/customers/${params.id}/past_usage?${queryParams.toString()}`;
+  
+  try {
+    logger('[getUBBCustomerPastUsage] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBCustomerPastUsage] Customer past usage retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBCustomerPastUsage] Error getting customer past usage:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBSubscriptions(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBSubscriptionsParameters>>
+) {
+  logger('[getUBBSubscriptions] Starting to list subscriptions');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBSubscriptions] Headers obtained');
+  
+  const queryParams = new URLSearchParams();
+  if (params.per_page) queryParams.append('per_page', params.per_page.toString());
+  if (params.page) queryParams.append('page', params.page.toString());
+  if (params.customer_id) queryParams.append('customer_id', params.customer_id);
+  if (params.external_customer_id) queryParams.append('external_customer_id', params.external_customer_id);
+  if (params.plan_code) queryParams.append('plan_code', params.plan_code);
+  if (params.status) queryParams.append('status', params.status);
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/subscriptions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  
+  try {
+    logger('[getUBBSubscriptions] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBSubscriptions] Subscriptions retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBSubscriptions] Error listing subscriptions:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createUBBSubscription(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createUBBSubscriptionParameters>>
+) {
+  logger('[createUBBSubscription] Starting subscription creation process');
+  
+  const headers = await client.getHeaders();
+  logger('[createUBBSubscription] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/subscriptions`;
+  
+  try {
+    logger('[createUBBSubscription] Sending request to UBB API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[createUBBSubscription] Subscription created successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createUBBSubscription] Error creating subscription:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBSubscriptionById(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBSubscriptionByIdParameters>>
+) {
+  logger('[getUBBSubscriptionById] Starting to get subscription');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBSubscriptionById] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/subscriptions/${params.id}`;
+  logger("getUBBSubscriptionById url: ", url);
+  try {
+    logger('[getUBBSubscriptionById] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBSubscriptionById] Subscription retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBSubscriptionById] Error getting subscription:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updateUBBSubscription(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateUBBSubscriptionParameters>>
+) {
+  logger('[updateUBBSubscription] Starting to update subscription');
+  
+  const headers = await client.getHeaders();
+  logger('[updateUBBSubscription] Headers obtained');
+  
+  const { id, ...updateData } = params;
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/subscriptions/${id}`;
+  
+  try {
+    logger('[updateUBBSubscription] Sending request to UBB API');
+    const response = await axios.put(url, updateData, { headers });
+    logger(`[updateUBBSubscription] Subscription updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateUBBSubscription] Error updating subscription:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function cancelUBBSubscription(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof cancelUBBSubscriptionParameters>>
+) {
+  logger('[cancelUBBSubscription] Starting to cancel subscription');
+  
+  const headers = await client.getHeaders();
+  logger('[cancelUBBSubscription] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/subscriptions/${params.id}/cancel`;
+  
+  const payload = params.cancel_option ? { cancel_option: params.cancel_option } : {};
+  
+  try {
+    logger('[cancelUBBSubscription] Sending request to UBB API');
+    const response = await axios.post(url, payload, { headers });
+    logger(`[cancelUBBSubscription] Subscription canceled successfully. Status: ${response.status}`);
+    return response.data || { success: true, id: params.id };
+  } catch (error: any) {
+    logger('[cancelUBBSubscription] Error canceling subscription:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getUBBEvents(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getUBBEventsParameters>>
+) {
+  logger('[getUBBEvents] Starting to list events');
+  
+  const headers = await client.getHeaders();
+  logger('[getUBBEvents] Headers obtained');
+  
+  const queryParams = new URLSearchParams();
+  if (params.external_subscription_id) queryParams.append('external_subscription_id', params.external_subscription_id);
+  if (params.metric_code) queryParams.append('metric_code', params.metric_code);
+  if (params.from_date) queryParams.append('from_date', params.from_date);
+  if (params.to_date) queryParams.append('to_date', params.to_date);
+  if (params.per_page) queryParams.append('per_page', params.per_page.toString());
+  if (params.page) queryParams.append('page', params.page.toString());
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/events${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  
+  try {
+    logger('[getUBBEvents] Sending request to UBB API');
+    const response = await axios.get(url, { headers });
+    logger(`[getUBBEvents] Events retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getUBBEvents] Error listing events:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createUBBEvent(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createUBBEventParameters>>
+) {
+  logger('[createUBBEvent] Starting event creation process');
+  
+  const headers = await client.getHeaders();
+  logger('[createUBBEvent] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/events`;
+  
+  try {
+    logger('[createUBBEvent] Sending request to UBB API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[createUBBEvent] Event created successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createUBBEvent] Error creating event:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createUBBEventsBatch(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createUBBEventsBatchParameters>>
+) {
+  logger('[createUBBEventsBatch] Starting batch event creation process');
+  
+  const headers = await client.getHeaders();
+  logger('[createUBBEventsBatch] Headers obtained');
+  
+  const url = `${client.getBaseUrl()}/v1/commerce/billing/events/batch`;
+  
+  try {
+    logger('[createUBBEventsBatch] Sending request to UBB API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[createUBBEventsBatch] Batch events created successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createUBBEventsBatch] Error creating batch events:', error.message);
     handleAxiosError(error);
   }
 }
