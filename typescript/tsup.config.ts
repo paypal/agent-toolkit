@@ -18,5 +18,16 @@ export default defineConfig([{ // Define multiple entry points
     format: ['cjs', 'esm'],
     sourcemap: true,
     target: 'node18',
+},
+{
+    entry: ['src/langchain/index.ts'],
+    outDir: "langchain",
+    //clean: true,
+    dts: true,
+    format: ['cjs', 'esm'],
+    // bundle: true, 
+    // splitting: false,
+    // minify: true,
+    sourcemap: true,
 }
 ]);
