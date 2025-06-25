@@ -1,70 +1,44 @@
 import { config } from '@dotenvx/dotenvx';
-// import { ChatOpenAI } from '@langchain/openai';
-// import {AgentExecutor, createStructuredChatAgent} from 'langchain/agents';
-// import type {ChatPromptTemplate} from '@langchain/core/prompts';
-//import {pull} from 'langchain/hub';
-import {PayPalWorkflows, PayPalAgentToolkit, ALL_TOOLS_ENABLED} from '@paypal/agent-toolkit/langchain';
-// import { PayPalLangChainToolkit} from '@paypal/agent-toolkit/langchain';
-// import { Configuration, Context } from '@paypal/agent-toolkit/shared/configuration';
+import { ChatOpenAI } from '@langchain/openai';
+import { PayPalLangChainToolkit, ALL_TOOLS_ENABLED} from '@paypal/agent-toolkit/langchain';
+import { createReactAgent } from '@langchain/langgraph/prebuilt';
 
-// Load environment variables from .env file
-config();
+const envFilePath = process.env.ENV_FILE_PATH || '.env';
+config({path: envFilePath});
 
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
-const PAYPAL_SECRET = process.env.PAYPAL_CLIENT_SECRET;
-const OPENAI_API_VERSION = '2024-02-15-preview';
+const llm = new ChatOpenAI({
+    temperature: 0.3,
+    model: 'gpt-4o', 
+  });
 
-// const llm = new ChatOpenAI({
-//   temperature: 0.3,
-//   model: 'gpt-4', 
-// });
+const ppConfig = {
+    clientId: process.env.PAYPAL_CLIENT_ID || '',
+    clientSecret: process.env.PAYPAL_CLIENT_SECRET || '',
+    configuration: {
+        actions: ALL_TOOLS_ENABLED
+    }
+}
 
-// const configuration = new Configuration({
-//   actions: {
-//     orders: {
-//       create: true,
-//       get: true,
-//       capture: true,
-//     },
-//   },
-//   context: new Context({
-//     sandbox: true,
-//   }),
-// });
+const paypalToolkit = new PayPalLangChainToolkit(ppConfig);
+const tools = paypalToolkit.getTools();
+  
+const agent = createReactAgent({
+    llm: llm,
+    tools: tools,
+});
 
-
-// const toolkit = new PayPalLangChainToolkit({
-//   clientId: PAYPAL_CLIENT_ID,
-//   secret: PAYPAL_SECRET,
-//   configuration: configuration,
-// });
-// const tools = toolkit.getTools();
-
-
-// (async (): Promise<void> => {
-//   //const prompt = await pull<ChatPromptTemplate>(
-//   //  'hwchase17/structured-chat-agent'
-//   const prompt = 'hello';
-
-
-//   const agent = await createStructuredChatAgent({
-//     llm,
-//     tools,
-//     prompt,
-//   });
-
-//   const agentExecutor = new AgentExecutor({
-//     agent,
-//     tools,
-//   });
-
-// const response = await agentExecutor.invoke({
-//   input: `
-//     Create a payment link for a new product called 'test' with a price
-//     of $100. Come up with a funny description about buy bots,
-//     maybe a haiku.
-//   `,
-// });
-
-// console.log(response);
-// })();
+(async () => {
+    const agent = createReactAgent({
+        llm: llm,
+        tools: tools,
+    });
+    
+    const result = await agent.invoke(
+        {
+            messages: [{
+                role: "user",
+                content: "Create an PayPal order for $50 for Premium News service."
+            }]
+        }
+    );
+})();
