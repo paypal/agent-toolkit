@@ -1,4 +1,4 @@
-# AI SDK Example
+# LangChain Example
 
 ## Setup
 
