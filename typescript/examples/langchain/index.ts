@@ -20,12 +20,9 @@ const ppConfig = {
 }
 
 const paypalToolkit = new PayPalLangChainToolkit(ppConfig);
-const tools = paypalToolkit.getTools();
-  
-const agent = createReactAgent({
-    llm: llm,
-    tools: tools,
-});
+let tools = paypalToolkit.getTools();
+// Filter out the create_subscription tool
+tools = tools.filter(tool => tool.name !== 'create_subscription');
 
 (async () => {
     const agent = createReactAgent({
@@ -41,4 +38,5 @@ const agent = createReactAgent({
             }]
         }
     );
+    console.log(result);
 })();
