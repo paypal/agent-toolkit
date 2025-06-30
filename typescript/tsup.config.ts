@@ -22,12 +22,8 @@ export default defineConfig([{ // Define multiple entry points
 {
     entry: ['src/langchain/index.ts'],
     outDir: "langchain",
-    //clean: true,
     dts: true,
     format: ['cjs', 'esm'],
-    // bundle: true, 
-    // splitting: false,
-    // minify: true,
     sourcemap: true,
 }
 ]);

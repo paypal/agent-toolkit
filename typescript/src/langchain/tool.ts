@@ -21,7 +21,7 @@ class PayPalTool extends StructuredTool {
     super();
     this.PayPalAPI = PayPalAPI;
     this.method = method;
-    this.name = name;
+    this.name = method;
     this.description = description;
     this.schema = schema;
   }
