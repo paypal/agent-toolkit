@@ -36,7 +36,7 @@ import {
 import {
   createInvoiceParameters,
   listInvoicesParameters,
-  getInvoicParameters,
+  getInvoiceParameters,
   sendInvoiceParameters,
   sendInvoiceReminderParameters,
   cancelSentInvoiceParameters,
@@ -107,7 +107,7 @@ const tools = (context: Context): Tool[] => [
     method: 'get_invoice',
     name: 'Get Invoice',
     description: getInvoicePrompt(context),
-    parameters: getInvoicParameters(context),
+    parameters: getInvoiceParameters(context),
     actions: {
       invoices: {
         get: true,
@@ -193,7 +193,7 @@ const tools = (context: Context): Tool[] => [
   },
   {
     method: 'show_product_details',
-    name: 'Show Products Details',
+    name: 'Show Product Details',
     description: showProductDetailsPrompt(context),
     parameters: showProductDetailsParameters(context),
     actions: {

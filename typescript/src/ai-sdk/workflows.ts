@@ -34,7 +34,7 @@ class PayPalWorkflows {
         });
         this.log!(`Response 1: I have now created the request object with provided details;\n ${JSON.stringify(orderObject)}`);
         this.log!(`Proceeding with next step.`)
-        this.log!(`Step 2: I am now choosing the correct tool from PayPal's toolkit to create an an order using the generated object from previous step.`);
+        this.log!(`Step 2: I am now choosing the correct tool from PayPal's toolkit to create an order using the generated object from previous step.`);
         const { text: orderId } = await generateText({
             model: llm,
             tools: this.toolkit.getTools(),
@@ -59,7 +59,7 @@ class PayPalWorkflows {
         const { text: summary } = await generateText({
             model: llm,
             maxSteps: 10,
-            system: 'You are tasked with generating an summary text for the order. Use the provided order details. For each item in order, update item level tax to be the tax amount*quantity of the item. Show the payment approval link only at the end of the page for the customer and hide all other links related to the order.',
+            system: 'You are tasked with generating a summary text for the order. Use the provided order details. For each item in order, update item level tax to be the tax amount*quantity of the item. Show the payment approval link only at the end of the page for the customer and hide all other links related to the order.',
             prompt: `
                 Generate a summary for the following order details: ${orderDetails}.
             `,
@@ -83,7 +83,7 @@ class PayPalWorkflows {
         const { text: summary } = await generateText({
             model: llm,
             tools: this.toolkit.getTools(),
-            system: 'You are tasked with generating an summary text for the dispute. Use the provided dispute details. Show the appropriate links only at the end of the page.',
+            system: 'You are tasked with generating a summary text for the dispute. Use the provided dispute details. Show the appropriate links only at the end of the page.',
             prompt: `
                 Generate a summary for the following dispute details: ${disputeDetail}.
             `,

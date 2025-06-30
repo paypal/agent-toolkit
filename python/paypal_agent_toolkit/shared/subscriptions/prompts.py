@@ -27,7 +27,7 @@ This function retrieves a list of products with optional pagination parameters.
 """
 
 CREATE_SUBSCRIPTION_PLAN_PROMPT = """
-Create a subsctiption plan in PayPal using subscription - create plan API.
+Create a subscription plan in PayPal using subscription - create plan API.
 This function creates a new subscription plan that defines pricing and billing cycle details for subscriptions.
 Required parameters are: product_id (the ID of the product for which to create the plan), name (subscription plan name), billing_cycles (billing cycle details).
 High level: product_id, name, description, taxes, status: {CREATED|INACTIVE|ACTIVE}, billing_cycles, payment_preferences are required in json object.
