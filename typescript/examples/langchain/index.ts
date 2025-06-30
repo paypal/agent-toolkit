@@ -21,8 +21,6 @@ const ppConfig = {
 
 const paypalToolkit = new PayPalLangChainToolkit(ppConfig);
 let tools = paypalToolkit.getTools();
-// Filter out the create_subscription tool
-tools = tools.filter(tool => tool.name !== 'create_subscription');
 
 (async () => {
     const agent = createReactAgent({
