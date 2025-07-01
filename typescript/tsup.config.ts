@@ -25,5 +25,12 @@ export default defineConfig([{ // Define multiple entry points
     dts: true,
     format: ['cjs', 'esm'],
     sourcemap: true,
+},
+{
+    entry: ['src/openai/index.ts'],
+    outDir: "openai",
+    dts: true,
+    format: ['cjs', 'esm'],
+    sourcemap: true,
 }
 ]);

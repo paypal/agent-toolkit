@@ -11,7 +11,7 @@ import PayPalTool from "./tool";
 
 const SOURCE = "LANGCHAIN";
 
-class PayPalLangChainToolkit implements BaseToolkit {
+class PayPalAgentToolkit implements BaseToolkit {
     readonly client: PayPalClient;
     private _paypal: PayPalAPI;
     tools: PayPalTool[];
@@ -44,4 +44,4 @@ class PayPalLangChainToolkit implements BaseToolkit {
     }
 }
 
-export default PayPalLangChainToolkit;
+export default PayPalAgentToolkit;
