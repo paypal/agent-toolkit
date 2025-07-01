@@ -40,7 +40,7 @@ const paypalToolkit = new PayPalAgentToolkit(ppConfig);
             const toolMessages = await Promise.all(
                 reply.tool_calls.map((tc) => paypalToolkit.handleToolCall(tc))
             );
-            messages.push(...messages, ...toolMessages);
+            messages = [...messages, ...toolMessages];
         }
         else {
             console.log(completion.choices[0].message);
