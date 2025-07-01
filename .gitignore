@@ -8,6 +8,8 @@ logs.txt
 .env.local
 typescript/ai-sdk/
 typescript/mcp/
+typescript/openai/
+typescript/langchain/
 
 
 # Byte-compiled / optimized / DLL files
