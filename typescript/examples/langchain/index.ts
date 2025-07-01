@@ -1,6 +1,6 @@
 import { config } from '@dotenvx/dotenvx';
 import { ChatOpenAI } from '@langchain/openai';
-import { PayPalLangChainToolkit, ALL_TOOLS_ENABLED} from '@paypal/agent-toolkit/langchain';
+import { PayPalAgentToolkit, ALL_TOOLS_ENABLED} from '@paypal/agent-toolkit/langchain';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 
 const envFilePath = process.env.ENV_FILE_PATH || '.env';
@@ -19,7 +19,7 @@ const ppConfig = {
     }
 }
 
-const paypalToolkit = new PayPalLangChainToolkit(ppConfig);
+const paypalToolkit = new PayPalAgentToolkit(ppConfig);
 let tools = paypalToolkit.getTools();
 
 (async () => {
