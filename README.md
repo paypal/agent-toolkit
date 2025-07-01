@@ -1,4 +1,4 @@
-mcp# PayPal Agent Toolkit
+# PayPal Agent Toolkit
 
 The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Agent SDK, LangChain, Vercel's AI SDK, and Model Context Protocol (MCP) to integrate with PayPal APIs through function calling. It includes support for TypeScript and is built on top of PayPal APIs and the PayPal SDKs.
 
@@ -467,7 +467,7 @@ For all sensitive operations, the toolkit enforces a **two-phase handshake proto
 
 The core of this architecture is the introduction of the `executeSecureTool` function, which acts as a smart router, and the `tool-classifications.ts` file, which provides the routing logic. This is complemented by the new server-side **Zero-Trust MCP Extension Service** that `executeSecureTool` calls for sensitive operations. The OpenAPI schema below defines the control plane for managing these integrations.
 
-**MCP Handshake (`v1`)**
+[**MCP Handshake (`v1`)**](https://github.com/cosai-oasis/ws4-secure-design-agentic-systems/blob/main/rfc-mcp_handshake.md)
 ```json
 {
 "schema": "MCP.Handshake.v1",
