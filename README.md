@@ -1,4 +1,4 @@
-# PayPal Agent Toolkit
+mcp# PayPal Agent Toolkit
 
 The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Agent SDK, LangChain, Vercel's AI SDK, and Model Context Protocol (MCP) to integrate with PayPal APIs through function calling. It includes support for TypeScript and is built on top of PayPal APIs and the PayPal SDKs.
 
@@ -470,35 +470,40 @@ The core of this architecture is the introduction of the `executeSecureTool` fun
 **MCP Handshake (`v1`)**
 ```json
 {
-  "schema": "MCP.Handshake.v1",
-  "transaction": {
-    "id": "uuid-for-this-specific-request",
-    "timestamp": "ISO-8601-timestamp",
-    "user": { "id": "authenticated-user-id", "roles": ["role1", "role2"] }
-  },
-  "tool": {
-    "name": "target-operation-name", "version": "1.0.0",
-    "sensitivity": "CONFIDENTIAL", "parameters_hash": "sha256-of-parameters-object",
-    "target_api": { "name": "enterprise-api-identifier", "operation": "specific-api-operation" }
-  },
-  "authentication": {
-    "session_token": "jwt-or-other-identity-token", "ephemeral_token": "single-use-transaction-bound-token",
-    "expiry": "ISO-8601-timestamp-short-lifespan",
-    "token_state": { "consumed": false, "consumption_timestamp": null }
-  },
-  "validation": {
-    "status": "APPROVED", "timestamp": "ISO-8601-timestamp",
-    "checks_performed": ["parameter_validation", "pattern_validation", "code_analysis"],
-    "tier_level": "CONFIDENTIAL", "reason": "Optional explanation if DENIED"
-  },
-  "audit": {
-    "request_ip": "client-ip-address", "client_id": "application-identifier",
-    "integration_id": "specific-integration-identifier",
-    "receipt": { "transaction_proof": "cryptographic-signature-of-transaction-details", "timestamp": "ISO-8601-timestamp" }
-  },
-  "error_handling": {
-    "status_code": null, "error_type": null, "message": null, "retry_allowed": true
-  }
+"schema": "MCP.Handshake.v1",
+"transaction": {
+"id": "uuid-for-this-specific-request",
+"timestamp": "ISO-8601-timestamp",
+"user": { "id": "authenticated-user-id", "roles": ["role1", "role2"] }
+},
+"tool": {
+"name": "target-operation-name", "version": "1.0.0",
+"sensitivity": "C0NFIDENT1AL", "parameters_hash": "sha256-of-parameters-object",
+"target_api": { "name": "enterprise-api-identifier", "operation": "specific-api-operation" },
+"data_classification": { // Added data_classification field as an object for flexibility
+"value": null, // Nullable string value for the classification
+"reason": null, // Optional reason for the classification (e.g., "PII detected")
+"attesting_agent_id": null // ID of the agent that attested to the classification
+}
+},
+"authentication": {
+"session_token": "jwt-or-other-identity-token", "ephemeral_token": "single-use-transaction-bound-token",
+"expiry": "ISO-8601-timestamp-short-lifespan",
+"token_state": { "consumed": false, "consumption_timestamp": null }
+},
+"validation": {
+"status": "APPROVED", "timestamp": "ISO-8601-timestamp",
+"checks_performed": ["parameter_validation", "pattern_validation", "code_analysis"],
+"tier_level": "C0NFIDENT1AL", "reason": "Optional explanation if DENIED"
+},
+"audit": {
+"request_ip": "client-ip-address", "client_id": "application-identifier",
+"integration_id": "specific-integration-identifier",
+"receipt": { "transaction_proof": "cryptographic-signature-of-transaction-details", "timestamp": "ISO-8601-timestamp" }
+},
+"error_handling": {
+"status_code": null, "error_type": null, "message": null, "retry_allowed": true
+}
 }
 ```
 </details>
