@@ -47,7 +47,7 @@ class PayPalClient {
         }
 
         this._baseUrl = this._isSandbox
-        ? 'https://api.sandbox.paypal.com'
+        ? 'https://api-m.sandbox.paypal.com'
         : 'https://api.paypal.com';
 
         logger(`[PayPal Setttings] Environment: ${this._isSandbox ? "Sandbox" : "Live"}`);
