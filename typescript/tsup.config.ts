@@ -32,5 +32,12 @@ export default defineConfig([{ // Define multiple entry points
     dts: true,
     format: ['cjs', 'esm'],
     sourcemap: true,
+},
+{
+    entry: ['src/bedrock/index.ts'],
+    outDir: "bedrock",
+    dts: true,
+    format: ['cjs', 'esm'],
+    sourcemap: true,
 }
 ]);
