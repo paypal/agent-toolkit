@@ -5,7 +5,6 @@ import PayPalAPI from '../shared/api';
 import tools from '../shared/tools';
 import { version } from '../../package.json';
 
-
 const SOURCE = 'MCP';
 
 class PayPalAgentToolkit extends McpServer {
@@ -31,11 +30,11 @@ class PayPalAgentToolkit extends McpServer {
     );
 
     filteredTools.forEach((tool) => {
-      const regTool = this.tool(
+      this.tool(
         tool.method,
         tool.description,
         tool.parameters.shape,
-        async (arg: any, _extra: RequestHandlerExtra<any, any>) => {
+        async (arg: any, _extra: RequestHandlerExtra) => {
           const result = await this._paypal.run(tool.method, arg);
           return {
             content: [
