@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.32.0",
-    "@langchain/core": "^0.3.6",
+    "@langchain/core": "0.3.6",
     "openai": "4.86.1",
     "@modelcontextprotocol/sdk": "^1.6.1",
     "@paypal/paypal-server-sdk": "^1.0.0",
