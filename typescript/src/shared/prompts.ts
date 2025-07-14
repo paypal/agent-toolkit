@@ -268,3 +268,15 @@ Response details include:
 - Refunded amount and currency
 
 `;
+
+// === BIN DATA PROMPTS ===
+
+ export const fetchBinDataPrompt = (context: Context) => `
+ Fetch BIN metadata in bulk.
+ This function allows you to fetch metadata for multiple Bank Identification Numbers (BINs) in a single request. 
+ It's useful for retrieving card details like card type, issuing bank, and country information for multiple card numbers at once.
+ Required parameters:
+ - bin: An array of BINs to fetch metadata for. Each BIN must be a numeric string of 6 to 8 digits.
+ The API will return metadata for each BIN, including information such as card type, issuing bank, country, etc.
+ 
+ `;

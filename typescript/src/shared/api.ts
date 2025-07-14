@@ -26,7 +26,8 @@ import {
   updatePlan,
   createRefund,
   getRefund,
-  updateSubscription
+  updateSubscription,
+  fetchBinData
 } from './functions';
 
 import type { Context } from './configuration';
@@ -47,7 +48,7 @@ class PayPalAPI {
 
     if (typeof paypalClientOrAccessToken === 'string') {
       this.accessToken = paypalClientOrAccessToken;
-      this.paypalClient = new PayPalClient({context: this.context, accessToken: this.accessToken });
+      this.paypalClient = new PayPalClient({ context: this.context, accessToken: this.accessToken });
     } else {
       this.paypalClient = paypalClientOrAccessToken;
     }
@@ -132,6 +133,9 @@ class PayPalAPI {
         return createRefund(this.paypalClient, this.context, arg);
       case 'get_refund':
         return getRefund(this.paypalClient, this.context, arg);
+      case 'fetch_bin_data':
+        return fetchBinData(this.paypalClient, this.context, arg);
+
       default:
         throw new Error(`Invalid method: ${method}`);
     }
