@@ -4,7 +4,6 @@ import { Configuration, isToolAllowed } from "../shared/configuration";
 import tools from "../shared/tools";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-
 const SOURCE = "BEDROCK";
 
 export interface BedrockTool {
