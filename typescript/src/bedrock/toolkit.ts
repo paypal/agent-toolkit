@@ -47,7 +47,7 @@ class PayPalAgentToolkit {
         this._paypal = new PayPalAPI(this.client, configuration.context);
         this.tools = filteredTools.map((tool) => ({
             toolSpec: {
-                name: tool.name,
+                name: tool.method,
                 description: tool.description,
                 inputSchema: {
                     json: zodToJsonSchema(tool.parameters)

@@ -10,6 +10,7 @@ typescript/ai-sdk/
 typescript/mcp/
 typescript/openai/
 typescript/langchain/
+typescript/bedrock/
 
 
 # Byte-compiled / optimized / DLL files

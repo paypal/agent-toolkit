@@ -5,19 +5,15 @@ import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-r
 const envFilePath = process.env.ENV_FILE_PATH || '.env';
 config({path: envFilePath});
 
-// const client = new BedrockRuntimeClient({ region: "us-east-1"})
-// console.log("AWS Key ID:", process.env.AWS_ACCESS_KEY_ID);
-// console.log("AWS Secret:", process.env.AWS_SECRET_ACCESS_KEY ? "Loaded ✅" : "Missing ❌");
-
 const client = new BedrockRuntimeClient({ 
-    region: "us-east-1",
+    region: "us-west-2",
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
     }
-  });
+});
 
-const modelId = "anthropic.claude-3-haiku-20240307-v1:0";
+const modelId = "anthropic.claude-3-5-haiku-20241022-v1:0";
 
 const ppConfig = {
     clientId: process.env.PAYPAL_CLIENT_ID || '',
@@ -31,12 +27,6 @@ const paypalToolkit = new PayPalAgentToolkit(ppConfig);
 let tools = paypalToolkit.getTools();
 
 const userMessage = "Create an PayPal order for $50 for Premium News service.";
-// const conversation = [
-//     {
-//         role: "user",
-//         content: [{ text: userMessage}],
-//     },
-// ];
 
 (async () => {
     const response = await client.send(
