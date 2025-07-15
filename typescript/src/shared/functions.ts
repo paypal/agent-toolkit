@@ -926,12 +926,8 @@ export async function getRefund(
      params: TypeOf<ReturnType<typeof fetchBinDataParameters>>
    ): Promise<any> {
      logger('[fetchBinData] Starting to fetch BIN data');
-     logger(`[fetchBinData] Context: ${JSON.stringify({ sandbox: context.sandbox, merchant_id: context.merchant_id })}`);
-     logger(`[fetchBinData] Parameters: ${JSON.stringify(params)}`);
 
      const headers = await client.getHeaders();
-     logger('[fetchBinData] Headers obtained');
-     logger(`[fetchBinData] Request Headers: ${JSON.stringify(headers, null, 2)}`);
 
      // Validate BIN format before making the request
      const invalidBins = params.bin.filter(bin => {
@@ -1003,11 +999,7 @@ export async function getRefund(
          operations
        };
 
-       logger(`[fetchBinData] Complete Request Details:`);
        logger(`[fetchBinData] URL: ${url}`);
-       logger(`[fetchBinData] Method: POST`);
-       logger(`[fetchBinData] Headers: ${JSON.stringify(headers, null, 2)}`);
-       logger(`[fetchBinData] Request Body: ${JSON.stringify(requestBody, null, 2)}`);
 
        try {
          logger('[fetchBinData] Sending request to PayPal API (bulk)');
@@ -1015,10 +1007,7 @@ export async function getRefund(
          
          logger(`[fetchBinData] Bulk Response Details:`);
          logger(`[fetchBinData] Status: ${response.status}`);
-         logger(`[fetchBinData] Status Text: ${response.statusText}`);
-         logger(`[fetchBinData] Response Headers: ${JSON.stringify(response.headers, null, 2)}`);
-         logger(`[fetchBinData] Response Data: ${JSON.stringify(response.data, null, 2)}`);
-         
+
          // Parse the bulk response and extract BIN data
          if (response.data && response.data.operations && Array.isArray(response.data.operations)) {
            const results = response.data.operations.map((operation: any) => {
@@ -1059,10 +1048,7 @@ export async function getRefund(
      
      if (error.response) {
        logger(`[handleBinDataError] Error Response Status: ${error.response.status}`);
-       logger(`[handleBinDataError] Error Response Status Text: ${error.response.statusText}`);
-       logger(`[handleBinDataError] Error Response Headers: ${JSON.stringify(error.response.headers, null, 2)}`);
-       logger(`[handleBinDataError] Error Response Data: ${JSON.stringify(error.response.data, null, 2)}`);
-       
+
        // Handle specific BIN lookup errors
        if (error.response.status === 422) {
          const errorData = error.response.data;
@@ -1094,7 +1080,6 @@ export async function getRefund(
        }
      } else if (error.request) {
        logger(`[handleBinDataError] No Response Received`);
-       logger(`[handleBinDataError] Request Details: ${JSON.stringify(error.request, null, 2)}`);
      } else {
        logger(`[handleBinDataError] Request Setup Error: ${error.message}`);
      }
