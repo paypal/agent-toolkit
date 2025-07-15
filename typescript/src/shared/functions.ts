@@ -957,7 +957,6 @@ export async function getRefund(
        
        logger(`[fetchBinData] Using single BIN endpoint for BIN: ${singleBin}`);
        logger(`[fetchBinData] API URL: ${url}`);
-       logger(`[fetchBinData] Request Body: ${JSON.stringify(requestBody, null, 2)}`);
 
        try {
          logger('[fetchBinData] Sending request to PayPal API (single BIN)');
@@ -965,8 +964,6 @@ export async function getRefund(
          
          logger(`[fetchBinData] Single BIN Response Details:`);
          logger(`[fetchBinData] Status: ${response.status}`);
-         logger(`[fetchBinData] Status Text: ${response.statusText}`);
-         logger(`[fetchBinData] Response Data: ${JSON.stringify(response.data, null, 2)}`);
          
          // Return the direct response for single BIN requests
          return response.data;
@@ -1005,7 +1002,6 @@ export async function getRefund(
          logger('[fetchBinData] Sending request to PayPal API (bulk)');
          const response = await axios.post(url, requestBody, { headers });
          
-         logger(`[fetchBinData] Bulk Response Details:`);
          logger(`[fetchBinData] Status: ${response.status}`);
 
          // Parse the bulk response and extract BIN data
