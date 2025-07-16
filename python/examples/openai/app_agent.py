@@ -4,7 +4,6 @@ from openai import OpenAI
 import asyncio
 from dotenv import load_dotenv
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from agents import Agent, Runner
 from paypal_agent_toolkit.openai.toolkit import PayPalToolkit
 from paypal_agent_toolkit.openai.tool import PayPalTool
