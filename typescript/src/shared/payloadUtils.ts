@@ -11,9 +11,9 @@ export function parseOrderDetails(params: TypeOf<ReturnType<typeof createOrderPa
     try {
         const currCode = params.currencyCode;
         let items: any[] = [];
-        const subTotal = params.items.reduce((sum, item) => sum + item.itemCost * (item.quantity ?? 1), 0);
+        const subTotal = params.items.reduce((sum, item) => sum + item.itemCost * item.quantity, 0);
         const shippingCost = params.shippingCost || 0;
-        const taxAmount = params.items.reduce((sum, item) => sum + item.itemCost * (item.taxPercent ?? 0) * (item.quantity ?? 1)/ 100, 0)
+        const taxAmount = params.items.reduce((sum, item) => sum + item.itemCost * item.taxPercent * item.quantity / 100, 0)
         const discount = params.discount || 0;
         const total = subTotal + taxAmount + shippingCost - discount;
         const amountBreakdown = {
@@ -42,9 +42,9 @@ export function parseOrderDetails(params: TypeOf<ReturnType<typeof createOrderPa
                     value: item.itemCost.toString() || '0',
                     currency_code: currCode
                 },
-                quantity: (item.quantity ?? 1).toString(),
+                quantity: item.quantity.toString() || '1',
                 tax: {
-                    value: round((item.itemCost * (item.taxPercent ?? 0)) / 100, 2).toString() || '0',
+                    value: round((item.itemCost * item.taxPercent) / 100, 2).toString() || '0',
                     currency_code: currCode
                 }
             })
