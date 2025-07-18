@@ -1,11 +1,9 @@
 import os
-import sys
 from langchain.agents import initialize_agent, AgentType
 from langchain_openai import ChatOpenAI 
 
 from dotenv import load_dotenv
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from paypal_agent_toolkit.langchain.toolkit import PayPalToolkit
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 

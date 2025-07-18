@@ -2,10 +2,9 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import os
-import sys
 from crewai import Agent, Crew, Task
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+# from dotenv import load_dotenv
 from paypal_agent_toolkit.crewai.toolkit import PayPalToolkit
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
