@@ -84,6 +84,12 @@ export const generateInvoiceQrCodeParameters = (context: Context) => z.object({
   height: z.number().default(300).describe("The QR code height")
 }).describe("generate invoice qr code request payload");
 
+// === BIN DATA PARAMETERS ===
+
+ export const fetchBinDataParameters = (context: Context) => z.object({
+   bin: z.array(z.string().min(6)).max(8).describe('An array of BINs to fetch metadata for. Each BIN must be a numeric string of 6 to 8 digits.')
+ });
+
 
 export const updateProductParameters = (context: Context) =>
   z.object({

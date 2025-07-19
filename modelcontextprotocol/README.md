@@ -1,4 +1,3 @@
-
 ## PayPal Model Context Protocol
 
 The PayPal [Model Context Protocol](https://modelcontextprotocol.com/) server allows you to integrate with PayPal APIs through function calling. This protocol supports various tools to interact with different PayPal services.
@@ -84,6 +83,7 @@ Set `PAYPAL_ENVIRONMENT` value as either `SANDBOX` for stage testing and `PRODUC
 - `pay_order`: Process payment for an authorized order
 - `create_refund`: Process a refund for a captured payment.
 - `get_refund`: Get the details for a specific refund.
+- `fetch_bin_data`: Fetch BIN (Bank Identification Number) meta data for the given BIN. (Note: This tool is enabled as `payments.fetchBinData` in the config, but the method name is `fetch_bin_data`.)
 
 **Dispute Management**
 
