@@ -1,6 +1,6 @@
 # PayPal Agent Toolkit
 
-The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Agent SDK, LangChain, Vercel's AI SDK, and Model Context Protocol (MCP) to integrate with PayPal APIs through function calling. It includes support for TypeScript and is built on top of PayPal APIs and the PayPal SDKs.
+The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Agent SDK, LangChain, Vercel's AI SDK, Model Context Protocol (MCP), and Amazon Bedrock to integrate with PayPal APIs through function calling. It includes support for TypeScript and is built on top of PayPal APIs and the PayPal SDKs.
 
 
 ## Available tools
@@ -74,10 +74,8 @@ npm install @paypal/agent-toolkit
 
 ### Usage
 
-The library needs to be configured with your account's client id and secret which is available in your [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/). 
+The library needs to be configured with your account's client id and secret which is available in your [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/). Use `configuration` to add context as well as to specify which actions should be allowed. 
 
-
-The toolkit works with Vercel's AI SDK and can be passed as a list of tools. For more details, refer our [examples](./typescript/examples)
 
 ```typescript
 import { PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk';
@@ -104,6 +102,8 @@ const paypalToolkit = new PayPalAgentToolkit({
 });
 ```
 
+## AI-SDK
+
 ### Initializing the Workflows
 
 ```typescript
@@ -117,8 +117,6 @@ const paypalWorkflows = new PayPalWorkflows({
 });
 ```
 
-## Usage
-
 ### Using the toolkit
 
 ```typescript
@@ -130,6 +128,64 @@ const { text: response } = await generateText({
   prompt: `Create an order for $50 for custom handcrafted item and get the payment link.`,
 });
 
+```
+
+## OpenAI
+
+### Using the toolkit
+```typescript
+let messages: ChatCompletionMessageParam[] = [
+    {
+        role: "user",
+        content: "Create an PayPal order for $50 for Premium News service.",
+    },
+];
+const completion = await llm.chat.completions.create({
+    model: "gpt-4o",
+    messages,
+    tools: paypalToolkit.getTools(),
+});
+```
+
+## LangChain
+
+### Using the toolkit
+```typescript
+const agent = createReactAgent({
+    llm: llm,
+    tools: tools,
+});
+
+const result = await agent.invoke(
+    {
+        messages: [{
+            role: "user",
+            content: "Create an PayPal order for $50 for Premium News service."
+        }]
+    }
+);
+```
+## Amazon Bedrock
+
+### Using the toolkit
+
+```typescript
+const userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax.";
+let messages: Message[] = [
+    {
+        role: "user",
+        content: [{ text: userMessage }],
+    }
+]
+const response = await client.send(
+    new ConverseCommand({ 
+        modelId: modelId,
+        messages: messages,
+        toolConfig: {
+            tools: tools
+        }
+    }),
+);
 ```
 
 ## PayPal Model Context Protocol
@@ -160,7 +216,7 @@ const orderSummary = await paypalWorkflows.generateOrder(
 );
 
 const server = new PayPalAgentToolkit({
-	accessToken: process.env.PAYPAL_ACCESS_TOKEN
+  accessToken: process.env.PAYPAL_ACCESS_TOKEN
 });
 
 async function main() {
@@ -334,3 +390,4 @@ Once you have your access token, update the `PAYPAL_ACCESS_TOKEN` value in your 
 
 ## Disclaimer
 *AI-generated content may be inaccurate or incomplete. Users are responsible for independently verifying any information before relying on it. PayPal makes no guarantees regarding output accuracy and is not liable for any decisions, actions, or consequences resulting from its use.*
+

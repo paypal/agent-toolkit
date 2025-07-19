@@ -104,6 +104,15 @@ const paypalToolkit = new PayPalAgentToolkit({
 });
 ```
 
+To use sandbox mode, add context within your configuration.
+
+```typescript
+configuration: {
+  context: {
+    sandbox: true,
+  }
+}
+```
 ### Initializing the Workflows
 
 ```typescript

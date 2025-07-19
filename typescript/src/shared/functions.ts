@@ -491,7 +491,9 @@ export const createOrder = async (
   logger('[createOrder] Starting order creation process');
   const headers = await client.getHeaders();
   const url = `${client.getBaseUrl()}/v2/checkout/orders`;
-  const orderRequest = parseOrderDetails(params);
+  const schema = createOrderParameters(context);
+  const parsedParams = schema.parse(params);
+  const orderRequest = parseOrderDetails(parsedParams);
   try {
     const response = await axios.post(url, orderRequest, { headers });
     logger(`[createOrder] Order created successfully. Status: ${response.status}`);
