@@ -45,7 +45,6 @@ The PayPal Agent toolkit provides the following tools:
 **Subscription Management**
 
 - `create_subscription_plan`: Create a new subscription plan
-- `update_plan`: Update an existing plan
 - `list_subscription_plans`: List subscription plans
 - `show_subscription_plan_details`: Retrieve details of a specific subscription plan
 - `create_subscription`: Create a new subscription
