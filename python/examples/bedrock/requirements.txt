@@ -1,0 +1,4 @@
+paypal-agent-toolkit
+# Amazon Bedrock
+langchain==0.3.23
+langchain-openai==0.2.2

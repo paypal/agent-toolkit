@@ -22,3 +22,5 @@ langchain-openai==0.2.2
 setuptools>=61.0
 crewai==0.76.2
 crewai-tools==0.13.2
+
+# Amazon Bedrock
