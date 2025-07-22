@@ -7,13 +7,13 @@ from dotenv import load_dotenv
 from paypal_agent_toolkit.langchain.toolkit import PayPalToolkit
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
-
 #uncomment after setting the env file
 load_dotenv()
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
-PAYPAL_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
+PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
 OPENAI_API_VERSION = "2024-02-15-preview"
-
+print(PAYPAL_CLIENT_ID)
+print(PAYPAL_CLIENT_SECRET)
 
 
 # --- STEP 1: Setup OpenAI LLM ---
@@ -39,7 +39,7 @@ configuration = Configuration(
 
 
 # --- STEP 3: Build PayPal Toolkit ---
-toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
+toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_CLIENT_SECRET, configuration = configuration)
 tools = toolkit.get_tools()
 
 

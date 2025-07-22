@@ -1,17 +1,17 @@
 import os 
 import boto3
-import asyncio
 from dotenv import load_dotenv
+from botocore.exceptions import ClientError
 from paypal_agent_toolkit.bedrock.toolkit import PayPalToolkit
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
 #uncomment after setting the env file
-# load_dotenv()
+load_dotenv()
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
-PAYPAL_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
+PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
 
-toolkit = boto3.client(
-    servive_name = 'bedrock-runtime',
+client = boto3.client(
+    service_name = 'bedrock-runtime',
     region_name = 'us-west-2',
     aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID'),
     aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -32,32 +32,43 @@ configuration = Configuration(
     )
 )
 
-toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
-tools = toolkit.get_tools()
+toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_CLIENT_SECRET, configuration = configuration)
+#tools = toolkit.get_tools()
+raw_tools = toolkit.get_tools()
+
+tools = []
+for tool in raw_tools:
+    if hasattr(tool, 'toolSpec'):
+        # If toolSpec already exists, use it
+        tools.append({"toolSpec": tool.toolSpec})
+    else:
+        # If tool is a dict, wrap it in toolSpec
+        tool_dict = tool.to_dict() if hasattr(tool, 'to_dict') else tool
+        tools.append({"toolSpec": tool_dict})
+
 
 userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax."
+messages = [
+    {
+        "role": "user",
+        "content": [{ "text": userMessage }],
+    }
+]
 
-async def main():
-    messages: List[Dict[str, Any]] = [
-        {
-            "role": "user",
-            "content": [{ "text": userMessage }],
+try: 
+    response = client.converse(
+        modelId=model_id,
+        messages=messages,
+        toolConfig={
+            "tools": tools
         }
-    ]
-    while True: 
-        response = bedrock_client.converse(
-            modelId=model_id,
-            messages=messages,
-            toolConfig=tool_config
-        )
-        reply = response['output']['message']
-        print(reply)
-        messages.append(reply)
-        
+    )
 
-if __name__ == "__main__":
-    try:
-        aysncio.run(main())
-    except RuntimeError:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
+    response_text = response["output"]["message"]["content"][0]["text"]
+    print(response_text)
+    response_tool = response["output"]["message"]["content"][1]
+    print(response_tool)
+
+except (ClientError, Exception) as e:
+    print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
+    exit(1)

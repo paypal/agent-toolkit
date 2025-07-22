@@ -1,3 +1,6 @@
+from typing import List, Dict, Any
+
+from pydantic import PrivateAttr
 from ..shared.api import PayPalAPI
 from ..shared.tools import tools
 from ..shared.configuration import Configuration, Context, is_tool_allowed

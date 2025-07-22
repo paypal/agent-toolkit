@@ -24,3 +24,4 @@ crewai==0.76.2
 crewai-tools==0.13.2
 
 # Amazon Bedrock
+boto3==1.39.11
