@@ -46,12 +46,15 @@ class PayPalToolkit:
             tool for tool in tools if is_tool_allowed(tool, configuration)
         ]
 
-        self._tools = [
-            BedrockTool(
-                name=tool["method"],
-                description=tool["description"],
-                inputSchema=tool["args_schema"].model_json_schema()
-            )
+        self._tools = [{
+                "toolSpec": {
+                    "name": tool["method"],
+                    "description": tool["description"],
+                    "inputSchema": {
+                        "json": tool["args_schema"].model_json_schema()
+                    }
+                }
+            }
             for tool in filtered_tools
         ]
 

@@ -6,7 +6,7 @@ from paypal_agent_toolkit.bedrock.toolkit import PayPalToolkit
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
 #uncomment after setting the env file
-load_dotenv()
+# load_dotenv()
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
 
@@ -33,19 +33,7 @@ configuration = Configuration(
 )
 
 toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_CLIENT_SECRET, configuration = configuration)
-#tools = toolkit.get_tools()
-raw_tools = toolkit.get_tools()
-
-tools = []
-for tool in raw_tools:
-    if hasattr(tool, 'toolSpec'):
-        # If toolSpec already exists, use it
-        tools.append({"toolSpec": tool.toolSpec})
-    else:
-        # If tool is a dict, wrap it in toolSpec
-        tool_dict = tool.to_dict() if hasattr(tool, 'to_dict') else tool
-        tools.append({"toolSpec": tool_dict})
-
+tools = toolkit.get_tools()
 
 userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax."
 messages = [

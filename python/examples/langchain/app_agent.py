@@ -12,8 +12,6 @@ load_dotenv()
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
 OPENAI_API_VERSION = "2024-02-15-preview"
-print(PAYPAL_CLIENT_ID)
-print(PAYPAL_CLIENT_SECRET)
 
 
 # --- STEP 1: Setup OpenAI LLM ---
