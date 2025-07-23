@@ -8,7 +8,7 @@ from paypal_agent_toolkit.langchain.toolkit import PayPalToolkit
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
 #uncomment after setting the env file
-load_dotenv()
+# load_dotenv()
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
 OPENAI_API_VERSION = "2024-02-15-preview"
