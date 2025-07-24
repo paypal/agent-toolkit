@@ -1,10 +1,8 @@
 from typing import List, Dict, Any
-
 from pydantic import PrivateAttr
 from ..shared.api import PayPalAPI
 from ..shared.tools import tools
-from ..shared.configuration import Configuration, Context, is_tool_allowed
-import json
+from ..shared.configuration import Configuration, is_tool_allowed
 
 class BedrockTool:
     def __init__(self, name: str, description: str, inputSchema: Dict[str, Any]):
@@ -23,9 +21,9 @@ class BedrockToolBlock:
         self.input = input
 
 class BedrockToolResult:
-    def __init__(self, toolUseId: str, content: List[str]):
+    def __init__(self, toolUseId: str, content: List[Dict[str, Any]]):
         self.toolUseId = toolUseId
-        self.content = [{"text": text} for text in content]
+        self.content = content
 
 
 class PayPalToolkit:
@@ -61,11 +59,13 @@ class PayPalToolkit:
     def get_tools(self) -> List[BedrockTool]:
         return self._tools
 
-    async def handle_tool_call(self, tool_call: 'BedrockToolBlock') -> BedrockToolResult:
-        response = await self._paypal_api.run(tool_call.name, tool_call.input)
-        return BedrockToolResult(
-            toolUseId=tool_call.toolUseId,
-            content=[
-                {"text":  json.dumps(response)}
-            ]
-        )
+    async def handle_tool_call(self, tool_call: BedrockToolBlock) -> BedrockToolResult:
+        try: 
+            response = self._paypal_api.run(tool_call.name, tool_call.input)
+            return BedrockToolResult(
+                toolUseId=tool_call.toolUseId,
+                content=[{"text": response}]
+            )
+        except Exception as e:
+            print(f"Error handling tool call: {e}")
+            

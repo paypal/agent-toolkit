@@ -1,8 +1,9 @@
+import asyncio
 import os 
 import boto3
 from dotenv import load_dotenv
 from botocore.exceptions import ClientError
-from paypal_agent_toolkit.bedrock.toolkit import PayPalToolkit
+from paypal_agent_toolkit.bedrock.toolkit import PayPalToolkit, BedrockToolBlock
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
 #uncomment after setting the env file
@@ -43,20 +44,55 @@ messages = [
     }
 ]
 
-try: 
-    response = client.converse(
-        modelId=model_id,
-        messages=messages,
-        toolConfig={
-            "tools": tools
-        }
-    )
+async def main():
+    try: 
+        while True: 
+            response = client.converse(
+                modelId=model_id,
+                messages=messages,
+                toolConfig={
+                    "tools": tools
+                }
+            )
 
-    response_text = response["output"]["message"]["content"][0]["text"]
-    print(response_text)
-    response_tool = response["output"]["message"]["content"][1]
-    print(response_tool)
+            response_message = response["output"]["message"]
+            if not response_message:
+                print("No response message received.")
+                break
 
-except (ClientError, Exception) as e:
-    print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
-    exit(1)
+            response_content = response["output"]["message"]["content"]
+            tool_call = [content for content in response_content if content.get("toolUse")]
+            if not tool_call:
+                print(response_content[0]["text"])
+                break
+
+            messages.append(response_message)
+            for tool in tool_call:
+                try: 
+                    tool_call = BedrockToolBlock(
+                       toolUseId=tool["toolUse"]["toolUseId"],
+                       name=tool["toolUse"]["name"],
+                       input=tool["toolUse"]["input"]
+                    )
+                    result = await toolkit.handle_tool_call(tool_call)
+                    print(result.content)
+                    messages.append({
+                        "role": "user",
+                        "content": [{
+                            "toolResult": {
+                                "toolUseId": result.toolUseId,
+                                "content": result.content,
+                            }
+                        }]
+                    })
+                except:
+                    print(f"ERROR: Can't invoke tool '{tool['toolUse']['name']}'.")
+                    break
+
+    except (ClientError, Exception) as e:
+        print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
+        exit(1)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
