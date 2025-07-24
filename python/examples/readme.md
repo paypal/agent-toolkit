@@ -33,6 +33,10 @@ Create and configure an .env file in the example directory to set your environme
 # OpenAI Configuration
 OPENAI_API_KEY=<your_openai_api_key>
 
+# Amazon Bedrock Configuration
+AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY
+
 # PayPal Configuration
 PAYPAL_CLIENT_ID=<your_paypal_client_id>
 PAYPAL_SECRET=<your_paypal_secret>
