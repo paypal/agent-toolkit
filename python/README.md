@@ -232,6 +232,78 @@ crew = Crew(agents=[agent], tasks=[task], verbose=True,
 
 ```
 
+### Amazon Bedrock
+```python
+import boto3
+from botocore.exceptions import ClientError
+from paypal_agent_toolkit.bedrock.toolkit import PayPalToolkit, BedrockToolBlock
+from paypal_agent_toolkit.shared.configuration import Configuration, Context
+
+# Setup PayPal Amazon Bedrock toolkit
+toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_CLIENT_SECRET, configuration = configuration)
+tools = toolkit.get_tools()
+
+# Create a user message
+userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax."
+messages = [
+    {
+        "role": "user",
+        "content": [{ "text": userMessage }],
+    }
+]
+
+# Handles the appropriate tool calls
+async def main():
+    try: 
+        while True: 
+            response = client.converse(
+                modelId=model_id,
+                messages=messages,
+                toolConfig={
+                    "tools": tools
+                }
+            )
+
+            response_message = response["output"]["message"]
+            if not response_message:
+                print("No response message received.")
+                break
+
+            response_content = response["output"]["message"]["content"]
+            tool_call = [content for content in response_content if content.get("toolUse")]
+            if not tool_call:
+                print(response_content[0]["text"])
+                break
+
+            messages.append(response_message)
+            for tool in tool_call:
+                try: 
+                    tool_call = BedrockToolBlock(
+                       toolUseId=tool["toolUse"]["toolUseId"],
+                       name=tool["toolUse"]["name"],
+                       input=tool["toolUse"]["input"]
+                    )
+                    result = await toolkit.handle_tool_call(tool_call)
+                    print(result.content)
+                    messages.append({
+                        "role": "user",
+                        "content": [{
+                            "toolResult": {
+                                "toolUseId": result.toolUseId,
+                                "content": result.content,
+                            }
+                        }]
+                    })
+                except:
+                    print(f"ERROR: Can't invoke tool '{tool['toolUse']['name']}'.")
+                    break
+
+    except (ClientError, Exception) as e:
+        print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
+        exit(1)
+```
+
+
 ## Examples
 See /examples for ready-to-run samples using:
 
