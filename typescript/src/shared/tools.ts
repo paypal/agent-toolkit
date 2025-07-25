@@ -31,6 +31,7 @@ import {
   updateSubscriptionPrompt,
   getRefundPrompt,
   createRefundPrompt,
+  fetchBinDataPrompt,
 } from './prompts';
 
 import {
@@ -64,6 +65,7 @@ import {
   updateSubscriptionParameters,
   getRefundParameters,
   createRefundParameters,
+  fetchBinDataParameters,
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -410,7 +412,18 @@ const tools = (context: Context): Tool[] => [
         getRefunds: true,
       },
     },
-  }
+  },
+  {
+    method: 'fetch_bin_data',
+    name: 'Fetch Bin Meta Data',
+    description: fetchBinDataPrompt(context),
+    parameters: fetchBinDataParameters(context),
+    actions: {
+       payments: {
+         fetchBinData: true,
+       },
+     },
+    }
 ];
 const allActions = tools({}).reduce((acc, tool) => {
   Object.keys(tool.actions).forEach(product => {

@@ -50,6 +50,7 @@ const ACCEPTED_TOOLS = [
   'transactions.list',
   'payments.createRefund',
   'payments.getRefunds',
+  'payments.fetchBinData',
 ];
 
 export function parseArgs(args: string[]): Options {
