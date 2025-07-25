@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.4.0] - 2025-07-25
+### Added
+- Added support for Amazon Bedrock via `paypal_agent_toolkit.bedrock`.
+- Added a usage example in python/examples/bedrock demonstrating how to build and run a Bedrock-powered agent.
+
 ## [1.3.0] - 2025-04-23
 ### Added
 - Added support for PayPal Disputes, Shipment tracking and Transactions Search.
