@@ -29,7 +29,8 @@ import {
   getRefundParameters,
   createRefundParameters,
   updateSubscriptionParameters,
-  updatePlanParameters
+  updatePlanParameters,
+  getMerchantInsightsParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -489,11 +490,17 @@ export const createOrder = async (
   params: TypeOf<ReturnType<typeof createOrderParameters>>
 ): Promise<any> => {
   logger('[createOrder] Starting order creation process');
+  console.log("hi")
   const headers = await client.getHeaders();
+  console.log("headers", headers)
   const url = `${client.getBaseUrl()}/v2/checkout/orders`;
+  console.log("url", url)
   const schema = createOrderParameters(context);
+  console.log("schema", schema)
   const parsedParams = schema.parse(params);
+  console.log("parsedParans", parsedParams)
   const orderRequest = parseOrderDetails(parsedParams);
+  console.log("orderRequest", orderRequest)
   try {
     const response = await axios.post(url, orderRequest, { headers });
     logger(`[createOrder] Order created successfully. Status: ${response.status}`);
@@ -1031,3 +1038,23 @@ function handleAxiosError(error: any): never {
   }
 }
 
+export async function getMerchantInsights(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getMerchantInsightsParameters>>
+): Promise<any> {
+
+  const { start_date, end_date, insight_type, time_interval } = params
+
+  const headers = await client.getHeaders();
+  logger('[getMerchantInsights] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v1/merchants/insights?start_date=${start_date}&end_date=${end_date}&insight_type=${insight_type}&time_interval=${time_interval}`;
+  try {
+    const response = await axios.get(url, { headers: headers });
+    return response.data;
+  } catch (error: any) {
+    logger('[updatePlan] Error retrieving insights:', error.message);
+    handleAxiosError(error);
+  }
+}

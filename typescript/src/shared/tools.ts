@@ -31,6 +31,7 @@ import {
   updateSubscriptionPrompt,
   getRefundPrompt,
   createRefundPrompt,
+  getMerchantInsightsPrompt
 } from './prompts';
 
 import {
@@ -64,6 +65,7 @@ import {
   updateSubscriptionParameters,
   getRefundParameters,
   createRefundParameters,
+  getMerchantInsightsParameters
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -410,6 +412,17 @@ const tools = (context: Context): Tool[] => [
         getRefunds: true,
       },
     },
+  },
+  {
+    method: 'get_merchant_insights',
+    name: 'Get Merchant Insights',
+    description: getMerchantInsightsPrompt(context),
+    parameters: getMerchantInsightsParameters(context),
+    actions: {
+      insights: {
+        get: true,
+      }
+    }
   }
 ];
 const allActions = tools({}).reduce((acc, tool) => {

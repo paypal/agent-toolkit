@@ -268,3 +268,9 @@ Response details include:
 - Refunded amount and currency
 
 `;
+
+export const getMerchantInsightsPrompt = (context: Context) => `
+Retrieve business intelligence metrics and analytics for a merchant, filtered by start date, end date, insight type, and time interval.
+
+This tool returns actionable insights into orders and sales data, supporting data-driven business decisions.
+`;
