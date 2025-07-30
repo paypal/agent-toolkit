@@ -268,3 +268,270 @@ Response details include:
 - Refunded amount and currency
 
 `;
+
+// === BEGIN USAGE BASED BILLING API PROMPTS ===
+
+export const getUBBMetricsPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, list all available billing metrics with pagination support.
+
+This function retrieves a list of all metrics configured in your UBB system. You can specify the number of records per page and the page number to navigate through results.
+Metrics represent measurable quantities that you track and bill for (like API calls, storage usage, etc.).
+`;
+
+export const createUBBMetricPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, create a new billing metric for usage tracking.
+
+This function creates a new metric to track and bill for specific usage. A metric represents a measurable quantity like API calls, storage usage, etc.
+Required parameters are: name, code, type, and aggregation_type.
+- name: The display name of the metric (e.g., "API Calls")
+- code: A unique identifier for the metric (e.g., "api_calls")
+- type: Whether the metric is "metered" (resets each billing period) or "recurring" (carries over)
+- aggregation_type: How event values should be aggregated (count, sum, max, count_unique)
+`;
+
+export const getUBBMetricByIdPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, get detailed information about a specific billing metric.
+
+This function retrieves complete details about a metric using its unique identifier.
+Required parameter: id (the unique identifier of the metric).
+`;
+
+export const updateUBBMetricPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, update an existing billing metric's properties.
+
+This function allows you to modify properties of an existing metric.
+Required parameter: id (the unique identifier of the metric).
+Optional parameters for updating:
+- name: New display name for the metric
+- description: Updated description of the metric
+- field_filters: Updated filters to apply when counting events for this metric
+`;
+
+export const deleteUBBMetricPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, delete a billing metric from the system.
+
+This function permanently removes a metric from your UBB configuration.
+Required parameter: id (the unique identifier of the metric to delete).
+Caution: This action cannot be undone and may affect billing for any plans using this metric.
+`;
+
+export const getUBBPlansPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, list all billing plans with pagination support.
+
+This function retrieves a list of all billing plans configured in your UBB system. Plans define the pricing structure for your services.
+You can specify the number of records per page and the page number to navigate through results.
+`;
+
+export const createUBBPlanPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, create a new billing plan.
+
+This function creates a new billing plan that specifies the pricing structure including base price, billing cycle, and any usage-based charges.
+Required parameters are: 
+- name: Display name of the plan
+- code: Unique identifier for the plan
+- billing_cycle: The interval for recurring billing (weekly, monthly, quarterly, yearly)
+- amount: The base amount charged for the plan (includes value and currency_code)
+
+Optional parameters:
+- description: Text description of the plan
+- trial_period: Number of days before the first charge is applied
+- pay_in_advance: Whether the base cost is due at beginning of billing period
+- usage_based_charges: Additional charges based on usage metrics
+`;
+
+export const getUBBPlanByIdPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, get detailed information about a specific billing plan.
+
+This function retrieves complete details about a plan using its unique identifier.
+Required parameter: id (the unique identifier of the plan).
+`;
+
+export const updateUBBPlanPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, update an existing billing plan's properties.
+
+This function allows you to modify properties of an existing billing plan.
+Required parameter: id (the unique identifier of the plan).
+Optional parameters for updating:
+- name: New display name for the plan
+- description: Updated description of the plan
+- amount: Updated base amount charged for the plan
+- trial_period: Updated trial period in days
+- pay_in_advance: Updated setting for whether to charge at the beginning of billing period
+- usage_based_charges: Updated additional charges based on usage metrics
+`;
+
+export const getUBBCustomersPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, list all customers with pagination support.
+
+This function retrieves a list of all customers in your UBB system.
+You can specify the number of records per page and the page number to navigate through results.
+`;
+
+export const createUBBCustomerPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, create a new customer record for billing purposes.
+
+This function creates a new customer that can be subscribed to billing plans.
+Required parameters are:
+- external_customer_id: Your identifier for the customer in your system
+- name: Full name or business name of the customer
+
+Optional parameters:
+- email: Email address of the customer
+- address: Customer's address information (with line1, line2, city, state, postal_code, country)
+- phone: Customer's phone number in E.164 format
+- metadata: Additional customer data as key-value pairs
+`;
+
+export const getUBBCustomerByIdPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, get detailed information about a specific customer.
+
+This function retrieves complete details about a customer using their unique identifier.
+Required parameter: id (the unique identifier of the customer).
+`;
+
+export const updateUBBCustomerPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, update an existing customer's information.
+
+This function allows you to modify properties of an existing customer record.
+Required parameter: id (the unique identifier of the customer).
+Optional parameters for updating:
+- name: Updated name for the customer
+- email: Updated email address
+- address: Updated address information
+- phone: Updated phone number
+- metadata: Updated additional customer data
+`;
+
+export const deleteUBBCustomerPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, delete a customer record from the system.
+
+This function permanently removes a customer from your UBB system.
+Required parameter: id (the unique identifier of the customer to delete).
+Caution: This action cannot be undone and will affect any active subscriptions for this customer.
+`;
+
+export const getUBBCustomerCurrentUsagePrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, get current usage information for a specific customer.
+
+This function retrieves detailed usage data for a customer in the current billing period.
+Required parameters:
+- id: The unique identifier of the customer
+- subscription_id: The subscription to get usage data for
+`;
+
+export const getUBBCustomerPastUsagePrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, get historical usage information for a specific customer.
+
+This function retrieves usage data for a customer across previous billing periods.
+Required parameters:
+- id: The unique identifier of the customer
+- subscription_id: The subscription to get historical usage data for
+
+Optional parameters:
+- per_page: Number of records per page
+- page: Page number for pagination
+`;
+
+export const getUBBSubscriptionsPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, list subscriptions with filtering and pagination support.
+
+This function retrieves a list of subscriptions with optional filtering by customer, plan, and status.
+Optional parameters:
+- customer_id: Filter by internal customer ID
+- external_customer_id: Filter by your external customer ID
+- plan_code: Filter by plan code
+- status: Filter by subscription status (active, pending, canceled, terminated)
+- per_page: Number of records per page
+- page: Page number for pagination
+`;
+
+export const createUBBSubscriptionPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, create a new subscription for a customer to a billing plan.
+
+This function subscribes a customer to a specific billing plan.
+Required parameters:
+- external_customer_id: Your identifier for the customer in your system
+- plan_code: The code of the plan to subscribe to
+
+Optional parameters:
+- name: A name for this subscription
+- billing_time: When billing should occur (calendar or anniversary)
+- subscription_date: When the subscription should start (ISO format)
+- auto_renew: Whether the subscription should automatically renew
+- payment_method_token: Token identifying the payment method to use
+- payment_method_type: Type of payment method (card, paypal, venmo, apple_pay)
+- metadata: Additional subscription data as key-value pairs
+`;
+
+export const getUBBSubscriptionByIdPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, get detailed information about a specific subscription.
+
+This function retrieves complete details about a subscription using its unique identifier.
+Required parameter: id (the unique identifier of the subscription).
+`;
+
+export const updateUBBSubscriptionPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, update an existing subscription's details.
+
+This function allows you to modify properties of an active subscription.
+Required parameter: id (the unique identifier of the subscription).
+Optional parameters for updating:
+- name: Updated name for the subscription
+- ending_at: Date when the subscription should end (for scheduled cancellations)
+- payment_method_token: Token identifying a new payment method to use
+- payment_method_type: Updated payment method type
+- metadata: Updated additional subscription data
+`;
+
+export const cancelUBBSubscriptionPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, cancel a subscription.
+
+This function cancels an active subscription.
+Required parameter: id (the unique identifier of the subscription).
+Optional parameter:
+- cancel_option: How the subscription should be canceled ("end_of_period" or "immediate")
+
+The default behavior cancels at the end of the current billing period.
+`;
+
+export const getUBBEventsPrompt = (context: Context) => `
+From the Usage Based Billing(UBB) system, query usage events with filtering and pagination support.
+
+This function retrieves events that represent recorded usage data for billing metrics.
+Optional parameters:
+- external_subscription_id: Filter events by external subscription ID
+- metric_code: Filter events by metric code
+- from_date: Start date for filtering events (ISO format)
+- to_date: End date for filtering events (ISO format)
+- per_page: Number of records per page
+- page: Page number for pagination
+`;
+
+export const createUBBEventPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, create a new usage event for tracking billable activities.
+
+This function records a usage event that will be used for billing calculations.
+Required parameters:
+- transaction_id: Unique identifier for the event to prevent duplicates
+- code: Code of the metric this event applies to
+
+Optional parameters:
+- external_subscription_id: External ID of the subscription this event applies to
+- timestamp: When the event occurred (ISO format)
+- properties: Additional event-specific properties, which might include quantities or other measurable values
+`;
+
+export const createUBBEventsBatchPrompt = (context: Context) => `
+In the Usage Based Billing(UBB) system, create multiple usage events in a single batch request.
+
+This function allows you to record multiple usage events in one API call, which is more efficient than creating events individually.
+Required parameter:
+- events: An array of event objects, each containing:
+  * transaction_id: Unique identifier for the event
+  * code: Code of the metric this event applies to
+  * external_subscription_id: (optional) External ID of the subscription
+  * timestamp: (optional) When the event occurred
+  * properties: (optional) Additional event-specific properties
+`;
+
+// === END USAGE BASED BILLING API PROMPTS ===
