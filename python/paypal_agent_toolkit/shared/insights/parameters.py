@@ -12,11 +12,10 @@ class GetMerchantInsightsParameters(BaseModel):
     )
     insight_type: str = Field(
         ..., 
-        description="The type of insight to retrieve"
+        description='The type of insight to retrieve. It can be "ORDERS" or "SALES"'
     )
     time_interval: str = Field(
         ...,
-        description="The time periods used for segmenting metrics data"
+        description='The time periods used for segmenting metrics data. It can be "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", or "YEARLY"'
     )
 
-    

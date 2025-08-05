@@ -409,8 +409,8 @@ export const createRefundParameters = (context: Context) => z.object({
 export const getMerchantInsightsParameters = (context: Context) => z.object({
   start_date: z.string().describe('The start date range to filter insights'),
   end_date: z.string().describe('The end date range to filter insights'),
-  insight_type: z.string().describe('The type of insight to retrieve'),
-  time_interval: z.string().describe('The time periods used for segmenting metrics data'),
+  insight_type: z.string().describe('The type of insight to retrieve. It can be "ORDERS" or "SALES"'),
+  time_interval: z.string().describe('The time periods used for segmenting metrics data. It can be "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", or "YEARLY"'),
 })
 
 
