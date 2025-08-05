@@ -490,17 +490,11 @@ export const createOrder = async (
   params: TypeOf<ReturnType<typeof createOrderParameters>>
 ): Promise<any> => {
   logger('[createOrder] Starting order creation process');
-  console.log("hi")
   const headers = await client.getHeaders();
-  console.log("headers", headers)
   const url = `${client.getBaseUrl()}/v2/checkout/orders`;
-  console.log("url", url)
   const schema = createOrderParameters(context);
-  console.log("schema", schema)
   const parsedParams = schema.parse(params);
-  console.log("parsedParans", parsedParams)
   const orderRequest = parseOrderDetails(parsedParams);
-  console.log("orderRequest", orderRequest)
   try {
     const response = await axios.post(url, orderRequest, { headers });
     logger(`[createOrder] Order created successfully. Status: ${response.status}`);
