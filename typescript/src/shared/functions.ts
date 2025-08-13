@@ -12,6 +12,7 @@ import {
   sendInvoiceReminderParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
+  updateShipmentTrackingParameters,
   getDisputeParameters,
   listDisputesParameters,
   captureOrderParameters,
@@ -661,6 +662,38 @@ export async function getShipmentTracking(
     return response.data;
   } catch (error: any) {
     logger('[getShipmentTracking] Error retrieving shipment tracking:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updateShipmentTracking(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateShipmentTrackingParameters>>
+): Promise<any> {
+
+  const { transaction_id, tracking_number, status, carrier } = params;
+  const existingTrackingNumber = await getShipmentTracking(client, context, { transaction_id });
+  const originalTrackingNumber = existingTrackingNumber?.trackers?.[0].tracking_number;
+
+  const body = {
+    transaction_id,
+    status,
+    ...(tracking_number != null && { tracking_number }),
+    ...(carrier != null && { carrier }),
+  }
+
+  const id = `${transaction_id}-${originalTrackingNumber}`;
+  const headers = await client.getHeaders();
+  logger('[updateShipmentTracking] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v1/shipping/trackers/${id}`
+  try {
+    const response = await axios.put(url, body, { headers });
+    return response.data;
+  }
+  catch (error: any) {
+    logger('[updateShipmentTracking] Error updating tracking:', error.message)
     handleAxiosError(error);
   }
 }
