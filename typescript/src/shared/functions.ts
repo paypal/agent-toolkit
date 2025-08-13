@@ -1039,11 +1039,10 @@ export async function getMerchantInsights(
 ): Promise<any> {
 
   const { start_date, end_date, insight_type, time_interval } = params
-
   const headers = await client.getHeaders();
   logger('[getMerchantInsights] Headers obtained');
 
-  const url = `${client.getBaseUrl()}/v1/merchants/insights?start_date=${start_date}&end_date=${end_date}&insight_type=${insight_type}&time_interval=${time_interval}`;
+  const url = `${client.getBaseUrl()}/v1/merchant/insights?start_date=${start_date}&end_date=${end_date}&insight_type=${insight_type}&time_interval=${time_interval}`;
   try {
     const response = await axios.get(url, { headers: headers });
     return response.data;
