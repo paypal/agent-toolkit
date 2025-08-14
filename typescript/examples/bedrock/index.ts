@@ -29,10 +29,7 @@ const ppConfig = {
 const paypalToolkit = new PayPalAgentToolkit(ppConfig);
 let tools = paypalToolkit.getTools();
 
-// const userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax.";
-// const userMessage = "Retrieve the shipment tracking info for tracking-id 38K406615P866240D";
-const userMessage = "Retrieve the shipment tracking info for transaction id 5U132170BN730550L";
-// const userMessage = "update the the shipment tracking info for and transaction id 5U132170BN730550L and tracking number 12345 and make sure the tracking number is now 42000. it has also been shipped and the carrier is fedex";
+const userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax.";
 
 (async (): Promise<void> => {
     let messages: Message[] = [
