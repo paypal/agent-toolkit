@@ -7,7 +7,7 @@ from paypal_agent_toolkit.bedrock.toolkit import PayPalToolkit, BedrockToolBlock
 from paypal_agent_toolkit.shared.configuration import Configuration, Context
 
 #uncomment after setting the env file
-# load_dotenv()
+load_dotenv()
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
 
@@ -36,7 +36,10 @@ configuration = Configuration(
 toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_CLIENT_SECRET, configuration = configuration)
 tools = toolkit.get_tools()
 
-userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax."
+# userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax."
+# userMessage = "Retrieve the shipment tracking info for tracking-id 38K406615P866240D-12345 and transaction id 38K406615P866240D"
+userMessage = "update the the shipment tracking info for and transaction-id 38K406615P866240D and make sure the tracking number is now 42000. it has also been shipped and the carrier is fedex"
+
 messages = [
     {
         "role": "user",

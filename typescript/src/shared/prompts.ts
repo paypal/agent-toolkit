@@ -173,9 +173,9 @@ Below is the payload request structure:
 `;
 
 export const updateShipmentTrackingPrompt = (context: Context) => `
-Update tracking information for a shipment by ID. 
+Update tracking information for a shipment by ID and status. 
 
-This tool updates tracking information for a specific shipment using the transaction ID and tracking number.
+This tool updates tracking information such as the carrier or the tracking number for a specific shipment using the transaction ID and status.
 `
 
 // === ORDER PROMPTS ===
