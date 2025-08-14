@@ -673,8 +673,6 @@ export async function updateShipmentTracking(
 ): Promise<any> {
 
   const { transaction_id, tracking_number, new_tracking_number, status, carrier } = params;
-  const existingTrackingNumber = await getShipmentTracking(client, context, { transaction_id });
-  const originalTrackingNumber = existingTrackingNumber?.trackers?.[0].tracking_number;
 
   const body = {
     transaction_id,
