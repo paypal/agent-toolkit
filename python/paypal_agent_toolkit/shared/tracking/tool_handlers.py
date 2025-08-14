@@ -62,16 +62,6 @@ def update_shipment_tracking(client, params: dict) -> Dict[str, any]:
     Update shipment tracking information
     """
     validated = UpdateShipmentTrackingParameters(**params)
-
-    get_params = {"transaction_id": validated.transaction_id}
-    get_shipment_response = get_shipment_tracking(client, get_params)
-    get_shipment_data = json.loads(get_shipment_response)
-
-    if "trackers" in get_shipment_data and len(get_shipment_data["trackers"]) > 0:
-        original_tracking = get_shipment_data["trackers"][0]["tracking_number"]
-    else: 
-        raise ValueError("Could not find tracking number in existing shipment data")
-    
     update_data = {
         "transaction_id": validated.transaction_id,
         "status": validated.status
@@ -80,10 +70,10 @@ def update_shipment_tracking(client, params: dict) -> Dict[str, any]:
     if hasattr(validated, "carrier") and validated.carrier:
         update_data["carrier"] = validated.carrier
     
-    if hasattr(validated, "tracking_number") and validated.tracking_number:
-        update_data["tracking_number"] = validated.tracking_number
+    if hasattr(validated, "tracking_number") and validated.new_tracking_number:
+        update_data["tracking_number"] = validated.new_tracking_number
 
-    id = f"{validated.transaction_id}-{original_tracking}"
+    id = f"{validated.transaction_id}-{validated.tracking_number}"
     uri = f"/v1/shipping/trackers/{id}"
     response = client.put(uri=uri, payload=update_data)
     return json.dumps(response)

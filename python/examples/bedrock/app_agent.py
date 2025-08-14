@@ -26,6 +26,11 @@ configuration = Configuration(
             "create": True,
             "get": True,
             "capture": True,
+        },
+        "shipment": {
+            "get": True,
+            "create": True,
+            "update": True,
         }
     },
     context = Context(
@@ -37,8 +42,10 @@ toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_CLIENT_SECRET,
 tools = toolkit.get_tools()
 
 # userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax."
-# userMessage = "Retrieve the shipment tracking info for tracking-id 38K406615P866240D-12345 and transaction id 38K406615P866240D"
-userMessage = "update the the shipment tracking info for and transaction-id 38K406615P866240D and make sure the tracking number is now 42000. it has also been shipped and the carrier is fedex"
+userMessage = "Retrieve the shipment tracking info for transaction id 5U132170BN730550L"
+# userMessage = "Add tracking information for transaction id 0SM69828HU1778350 and give it a tracking number of 12345 and also use status of shipped"
+# userMessage = "what shipment tracking tools do i have access to"
+# userMessage = "update the the shipment tracking info for and transaction-id 5U132170BN730550L. it has also been shipped and the carrier is ups"
 
 messages = [
     {

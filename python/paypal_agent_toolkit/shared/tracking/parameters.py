@@ -40,9 +40,14 @@ class UpdateShipmentTrackingParameters(BaseModel):
         ...,
         description="The transaction ID associated with the shipment tracking to retrieve."
     )
-    tracking_number: Optional[str] = Field(
+    tracking_number: str = Field(
+        ...,
+        description="The tracking number that you want to update."
+
+    )
+    new_tracking_number: Optional[str] = Field(
         default=None,
-        description="The tracking number for the shipment. Id is provided by the shipper."
+        description="The new tracking number for the shipment if being updated."
     )
     status: str = Field(
         ...,
