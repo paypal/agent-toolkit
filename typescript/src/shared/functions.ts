@@ -679,12 +679,12 @@ export async function updateShipmentTracking(
   const body = {
     transaction_id,
     status,
-    new_tracking_number,
-    ...(tracking_number != null && { tracking_number }),
+    tracking_number,
+    ...(new_tracking_number != null && { new_tracking_number }),
     ...(carrier != null && { carrier }),
   }
 
-  const id = `${transaction_id}-${originalTrackingNumber}`;
+  const id = `${transaction_id}-${tracking_number}`;
   const headers = await client.getHeaders();
   logger('[updateShipmentTracking] Headers obtained');
 
