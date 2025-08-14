@@ -12,6 +12,7 @@ import {
   generateInvoiceQrCodePrompt,
   createOrderPrompt,
   getOrderPrompt,
+  updateShipmentTrackingPrompt,
   getDisputePrompt,
   listDisputesPrompt,
   acceptDisputeClaimPrompt,
@@ -45,6 +46,7 @@ import {
   generateInvoiceQrCodeParameters,
   createOrderParameters,
   getOrderParameters,
+  updateShipmentTrackingParameters,
   getDisputeParameters,
   listDisputesParameters,
   acceptDisputeClaimParameters,
@@ -298,6 +300,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       shipment: {
         get: true,
+      },
+    },
+  },
+  {
+    method: `update_shipment_tracking`,
+    name: `Update Shipment Tracking`,
+    description: updateShipmentTrackingPrompt(context),
+    parameters: updateShipmentTrackingParameters(context),
+    actions: {
+      shipment: {
+        update: true,
       },
     },
   },

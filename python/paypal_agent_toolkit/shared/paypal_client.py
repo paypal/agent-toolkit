@@ -65,7 +65,6 @@ class PayPalClient:
 
         return token_data["access_token"]
 
-
     def post(self, uri, payload):
        
         url = f"{self.base_url}{uri}"
@@ -93,8 +92,6 @@ class PayPalClient:
 
         return json_response
 
-
-
     def get(self, uri):
 
         url = f"{self.base_url}{uri}"
@@ -120,7 +117,32 @@ class PayPalClient:
 
         return json_response
 
+    def put(self, uri, payload):
+       
+        url = f"{self.base_url}{uri}"
+        headers = self.build_headers()
+        logRequestPayload(payload, url, headers)
 
+        try:
+            response = requests.put(url, headers=headers, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            self.log_request_exception(e, url)
+            raise
+
+        if response.status_code == 204:
+            logging.debug("Response Status: 204 No Content")
+            return {}
+        
+        try:
+            json_response = response.json()
+        except ValueError:
+            logging.warning("Response body is not valid JSON or empty, Headers: %s", json.dumps(dict(response.headers), indent=2))
+            return {}
+
+        logResponsePayload(response, json_response)
+
+        return json_response
 
     
     
