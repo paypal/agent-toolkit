@@ -109,7 +109,8 @@ export const getShipmentTrackingParameters = (context: Context) =>
 export const updateShipmentTrackingParameters = (context: Context) =>
   z.object({
     transaction_id: z.string().describe('The transaction ID associated with the shipment tracking to retrieve.'),
-    tracking_number: z.string().describe('The tracking number for the shipment. Id is provided by the shipper.').optional(),
+    tracking_number: z.string().describe('The tracking number that you want to update.'),
+    new_tracking_number: z.string().describe('The new tracking number for the shipment if being updated.').optional(),
     status: z.string().describe('The status of the item shipment. It can be "CANCELLED", "DELIVERED", "LOCAL_PICKUP", "ON_HOLD", or "SHIPPED".'),
     carrier: z.string().describe('The carrier handling the shipment.').optional(),
   })
