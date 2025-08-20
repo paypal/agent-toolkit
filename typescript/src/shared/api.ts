@@ -11,6 +11,7 @@ import {
   listSubscriptionPlans,
   createShipment,
   getShipmentTracking,
+  updateShipmentTracking,
   generateInvoiceQrCode,
   createOrder,
   getOrder,
@@ -112,6 +113,8 @@ class PayPalAPI {
         return createShipment(this.paypalClient, this.context, arg);
       case 'get_shipment_tracking':
         return getShipmentTracking(this.paypalClient, this.context, arg);
+      case 'update_shipment_tracking':
+        return updateShipmentTracking(this.paypalClient, this.context, arg);
       case 'create_order':
         return createOrder(this.paypalClient, this.context, arg);
       case 'get_order':

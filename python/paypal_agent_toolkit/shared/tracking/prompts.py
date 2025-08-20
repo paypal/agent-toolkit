@@ -19,3 +19,9 @@ This function retrieves tracking information for a specific shipment using the t
 The transaction_id can fetch from the captured payment details in the order information.
 Below is the payload request structure:
 """
+
+UPDATE_SHIPMENT_TRACKING_PROMPT = """
+Update tracking information for a shipment by ID and status. 
+
+This tool updates tracking information such as the carrier or the tracking number for a specific shipment using the transaction ID and status.
+"""
