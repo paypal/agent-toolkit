@@ -26,6 +26,9 @@ configuration = Configuration(
             "create": True,
             "get": True,
             "capture": True,
+        },
+        "insights": {
+            "get": True,
         }
     },
     context = Context(
