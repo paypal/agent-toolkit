@@ -29,6 +29,11 @@ configuration = Configuration(
         },
         "insights": {
             "get": True,
+        },
+        "shipment": {
+            "get": True,
+            "create": True,
+            "update": True,
         }
     },
     context = Context(
@@ -40,6 +45,7 @@ toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_CLIENT_SECRET,
 tools = toolkit.get_tools()
 
 userMessage = "Create one PayPal order for $50 for Premium News service with 10% tax."
+
 messages = [
     {
         "role": "user",

@@ -1,7 +1,7 @@
 
 import json
 from typing import Dict, Any
-from .parameters import CreateShipmentParameters, GetShipmentTrackingParameters
+from .parameters import CreateShipmentParameters, GetShipmentTrackingParameters, UpdateShipmentTrackingParameters
 
 
 def create_shipment_tracking(client, params: dict) -> Dict[str, Any]:
@@ -56,4 +56,26 @@ def get_shipment_tracking(client, params: dict) -> Dict[str, Any]:
     uri = f"/v1/shipping/trackers?transaction_id={transaction_id}"
     response = client.get(uri=uri)
     return json.dumps(response)
+
+def update_shipment_tracking(client, params: dict) -> Dict[str, any]:
+    """
+    Update shipment tracking information
+    """
+    validated = UpdateShipmentTrackingParameters(**params)
+    update_data = {
+        "transaction_id": validated.transaction_id,
+        "status": validated.status
+    }
+
+    if hasattr(validated, "carrier") and validated.carrier:
+        update_data["carrier"] = validated.carrier
+    
+    if hasattr(validated, "tracking_number") and validated.new_tracking_number:
+        update_data["tracking_number"] = validated.new_tracking_number
+
+    id = f"{validated.transaction_id}-{validated.tracking_number}"
+    uri = f"/v1/shipping/trackers/{id}"
+    response = client.put(uri=uri, payload=update_data)
+    return json.dumps(response)
+
     

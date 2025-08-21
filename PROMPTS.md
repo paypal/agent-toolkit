@@ -184,6 +184,19 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Get the tracking number for PayPal order ID - {order_id}
 
+---
+
+**`update_shipment_tracking`** - Updates shipment tracking information for a specific shipment.
+
+- `transaction_id` (string, required): The transaction ID associated with the shipment.
+- `tracking_number` (string, required): The tracking number for the shipment that you want to update.
+- `new_tracking_number` (string, optional): The new tracking number for the shipment if being updated.
+- `status` (string, required): The status of the item shipment. It can be "CANCELLED", "DELIVERED", "LOCAL_PICKUP", "ON_HOLD", or "SHIPPED".
+- `carrier` (string, optional): The carrier handling the shipment. (e.g.,FEDEX, UPS)
+
+> **Example Prompt**:
+> Update the shipment tracking info for transaction_id '{transaction_id}' with tracking number '{tracking_number}' and status '{status}' to carrier '{carrier}' and use the new_tracking_number '{new_tracking_number}'.
+
 ### **Catalog Management**
 
 ---

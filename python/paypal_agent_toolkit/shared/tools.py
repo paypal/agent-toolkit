@@ -34,6 +34,7 @@ from ..shared.disputes.prompts import (
 from ..shared.tracking.prompts import (
     CREATE_SHIPMENT_PROMPT,
     GET_SHIPMENT_TRACKING_PROMPT,
+    UPDATE_SHIPMENT_TRACKING_PROMPT,
 )
 
 from ..shared.transactions.prompt import (
@@ -82,6 +83,7 @@ from ..shared.disputes.parameters import (
 from ..shared.tracking.parameters import (
     CreateShipmentParameters,
     GetShipmentTrackingParameters,
+    UpdateShipmentTrackingParameters
 )
 
 from ..shared.transactions.parameters import (
@@ -130,6 +132,7 @@ from ..shared.disputes.tool_handlers import (
 from ..shared.tracking.tool_handlers import (
     create_shipment_tracking,
     get_shipment_tracking,
+    update_shipment_tracking
 )
 
 from ..shared.transactions.tool_handlers import (
@@ -334,6 +337,14 @@ tools = [
         "args_schema": GetShipmentTrackingParameters,
         "actions": {"shipment": {"get": True}},
         "execute": get_shipment_tracking,
+    },
+    {
+        "method": "update_shipment_tracking",
+        "name": "Update Shipment Tracking",
+        "description": UPDATE_SHIPMENT_TRACKING_PROMPT.strip(),
+        "args_schema": UpdateShipmentTrackingParameters,
+        "actions": {"shipment": {"update": True}},
+        "execute": update_shipment_tracking,
     },
     {
         "method": "list_transactions",
