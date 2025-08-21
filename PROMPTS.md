@@ -184,6 +184,19 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Get the tracking number for PayPal order ID - {order_id}
 
+---
+
+**`update_shipment_tracking`** - Updates shipment tracking information for a specific shipment.
+
+- `transaction_id` (string, required): The transaction ID associated with the shipment.
+- `tracking_number` (string, required): The tracking number for the shipment that you want to update.
+- `new_tracking_number` (string, optional): The new tracking number for the shipment if being updated.
+- `status` (string, required): The status of the item shipment. It can be "CANCELLED", "DELIVERED", "LOCAL_PICKUP", "ON_HOLD", or "SHIPPED".
+- `carrier` (string, optional): The carrier handling the shipment. (e.g.,FEDEX, UPS)
+
+> **Example Prompt**:
+> Update the shipment tracking info for transaction_id '{transaction_id}' with tracking number '{tracking_number}' and status '{status}' to carrier '{carrier}' and use the new_tracking_number '{new_tracking_number}'.
+
 ### **Catalog Management**
 
 ---
@@ -310,6 +323,18 @@ The PayPal Agent toolkit provides the following tools:
 
 > **Example Prompt**:
 > Get the list of my transactions for last {days} days.
+
+---
+
+**`get_merchant_insights`** - Retrieve business intelligence metrics and analytics for a merchant, filtered by start date, end date, insight type, and time interval.
+
+- `start_date` (string, required): The start date range to filter insights
+- `end_date` (string, required): The end date range to filter insights
+- `insight_type` (str, required): The type of insight to retrieve. It can be "ORDERS" or "SALES"
+- `time_interval` (str, required): The time periods used for segmenting metrics data. It can be "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", or "YEARLY"
+
+> **Example Prompt**:
+> Give me insights on my sales data from 01/01/2025 to 02/01/2025 using daily time intervals.
 
 ---
 

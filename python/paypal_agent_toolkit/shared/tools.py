@@ -41,6 +41,10 @@ from ..shared.transactions.prompt import (
     LIST_TRANSACTIONS_PROMPT
 )
 
+from ..shared.insights.prompts import (
+    GET_MERCHANT_INSIGHTS_PROMPT
+)
+
 from ..shared.orders.parameters import (
     
     CreateOrderParameters,
@@ -86,6 +90,10 @@ from ..shared.transactions.parameters import (
     ListTransactionsParameters
 )
 
+from ..shared.insights.parameters import (
+    GetMerchantInsightsParameters
+)
+
 from ..shared.orders.tool_handlers import (
     create_order,
     capture_order,
@@ -129,6 +137,10 @@ from ..shared.tracking.tool_handlers import (
 
 from ..shared.transactions.tool_handlers import (
     list_transactions
+)
+
+from ..shared.insights.tool_handlers import (
+    get_merchant_insights
 )
 
 from pydantic import BaseModel
@@ -341,5 +353,13 @@ tools = [
         "args_schema": ListTransactionsParameters,
         "actions": {"transactions": {"list": True}},
         "execute": list_transactions,
+    },
+    {
+        "method": "get_merchant_insights",
+        "name": "Get Merchant Insights",
+        "description": GET_MERCHANT_INSIGHTS_PROMPT.strip(),
+        "args_schema": GetMerchantInsightsParameters,
+        "actions": {"insights": {"get": True}},
+        "execute": get_merchant_insights,
     }
 ]

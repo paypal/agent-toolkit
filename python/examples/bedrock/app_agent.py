@@ -27,6 +27,9 @@ configuration = Configuration(
             "get": True,
             "capture": True,
         },
+        "insights": {
+            "get": True,
+        },
         "shipment": {
             "get": True,
             "create": True,
