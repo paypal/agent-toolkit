@@ -326,6 +326,18 @@ The PayPal Agent toolkit provides the following tools:
 
 ---
 
+**`get_merchant_insights`** - Retrieve business intelligence metrics and analytics for a merchant, filtered by start date, end date, insight type, and time interval.
+
+- `start_date` (string, required): The start date range to filter insights
+- `end_date` (string, optional): The end date range to filter insights
+- `insight_type` (str, required): The type of insight to retrieve. It can be "ORDERS" or "SALES"
+- `time_interval` (str, required): The time periods used for segmenting metrics data. It can be "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", or "YEARLY"
+
+> **Example Prompt**:
+> Give me insights on my sales data from 01/01/2025 to 02/01/2025 using daily time intervals.
+
+---
+
 **`update_plan`** - Updates an existing plan with new details.
 
 - `plan_id` (string, required): The ID of the plan to update.

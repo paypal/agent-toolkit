@@ -56,6 +56,7 @@ The PayPal Agent toolkit provides the following tools:
 **Reporting and Insights**
 
 - `list_transactions`: List transactions with optional pagination and filtering
+- `get_merchant_insights`: Retrieve business intelligence metrics and analytics for a merchant
 
 ## TypeScript
 
