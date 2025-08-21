@@ -30,7 +30,8 @@ import {
   getRefundParameters,
   createRefundParameters,
   updateSubscriptionParameters,
-  updatePlanParameters
+  updatePlanParameters,
+  fetchBinDataParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -38,6 +39,15 @@ import debug from "debug";
 import PayPalClient from './client';
 
 const logger = debug('agent-toolkit:functions');
+
+// Simple UUID v4 generator
+function uuidv4(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 // === INVOICE FUNCTIONS ===
 
@@ -916,6 +926,7 @@ export async function listTransactions(
   }
 }
 
+
 export async function getRefund(
   client: PayPalClient,
   context: Context,
@@ -941,6 +952,179 @@ export async function getRefund(
     handleAxiosError(error);
   }
 }
+
+  // === BIN DATA FUNCTIONS ===
+   export async function fetchBinData(
+     client: PayPalClient,
+     context: Context,
+     params: TypeOf<ReturnType<typeof fetchBinDataParameters>>
+   ): Promise<any> {
+     logger('[fetchBinData] Starting to fetch BIN data');
+
+     const headers = await client.getHeaders();
+
+     // Validate BIN format before making the request
+     const invalidBins = params.bin.filter(bin => {
+       // BIN should be 6-8 digits and numeric
+       return !/^\d{6,8}$/.test(bin);
+     });
+
+     if (invalidBins.length > 0) {
+       const errorMessage = `Invalid BIN format(s): ${invalidBins.join(', ')}. BINs must be 6-8 digit numeric strings.`;
+       logger(`[fetchBinData] ${errorMessage}`);
+       return {
+         error: {
+           message: errorMessage,
+           type: 'validation_error',
+           invalid_bins: invalidBins,
+           valid_format: 'BINs must be 6-8 digit numeric strings (e.g., "400934", "4009348")'
+         }
+       };
+     }
+
+     // Check if we have a single BIN or multiple BINs
+     if (params.bin.length === 1) {
+       // Use single BIN endpoint for single BIN requests
+       const singleBin = params.bin[0];
+       const url = `${client.getBaseUrl()}/v2/payments/bin-search`;
+       const requestBody = { bin: singleBin };
+       
+       logger(`[fetchBinData] Using single BIN endpoint for BIN: ${singleBin}`);
+       logger(`[fetchBinData] API URL: ${url}`);
+
+       try {
+         logger('[fetchBinData] Sending request to PayPal API (single BIN)');
+         const response = await axios.post(url, requestBody, { headers });
+         
+         logger(`[fetchBinData] Single BIN Response Details:`);
+         logger(`[fetchBinData] Status: ${response.status}`);
+         
+         // Return the direct response for single BIN requests
+         return response.data;
+       } catch (error: any) {
+         logger('[fetchBinData] Error in single BIN request:', error.message);
+         return handleBinDataError(error, params.bin);
+       }
+     } else {
+       // Use bulk endpoint for multiple BINs
+       const url = `${client.getBaseUrl()}/v2/payments/bin-search-bulk`;
+       logger(`[fetchBinData] Using bulk BIN endpoint for ${params.bin.length} BINs`);
+       logger(`[fetchBinData] API URL: ${url}`);
+
+       // Prepare the operations array for the bulk request
+       const operations = params.bin.map(bin => {
+         // Generate a UUID v4 that matches the required pattern
+         const uuid = uuidv4();
+
+         return {
+           method: "POST",
+           path: "/v2/payments/bin-search",
+           bulk_id: uuid,
+           body: {
+             bin
+           }
+         };
+       });
+
+       const requestBody = {
+         operations
+       };
+
+       logger(`[fetchBinData] URL: ${url}`);
+
+       try {
+         logger('[fetchBinData] Sending request to PayPal API (bulk)');
+         const response = await axios.post(url, requestBody, { headers });
+         
+         logger(`[fetchBinData] Status: ${response.status}`);
+
+         // Parse the bulk response and extract BIN data
+         if (response.data && response.data.operations && Array.isArray(response.data.operations)) {
+           const results = response.data.operations.map((operation: any) => {
+             if (operation.status && operation.status.code === "200" && operation.body) {
+               return {
+                 success: true,
+                 bin_data: operation.body,
+                 bulk_id: operation.bulk_id
+               };
+             } else {
+               return {
+                 success: false,
+                 error: operation.status || { code: "unknown", message: "Unknown error" },
+                 bulk_id: operation.bulk_id
+               };
+             }
+           });
+           
+           logger(`[fetchBinData] Parsed Results: ${JSON.stringify(results, null, 2)}`);
+           return {
+             operations: response.data.operations,
+             parsed_results: results
+           };
+         }
+         
+         return response.data;
+       } catch (error: any) {
+         logger('[fetchBinData] Error in bulk request:', error.message);
+         return handleBinDataError(error, params.bin);
+       }
+     }
+   }
+
+   // Helper function to handle BIN data errors
+   function handleBinDataError(error: any, providedBins: string[]): any {
+     logger('[handleBinDataError] Processing BIN data error');
+     logger(`[handleBinDataError] Error Message: ${error.message}`);
+     
+     if (error.response) {
+       logger(`[handleBinDataError] Error Response Status: ${error.response.status}`);
+
+       // Handle specific BIN lookup errors
+       if (error.response.status === 422) {
+         const errorData = error.response.data;
+         let binErrorMessage = 'BIN lookup failed with validation error';
+         
+         if (errorData && errorData.details && Array.isArray(errorData.details)) {
+           const binErrors = errorData.details.map((detail: any) => {
+             if (detail.field && detail.field.includes('bin')) {
+               return `${detail.field}: ${detail.description || detail.issue || 'Invalid BIN format'}`;
+             }
+             return detail.description || detail.issue || 'Validation error';
+           }).filter(Boolean);
+           
+           if (binErrors.length > 0) {
+             binErrorMessage = `BIN validation errors: ${binErrors.join('; ')}`;
+           }
+         }
+         
+         return {
+           error: {
+             message: binErrorMessage,
+             type: 'bin_validation_error',
+             status_code: 422,
+             provided_bins: providedBins,
+             suggestion: 'Please verify the BIN format. BINs should be 6-8 digit numeric strings representing the first digits of a credit/debit card number.',
+             raw_error: errorData
+           }
+         };
+       }
+     } else if (error.request) {
+       logger(`[handleBinDataError] No Response Received`);
+     } else {
+       logger(`[handleBinDataError] Request Setup Error: ${error.message}`);
+     }
+     
+     // Return a structured error for better handling
+     return {
+       error: {
+         message: `PayPal API error: ${error.message}`,
+         type: 'paypal_api_error',
+         provided_bins: providedBins,
+         raw_error: error.response?.data || error.message
+       }
+     };
+   }
+
 
 export async function updatePlan(
   client: PayPalClient,
@@ -1046,8 +1230,8 @@ function handleAxiosError(error: any): never {
     } catch (e) {
       // In case of parsing issues, throw a more generic error
       logger('[handleAxiosError] Error parsing response data, using raw data');
-      logger(`[handleAxiosError] Throwing error with message: PayPal API error (${error.response.status}): ${error.response.data}`);
-      throw new Error(`PayPal API error (${error.response.status}): ${error.response.data}`);
+      logger(`[handleAxiosError] Throwing error with message: PayPal API error (${error.response.status}): ${JSON.stringify(error.response.data)}`);
+      throw new Error(`PayPal API error (${error.response.status}): ${JSON.stringify(error.response.data)}`);
     }
   } else if (error.request) {
     // The request was made but no response was received
@@ -1062,4 +1246,3 @@ function handleAxiosError(error: any): never {
     throw new Error(`PayPal API error: ${error.message}`);
   }
 }
-
