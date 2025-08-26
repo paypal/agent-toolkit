@@ -415,4 +415,215 @@ export const createRefundParameters = (context: Context) => z.object({
   note_to_payer: z.string().optional().describe('A note to the payer.'),
 });
 
+// === USAGE BASED BILLING API PARAMETERS ===
 
+export const getUBBMetricsParameters = (context: Context) => z.object({
+  per_page: z.number().optional().describe("Number of records per page"),
+  page: z.number().optional().describe("Page number")
+});
+
+export const createUBBMetricParameters = (context: Context) => z.object({
+  name: z.string().describe("Name of the metric"),
+  code: z.string().describe("A unique code to be passed with an event to associate with this metric"),
+  type: z.enum(["metered", "recurring"]).default("metered").describe("Type of metric (metered or recurring)"),
+  description: z.string().optional().describe("Description of the metric"),
+  aggregation_type: z.enum(["count", "count_unique", "sum", "max"]).describe("How event values should be aggregated"),
+  aggregation_field: z.string().optional().describe("The field in event properties to use for aggregation"),
+  field_filters: z.array(z.object({
+    key: z.string().describe("The name of the field to filter on"),
+    values: z.array(z.string()).describe("List of values to filter by")
+  })).optional().describe("Filters to apply when counting events")
+});
+
+export const getUBBMetricByIdParameters = (context: Context) => z.object({
+  id: z.string().describe("Metric ID")
+});
+
+export const updateUBBMetricParameters = (context: Context) => z.object({
+  id: z.string().describe("Metric ID"),
+  name: z.string().optional().describe("Updated name of the metric"),
+  description: z.string().optional().describe("Updated description of the metric"),
+  field_filters: z.array(z.object({
+    key: z.string().describe("The name of the field to filter on"),
+    values: z.array(z.string()).describe("List of values to filter by")
+  })).optional().describe("Updated filters to apply when counting events")
+});
+
+export const deleteUBBMetricParameters = (context: Context) => z.object({
+  id: z.string().describe("Metric ID to delete")
+});
+
+export const getUBBPlansParameters = (context: Context) => z.object({
+  page: z.number().optional().describe("Page number"),
+  per_page: z.number().optional().describe("Number of records per page")
+});
+
+export const createUBBPlanParameters = (context: Context) => z.object({
+  name: z.string().describe("Name of the plan"),
+  code: z.string().describe("Unique code used to identify the plan"),
+  billing_cycle: z.enum(["weekly", "monthly", "quarterly", "yearly"]).describe("The interval used for recurring billing"),
+  description: z.string().optional().describe("Description of the plan"),
+  amount: z.object({
+    value: z.string().describe("The amount value, represented as a string"),
+    currency_code: z.string().describe("ISO 4217 currency code (e.g., USD, EUR)")
+  }).describe("The amount charged for the plan"),
+  trial_period: z.number().optional().describe("Trial period in days before the first charge"),
+  pay_in_advance: z.boolean().optional().default(false).describe("Whether the base cost is due at beginning of billing period"),
+  usage_based_charges: z.array(z.object({
+    metric_id: z.string().describe("Unique identifier for the metric"),
+    charge_model: z.enum(["tiered"]).describe("The model used to calculate charges"),
+    properties: z.object({}).passthrough().describe("Additional properties specific to the charge model"),
+    min_amount: z.object({
+      value: z.string().optional().describe("Minimum amount value"),
+      currency_code: z.string().describe("Currency code")
+    }).optional().describe("Minimum amount that can be charged")
+  })).optional().describe("Additional usage-based charges for this plan")
+});
+
+export const getUBBPlanByIdParameters = (context: Context) => z.object({
+  id: z.string().describe("Plan ID")
+});
+
+export const updateUBBPlanParameters = (context: Context) => z.object({
+  id: z.string().describe("Plan ID"),
+  name: z.string().optional().describe("Updated name of the plan"),
+  description: z.string().optional().describe("Updated description of the plan"),
+  amount: z.object({
+    value: z.string().describe("The amount value"),
+    currency_code: z.string().describe("ISO 4217 currency code")
+  }).optional().describe("Updated amount charged for the plan"),
+  trial_period: z.number().optional().describe("Updated trial period in days"),
+  pay_in_advance: z.boolean().optional().describe("Updated setting for whether to charge at beginning of billing period"),
+  usage_based_charges: z.array(z.object({
+    metric_id: z.string().describe("Unique identifier for the metric"),
+    charge_model: z.enum(["tiered"]).describe("The model used to calculate charges"),
+    properties: z.object({}).passthrough().describe("Additional properties specific to the charge model"),
+    min_amount: z.object({
+      value: z.string().optional().describe("Minimum amount value"),
+      currency_code: z.string().describe("Currency code")
+    }).optional().describe("Minimum amount that can be charged")
+  })).optional().describe("Updated usage-based charges for this plan")
+});
+
+export const getUBBCustomersParameters = (context: Context) => z.object({
+  per_page: z.number().optional().describe("Number of records per page"),
+  page: z.number().optional().describe("Page number")
+});
+
+export const createUBBCustomerParameters = (context: Context) => z.object({
+  external_customer_id: z.string().describe("External identifier for the customer in your system"),
+  name: z.string().describe("Full name or business name of the customer"),
+  email: z.string().optional().describe("Email address of the customer"),
+  address: z.object({
+    line1: z.string().optional().describe("The first line of the address"),
+    line2: z.string().optional().describe("The second line of the address"),
+    city: z.string().optional().describe("City of the customer's address"),
+    state: z.string().optional().describe("State or province of the customer's address"),
+    postal_code: z.string().optional().describe("The postal code or zip code"),
+    country: z.string().optional().describe("The two-character ISO 3166-1 code for the country")
+  }).optional().describe("Customer's address information"),
+  phone: z.string().optional().describe("Customer's phone number in E.164 format"),
+  metadata: z.object({}).passthrough().optional().describe("Additional customer metadata")
+});
+
+export const getUBBCustomerByIdParameters = (context: Context) => z.object({
+  id: z.string().describe("Customer ID")
+});
+
+export const updateUBBCustomerParameters = (context: Context) => z.object({
+  id: z.string().describe("Customer ID"),
+  name: z.string().optional().describe("Updated name of the customer"),
+  email: z.string().optional().describe("Updated email address"),
+  address: z.object({
+    line1: z.string().optional().describe("The first line of the address"),
+    line2: z.string().optional().describe("The second line of the address"),
+    city: z.string().optional().describe("City of the customer's address"),
+    state: z.string().optional().describe("State or province of the customer's address"),
+    postal_code: z.string().optional().describe("The postal code or zip code"),
+    country: z.string().optional().describe("The two-character ISO 3166-1 code for the country")
+  }).optional().describe("Updated address information"),
+  phone: z.string().optional().describe("Updated phone number"),
+  metadata: z.object({}).passthrough().optional().describe("Updated metadata")
+});
+
+export const deleteUBBCustomerParameters = (context: Context) => z.object({
+  id: z.string().describe("Customer ID to delete")
+});
+
+export const getUBBCustomerCurrentUsageParameters = (context: Context) => z.object({
+  id: z.string().describe("Customer ID"),
+  subscription_id: z.string().describe("Subscription ID to filter by")
+});
+
+export const getUBBCustomerPastUsageParameters = (context: Context) => z.object({
+  id: z.string().describe("Customer ID"),
+  subscription_id: z.string().describe("Subscription ID to filter by"),
+  per_page: z.number().optional().describe("Number of records per page"),
+  page: z.number().optional().describe("Page number")
+});
+
+export const getUBBSubscriptionsParameters = (context: Context) => z.object({
+  per_page: z.number().optional().describe("Number of records per page"),
+  page: z.number().optional().describe("Page number"),
+  customer_id: z.string().optional().describe("Filter by customer ID"),
+  external_customer_id: z.string().optional().describe("Filter by external customer ID"),
+  plan_code: z.string().optional().describe("Filter by plan code"),
+  status: z.enum(["active", "pending", "canceled", "terminated"]).optional().describe("Filter by subscription status")
+});
+
+export const createUBBSubscriptionParameters = (context: Context) => z.object({
+  external_customer_id: z.string().describe("External customer ID to subscribe"),
+  plan_code: z.string().describe("Code of the plan to subscribe to"),
+  name: z.string().optional().describe("Name for the subscription"),
+  billing_time: z.enum(["calendar", "anniversary"]).optional().describe("When billing should occur"),
+  subscription_date: z.string().optional().describe("When the subscription should start"),
+  auto_renew: z.boolean().optional().describe("Whether the subscription should automatically renew"),
+  payment_method_token: z.string().optional().describe("Token identifying the payment method to use"),
+  payment_method_type: z.string().optional().describe("Type of payment method (card, paypal, venmo, apple_pay)"),
+  metadata: z.object({}).passthrough().optional().describe("Additional subscription metadata")
+});
+
+export const getUBBSubscriptionByIdParameters = (context: Context) => z.object({
+  id: z.string().describe("Subscription ID")
+});
+
+export const updateUBBSubscriptionParameters = (context: Context) => z.object({
+  id: z.string().describe("Subscription ID"),
+  name: z.string().optional().describe("Updated name for the subscription"),
+  ending_at: z.string().optional().describe("Date when the subscription should end (for scheduled cancellations)"),
+  payment_method_token: z.string().optional().describe("Token identifying a new payment method to use"),
+  payment_method_type: z.string().optional().describe("Type of payment method (card, paypal, venmo, apple_pay)"),
+  metadata: z.object({}).passthrough().optional().describe("Updated additional subscription metadata")
+});
+
+export const cancelUBBSubscriptionParameters = (context: Context) => z.object({
+  id: z.string().describe("Subscription ID to cancel"),
+  cancel_option: z.enum(["end_of_period", "immediate"]).default("end_of_period").optional().describe("How the subscription should be canceled")
+});
+
+export const getUBBEventsParameters = (context: Context) => z.object({
+  external_subscription_id: z.string().optional().describe("Filter events by external subscription ID"),
+  metric_code: z.string().optional().describe("Filter events by metric code"),
+  from_date: z.string().optional().describe("Start date for filtering events (ISO format)"),
+  to_date: z.string().optional().describe("End date for filtering events (ISO format)"),
+  per_page: z.number().optional().describe("Number of records per page"),
+  page: z.number().optional().describe("Page number")
+});
+
+export const createUBBEventParameters = (context: Context) => z.object({
+  transaction_id: z.string().describe("Unique identifier for the event to prevent duplicates"),
+  external_subscription_id: z.string().optional().describe("External ID of the subscription"),
+  code: z.string().describe("Code of the metric this event applies to"),
+  timestamp: z.string().optional().describe("When the event occurred (ISO format)"),
+  properties: z.object({}).passthrough().optional().describe("Additional properties specific to the event")
+});
+
+export const createUBBEventsBatchParameters = (context: Context) => z.object({
+  events: z.array(z.object({
+    transaction_id: z.string().describe("Unique identifier for the event"),
+    external_subscription_id: z.string().optional().describe("External ID of the subscription"),
+    code: z.string().describe("Code of the metric this event applies to"),
+    timestamp: z.string().optional().describe("When the event occurred (ISO format)"),
+    properties: z.object({}).passthrough().optional().describe("Additional properties specific to the event")
+  })).describe("Array of events to process in batch")
+});

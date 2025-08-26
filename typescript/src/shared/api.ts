@@ -27,7 +27,32 @@ import {
   updatePlan,
   createRefund,
   getRefund,
-  updateSubscription
+  updateSubscription,
+  // UBB function imports
+  getUBBMetrics,
+  createUBBMetric,
+  getUBBMetricById,
+  updateUBBMetric,
+  deleteUBBMetric,
+  getUBBPlans,
+  createUBBPlan,
+  getUBBPlanById,
+  updateUBBPlan,
+  getUBBCustomers,
+  createUBBCustomer,
+  getUBBCustomerById,
+  updateUBBCustomer,
+  deleteUBBCustomer,
+  getUBBCustomerCurrentUsage,
+  getUBBCustomerPastUsage,
+  getUBBSubscriptions,
+  createUBBSubscription,
+  getUBBSubscriptionById,
+  updateUBBSubscription,
+  cancelUBBSubscription,
+  getUBBEvents,
+  createUBBEvent,
+  createUBBEventsBatch
 } from './functions';
 
 import type { Context } from './configuration';
@@ -135,6 +160,55 @@ class PayPalAPI {
         return createRefund(this.paypalClient, this.context, arg);
       case 'get_refund':
         return getRefund(this.paypalClient, this.context, arg);
+        // UBB method cases
+      case 'get_ubb_metrics':
+        return getUBBMetrics(this.paypalClient, this.context, arg);
+      case 'create_ubb_metric':
+        return createUBBMetric(this.paypalClient, this.context, arg);
+      case 'get_ubb_metric_by_id':
+        return getUBBMetricById(this.paypalClient, this.context, arg);
+      case 'update_ubb_metric':
+        return updateUBBMetric(this.paypalClient, this.context, arg);
+      case 'delete_ubb_metric':
+        return deleteUBBMetric(this.paypalClient, this.context, arg);
+      case 'get_ubb_plans':
+        return getUBBPlans(this.paypalClient, this.context, arg);
+      case 'create_ubb_plan':
+        return createUBBPlan(this.paypalClient, this.context, arg);
+      case 'get_ubb_plan_by_id':
+        return getUBBPlanById(this.paypalClient, this.context, arg);
+      case 'update_ubb_plan':
+        return updateUBBPlan(this.paypalClient, this.context, arg);
+      case 'get_ubb_customers':
+        return getUBBCustomers(this.paypalClient, this.context, arg);
+      case 'create_ubb_customer':
+        return createUBBCustomer(this.paypalClient, this.context, arg);
+      case 'get_ubb_customer_by_id':
+        return getUBBCustomerById(this.paypalClient, this.context, arg);
+      case 'update_ubb_customer':
+        return updateUBBCustomer(this.paypalClient, this.context, arg);
+      case 'delete_ubb_customer':
+        return deleteUBBCustomer(this.paypalClient, this.context, arg);
+      case 'get_ubb_customer_current_usage':
+        return getUBBCustomerCurrentUsage(this.paypalClient, this.context, arg);
+      case 'get_ubb_customer_past_usage':
+        return getUBBCustomerPastUsage(this.paypalClient, this.context, arg);
+      case 'get_ubb_subscriptions':
+        return getUBBSubscriptions(this.paypalClient, this.context, arg);
+      case 'create_ubb_subscription':
+        return createUBBSubscription(this.paypalClient, this.context, arg);
+      case 'get_ubb_subscription_by_id':
+        return getUBBSubscriptionById(this.paypalClient, this.context, arg);
+      case 'update_ubb_subscription':
+        return updateUBBSubscription(this.paypalClient, this.context, arg);
+      case 'cancel_ubb_subscription':
+        return cancelUBBSubscription(this.paypalClient, this.context, arg);
+      case 'get_ubb_events':
+        return getUBBEvents(this.paypalClient, this.context, arg);
+      case 'create_ubb_event':
+        return createUBBEvent(this.paypalClient, this.context, arg);
+      case 'create_ubb_events_batch':
+        return createUBBEventsBatch(this.paypalClient, this.context, arg);
       default:
         throw new Error(`Invalid method: ${method}`);
     }

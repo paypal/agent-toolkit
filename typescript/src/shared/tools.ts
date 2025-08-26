@@ -32,6 +32,31 @@ import {
   updateSubscriptionPrompt,
   getRefundPrompt,
   createRefundPrompt,
+  // UBB prompts
+  getUBBMetricsPrompt,
+  createUBBMetricPrompt,
+  getUBBMetricByIdPrompt,
+  updateUBBMetricPrompt,
+  deleteUBBMetricPrompt,
+  getUBBPlansPrompt,
+  createUBBPlanPrompt,
+  getUBBPlanByIdPrompt,
+  updateUBBPlanPrompt,
+  getUBBCustomersPrompt,
+  createUBBCustomerPrompt,
+  getUBBCustomerByIdPrompt,
+  updateUBBCustomerPrompt,
+  deleteUBBCustomerPrompt,
+  getUBBCustomerCurrentUsagePrompt,
+  getUBBCustomerPastUsagePrompt,
+  getUBBSubscriptionsPrompt,
+  createUBBSubscriptionPrompt,
+  getUBBSubscriptionByIdPrompt,
+  updateUBBSubscriptionPrompt,
+  cancelUBBSubscriptionPrompt,
+  getUBBEventsPrompt,
+  createUBBEventPrompt,
+  createUBBEventsBatchPrompt,
 } from './prompts';
 
 import {
@@ -66,6 +91,31 @@ import {
   updateSubscriptionParameters,
   getRefundParameters,
   createRefundParameters,
+  // UBB parameters
+  getUBBMetricsParameters,
+  createUBBMetricParameters,
+  getUBBMetricByIdParameters,
+  updateUBBMetricParameters,
+  deleteUBBMetricParameters,
+  getUBBPlansParameters,
+  createUBBPlanParameters,
+  getUBBPlanByIdParameters,
+  updateUBBPlanParameters,
+  getUBBCustomersParameters,
+  createUBBCustomerParameters,
+  getUBBCustomerByIdParameters,
+  updateUBBCustomerParameters,
+  deleteUBBCustomerParameters,
+  getUBBCustomerCurrentUsageParameters,
+  getUBBCustomerPastUsageParameters,
+  getUBBSubscriptionsParameters,
+  createUBBSubscriptionParameters,
+  getUBBSubscriptionByIdParameters,
+  updateUBBSubscriptionParameters,
+  cancelUBBSubscriptionParameters,
+  getUBBEventsParameters,
+  createUBBEventParameters,
+  createUBBEventsBatchParameters,
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -421,6 +471,271 @@ const tools = (context: Context): Tool[] => [
     actions: {
       payments: {
         getRefunds: true,
+      },
+    },
+  },
+  // UBB tools
+  {
+    method: 'get_ubb_metrics',
+    name: 'Get UBB Metrics',
+    description: getUBBMetricsPrompt(context),
+    parameters: getUBBMetricsParameters(context),
+    actions: {
+      ubbMetrics: {
+        list: true,
+      },
+    },
+  },
+  {
+    method: 'create_ubb_metric',
+    name: 'Create UBB Metric',
+    description: createUBBMetricPrompt(context),
+    parameters: createUBBMetricParameters(context),
+    actions: {
+      ubbMetrics: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_metric_by_id',
+    name: 'Get UBB Metric By ID',
+    description: getUBBMetricByIdPrompt(context),
+    parameters: getUBBMetricByIdParameters(context),
+    actions: {
+      ubbMetrics: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'update_ubb_metric',
+    name: 'Update UBB Metric',
+    description: updateUBBMetricPrompt(context),
+    parameters: updateUBBMetricParameters(context),
+    actions: {
+      ubbMetrics: {
+        update: true,
+      },
+    },
+  },
+  {
+    method: 'delete_ubb_metric',
+    name: 'Delete UBB Metric',
+    description: deleteUBBMetricPrompt(context),
+    parameters: deleteUBBMetricParameters(context),
+    actions: {
+      ubbMetrics: {
+        delete: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_plans',
+    name: 'Get UBB Plans',
+    description: getUBBPlansPrompt(context),
+    parameters: getUBBPlansParameters(context),
+    actions: {
+      ubbPlans: {
+        list: true,
+      },
+    },
+  },
+  {
+    method: 'create_ubb_plan',
+    name: 'Create UBB Plan',
+    description: createUBBPlanPrompt(context),
+    parameters: createUBBPlanParameters(context),
+    actions: {
+      ubbPlans: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_plan_by_id',
+    name: 'Get UBB Plan By ID',
+    description: getUBBPlanByIdPrompt(context),
+    parameters: getUBBPlanByIdParameters(context),
+    actions: {
+      ubbPlans: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'update_ubb_plan',
+    name: 'Update UBB Plan',
+    description: updateUBBPlanPrompt(context),
+    parameters: updateUBBPlanParameters(context),
+    actions: {
+      ubbPlans: {
+        update: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_customers',
+    name: 'Get UBB Customers',
+    description: getUBBCustomersPrompt(context),
+    parameters: getUBBCustomersParameters(context),
+    actions: {
+      ubbCustomers: {
+        list: true,
+      },
+    },
+  },
+  {
+    method: 'create_ubb_customer',
+    name: 'Create UBB Customer',
+    description: createUBBCustomerPrompt(context),
+    parameters: createUBBCustomerParameters(context),
+    actions: {
+      ubbCustomers: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_customer_by_id',
+    name: 'Get UBB Customer By ID',
+    description: getUBBCustomerByIdPrompt(context),
+    parameters: getUBBCustomerByIdParameters(context),
+    actions: {
+      ubbCustomers: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'update_ubb_customer',
+    name: 'Update UBB Customer',
+    description: updateUBBCustomerPrompt(context),
+    parameters: updateUBBCustomerParameters(context),
+    actions: {
+      ubbCustomers: {
+        update: true,
+      },
+    },
+  },
+  {
+    method: 'delete_ubb_customer',
+    name: 'Delete UBB Customer',
+    description: deleteUBBCustomerPrompt(context),
+    parameters: deleteUBBCustomerParameters(context),
+    actions: {
+      ubbCustomers: {
+        delete: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_customer_current_usage',
+    name: 'Get UBB Customer Current Usage',
+    description: getUBBCustomerCurrentUsagePrompt(context),
+    parameters: getUBBCustomerCurrentUsageParameters(context),
+    actions: {
+      ubbCustomerUsage: {
+        getCurrent: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_customer_past_usage',
+    name: 'Get UBB Customer Past Usage',
+    description: getUBBCustomerPastUsagePrompt(context),
+    parameters: getUBBCustomerPastUsageParameters(context),
+    actions: {
+      ubbCustomerUsage: {
+        getPast: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_subscriptions',
+    name: 'Get UBB Subscriptions',
+    description: getUBBSubscriptionsPrompt(context),
+    parameters: getUBBSubscriptionsParameters(context),
+    actions: {
+      ubbSubscriptions: {
+        list: true,
+      },
+    },
+  },
+  {
+    method: 'create_ubb_subscription',
+    name: 'Create UBB Subscription',
+    description: createUBBSubscriptionPrompt(context),
+    parameters: createUBBSubscriptionParameters(context),
+    actions: {
+      ubbSubscriptions: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_subscription_by_id',
+    name: 'Get UBB Subscription By ID',
+    description: getUBBSubscriptionByIdPrompt(context),
+    parameters: getUBBSubscriptionByIdParameters(context),
+    actions: {
+      ubbSubscriptions: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'update_ubb_subscription',
+    name: 'Update UBB Subscription',
+    description: updateUBBSubscriptionPrompt(context),
+    parameters: updateUBBSubscriptionParameters(context),
+    actions: {
+      ubbSubscriptions: {
+        update: true,
+      },
+    },
+  },
+  {
+    method: 'cancel_ubb_subscription',
+    name: 'Cancel UBB Subscription',
+    description: cancelUBBSubscriptionPrompt(context),
+    parameters: cancelUBBSubscriptionParameters(context),
+    actions: {
+      ubbSubscriptions: {
+        cancel: true,
+      },
+    },
+  },
+  {
+    method: 'get_ubb_events',
+    name: 'Get UBB Events',
+    description: getUBBEventsPrompt(context),
+    parameters: getUBBEventsParameters(context),
+    actions: {
+      ubbEvents: {
+        list: true,
+      },
+    },
+  },
+  {
+    method: 'create_ubb_event',
+    name: 'Create UBB Event',
+    description: createUBBEventPrompt(context),
+    parameters: createUBBEventParameters(context),
+    actions: {
+      ubbEvents: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'create_ubb_events_batch',
+    name: 'Create UBB Events Batch',
+    description: createUBBEventsBatchPrompt(context),
+    parameters: createUBBEventsBatchParameters(context),
+    actions: {
+      ubbEvents: {
+        createBatch: true,
       },
     },
   }
