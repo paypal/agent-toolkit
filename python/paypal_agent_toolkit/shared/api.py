@@ -19,6 +19,9 @@ class PayPalAPI(BaseModel):
         
     
     def run(self, method: str, params: dict) -> str:
+        if method == "get_merchant_insights" and self._context.sandbox:
+            raise ValueError("get_merchant_insights is not supported in sandbox mode")
+        
         for tool in tools:
             if tool.get("method") == method:
                 execute_fn = tool.get("execute")

@@ -75,6 +75,10 @@ class PayPalAPI {
   }
 
   private async executeMethod(method: string, arg: any): Promise<any> {
+    if (method === 'get_merchant_insights' && this.context.sandbox === true) {
+      throw new Error('get_merchant_insights is not supported in sandbox mode');
+    }
+    
     switch (method) {
       case 'create_invoice':
         return createInvoice(this.paypalClient, this.context, arg);
