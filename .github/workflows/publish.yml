@@ -30,6 +30,13 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Exit if not a PR merge
+        run: |
+          if [[ "${{ github.event.pusher.name }}" != "web-flow" ]]; then
+            echo "Not a PR merge (pusher: ${{ github.event.pusher.name }}). Exiting."
+            exit 1
+          fi
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
