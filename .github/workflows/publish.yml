@@ -1,5 +1,4 @@
 name: Release and Publish
-
 on:
   push:
     branches:
@@ -23,11 +22,12 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
+    
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -40,14 +40,14 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install jq and bump-my-version
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-          pip install bump-my-version
+          pip install build twine
 
-      # Determine the release type: use input if set, else 'minor'
-      - name: Set release type env
+      # Determine the release type
+      - name: Set release type
         id: set_release_type
         run: |
           if [ -z "${{ github.event.inputs.release_type }}" ]; then
@@ -64,31 +64,54 @@ jobs:
           npm version ${{ steps.set_release_type.outputs.release_type }} --no-git-tag-version
           VERSION=$(jq -r .version package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $VERSION"
 
-      # ---- Sync MCP version to TypeScript ----
-      - name: Sync MCP package.json version to TypeScript
+      # ---- Sync versions across packages ----
+      - name: Sync versions across all packages
         run: |
           VERSION=${{ steps.bump_npm.outputs.version }}
+          echo "Syncing version $VERSION across packages"
+          
+          # Update TypeScript package.json (already done, but ensure consistency)
           jq ".version = \"$VERSION\"" typescript/package.json > tmp.json && mv tmp.json typescript/package.json
+          
+          # Update MCP package.json
           jq ".version = \"$VERSION\"" modelcontextprotocol/package.json > tmp.json && mv tmp.json modelcontextprotocol/package.json
-
-      # ---- Sync Python version to JS ----
-      - name: Sync Python version to JS
-        working-directory: ./python
-        run: |
-          VERSION=${{ steps.bump_npm.outputs.version }}
-          # Assumes bump-my-version config in pyproject.toml for [project] version field
-          bump-my-version new $VERSION
+          
+          # Update Python version using direct file manipulation
+          if [ -f python/pyproject.toml ]; then
+            # Update version in pyproject.toml
+            sed -i "s/^version = .*/version = \"$VERSION\"/" python/pyproject.toml
+            echo "Updated Python version in pyproject.toml"
+          fi
+          
+          # Alternative: Update __init__.py if it exists
+          if [ -f python/src/__init__.py ]; then
+            sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" python/src/__init__.py
+          elif [ -f python/__init__.py ]; then
+            sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" python/__init__.py
+          fi
 
       # ---- Commit & Tag version bump ----
       - name: Commit and tag version bump
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add typescript/package.json modelcontextprotocol/package.json python/pyproject.toml
-          git commit -m "chore: version bump to v${{ steps.bump_npm.outputs.version }} [skip ci]" || echo "No changes to commit"
-          git tag v${{ steps.bump_npm.outputs.version }}
-          git push origin main --tags
+          
+          # Add all changed files
+          git add typescript/package.json modelcontextprotocol/package.json
+          git add python/pyproject.toml || echo "No pyproject.toml to add"
+          git add python/src/__init__.py || echo "No src/__init__.py to add"
+          git add python/__init__.py || echo "No __init__.py to add"
+          
+          # Commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: version bump to v${{ steps.bump_npm.outputs.version }} [skip ci]"
+            git tag v${{ steps.bump_npm.outputs.version }}
+            git push origin main --tags
+          fi
 
       # ---- Build & Publish npm (TypeScript) ----
       - name: Build and publish npm (TypeScript)
@@ -96,8 +119,10 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
           npm install
-          npm run build || true
+          npm run build
           npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # ---- Build & Publish npm (MCP) ----
       - name: Build and publish npm (MCP)
@@ -105,13 +130,14 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
           npm install
-          npm run build || true
+          npm run build
           npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # ---- Build & Publish PyPI ----
       - name: Build and publish Python
         working-directory: ./python
         run: |
-          pip install build twine
           python -m build
-          twine upload dist/* -u __token__ -p $PYPI_TOKEN
+          python -m twine upload dist/* --username __token__ --password $PYPI_TOKEN --non-interactive
