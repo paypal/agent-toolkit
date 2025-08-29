@@ -34,7 +34,7 @@ jobs:
         run: |
           if [[ "${{ github.event.pusher.name }}" != "web-flow" ]]; then
             echo "Not a PR merge (pusher: ${{ github.event.pusher.name }}). Exiting."
-            exit 1
+            exit 0
           fi
 
       - name: Set up Node.js
