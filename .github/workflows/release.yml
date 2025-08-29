@@ -1,0 +1,36 @@
+name: Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (tag)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release with links
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref }}
+          name: "Release ${{ steps.get_version.outputs.version }}"
+          body: |
+            ## Package Links
+
+            - **npm**:
+              - [@paypal/agent-toolkit](https://www.npmjs.com/package/@paypal/agent-toolkit/v/${{ steps.get_version.outputs.version }})
+              - [@paypal/mcp](https://www.npmjs.com/package/@paypal/mcp/v/${{ steps.get_version.outputs.version }})
+            - **PyPI**: [paypal-agent-toolkit](https://pypi.org/project/paypal-agent-toolkit/${{ steps.get_version.outputs.version }}/)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
