@@ -21,7 +21,6 @@ jobs:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     
     steps:
       - uses: actions/checkout@v4
@@ -92,26 +91,17 @@ jobs:
             sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" python/__init__.py
           fi
 
-      # ---- Commit & Tag version bump ----
+      # Commit, tag, and push
       - name: Commit and tag version bump
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          
-          # Add all changed files
-          git add typescript/package.json modelcontextprotocol/package.json
-          git add python/pyproject.toml || echo "No pyproject.toml to add"
-          git add python/src/__init__.py || echo "No src/__init__.py to add"
-          git add python/__init__.py || echo "No __init__.py to add"
-          
-          # Commit if there are changes
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: version bump to v${{ steps.bump_npm.outputs.version }} [skip ci]"
-            git tag v${{ steps.bump_npm.outputs.version }}
-            git push origin main --tags
-          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add typescript/package.json modelcontextprotocol/package.json python/pyproject.toml
+          git commit -m "chore: version bump to v${{ steps.bump_npm.outputs.version }} [skip ci]" || echo "No changes to commit"
+          git tag v${{ steps.bump_npm.outputs.version }}
+          git push origin main --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ---- Build & Publish npm (TypeScript) ----
       - name: Build and publish npm (TypeScript)
