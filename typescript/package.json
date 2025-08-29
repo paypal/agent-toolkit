@@ -1,6 +1,6 @@
 {
   "name": "@paypal/agent-toolkit",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "PayPal toolkit for AI agent workflows in typescript",
   "scripts": {
     "clean": "rm -rf dist ai-sdk mcp langchain openai bedrock",
@@ -20,7 +20,7 @@
     "./langchain": {
       "types": "./langchain/index.d.ts",
       "default": "./langchain/index.js"
-    }, 
+    },
     "./openai": {
       "types": "./openai/index.d.ts",
       "default": "./openai/index.js"
