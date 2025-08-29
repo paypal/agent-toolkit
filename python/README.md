@@ -32,6 +32,7 @@ The PayPal Agent toolkit provides the following tools:
 
 - `create_shipment_tracking`: Create a shipment tracking record
 - `get_shipment_tracking`: Retrieve shipment tracking information
+- `update_shipment_tracking`: Update shipment tracking information
 
 **Catalog Management**
 
@@ -51,7 +52,7 @@ The PayPal Agent toolkit provides the following tools:
 **Reporting and Insights**
 
 - `list_transactions`: List transactions with optional pagination and filtering
-
+- `get_merchant_insights`: Retrieve business intelligence metrics and analytics for a merchant
 
 ## Prerequisites
 

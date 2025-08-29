@@ -30,7 +30,8 @@ import {
   getRefundParameters,
   createRefundParameters,
   updateSubscriptionParameters,
-  updatePlanParameters
+  updatePlanParameters,
+  getMerchantInsightsParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -1063,3 +1064,22 @@ function handleAxiosError(error: any): never {
   }
 }
 
+export async function getMerchantInsights(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getMerchantInsightsParameters>>
+): Promise<any> {
+
+  const { start_date, end_date, insight_type, time_interval } = params
+  const headers = await client.getHeaders();
+  logger('[getMerchantInsights] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v1/merchant/insights?start_date=${start_date}&end_date=${end_date}&insight_type=${insight_type}&time_interval=${time_interval}`;
+  try {
+    const response = await axios.get(url, { headers: headers });
+    return response.data;
+  } catch (error: any) {
+    logger('[updatePlan] Error retrieving insights:', error.message);
+    handleAxiosError(error);
+  }
+}

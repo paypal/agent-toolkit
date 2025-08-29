@@ -27,7 +27,8 @@ import {
   updatePlan,
   createRefund,
   getRefund,
-  updateSubscription
+  updateSubscription,
+  getMerchantInsights
 } from './functions';
 
 import type { Context } from './configuration';
@@ -74,6 +75,10 @@ class PayPalAPI {
   }
 
   private async executeMethod(method: string, arg: any): Promise<any> {
+    if (method === 'get_merchant_insights' && this.context.sandbox === true) {
+      throw new Error('get_merchant_insights is not supported in sandbox mode');
+    }
+    
     switch (method) {
       case 'create_invoice':
         return createInvoice(this.paypalClient, this.context, arg);
@@ -135,6 +140,8 @@ class PayPalAPI {
         return createRefund(this.paypalClient, this.context, arg);
       case 'get_refund':
         return getRefund(this.paypalClient, this.context, arg);
+      case 'get_merchant_insights':
+        return getMerchantInsights(this.paypalClient, this.context, arg);
       default:
         throw new Error(`Invalid method: ${method}`);
     }
