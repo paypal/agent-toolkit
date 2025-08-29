@@ -78,7 +78,7 @@ jobs:
         run: |
           VERSION=${{ steps.bump_npm.outputs.version }}
           # Assumes bump-my-version config in pyproject.toml for [project] version field
-          bump-my-version set $VERSION
+          bump-my-version new $VERSION
 
       # ---- Commit & Tag version bump ----
       - name: Commit and tag version bump
