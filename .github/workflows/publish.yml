@@ -1,0 +1,117 @@
+name: Release and Publish
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type (patch, minor, major)'
+        required: false
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install jq and bump-my-version
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          pip install bump-my-version
+
+      # Determine the release type: use input if set, else 'minor'
+      - name: Set release type env
+        id: set_release_type
+        run: |
+          if [ -z "${{ github.event.inputs.release_type }}" ]; then
+            echo "release_type=minor" >> $GITHUB_OUTPUT
+          else
+            echo "release_type=${{ github.event.inputs.release_type }}" >> $GITHUB_OUTPUT
+          fi
+
+      # ---- Version Bump (TypeScript) ----
+      - name: Bump npm version (TypeScript)
+        id: bump_npm
+        working-directory: ./typescript
+        run: |
+          npm version ${{ steps.set_release_type.outputs.release_type }} --no-git-tag-version
+          VERSION=$(jq -r .version package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # ---- Sync MCP version to TypeScript ----
+      - name: Sync MCP package.json version to TypeScript
+        run: |
+          VERSION=${{ steps.bump_npm.outputs.version }}
+          jq ".version = \"$VERSION\"" typescript/package.json > tmp.json && mv tmp.json typescript/package.json
+          jq ".version = \"$VERSION\"" modelcontextprotocol/package.json > tmp.json && mv tmp.json modelcontextprotocol/package.json
+
+      # ---- Sync Python version to JS ----
+      - name: Sync Python version to JS
+        working-directory: ./python
+        run: |
+          VERSION=${{ steps.bump_npm.outputs.version }}
+          # Assumes bump-my-version config in pyproject.toml for [project] version field
+          bump-my-version set $VERSION
+
+      # ---- Commit & Tag version bump ----
+      - name: Commit and tag version bump
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add typescript/package.json modelcontextprotocol/package.json python/pyproject.toml
+          git commit -m "chore: version bump to v${{ steps.bump_npm.outputs.version }} [skip ci]" || echo "No changes to commit"
+          git tag v${{ steps.bump_npm.outputs.version }}
+          git push origin main --tags
+
+      # ---- Build & Publish npm (TypeScript) ----
+      - name: Build and publish npm (TypeScript)
+        working-directory: ./typescript
+        run: |
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+          npm install
+          npm run build || true
+          npm publish --access public
+
+      # ---- Build & Publish npm (MCP) ----
+      - name: Build and publish npm (MCP)
+        working-directory: ./modelcontextprotocol
+        run: |
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+          npm install
+          npm run build || true
+          npm publish --access public
+
+      # ---- Build & Publish PyPI ----
+      - name: Build and publish Python
+        working-directory: ./python
+        run: |
+          pip install build twine
+          python -m build
+          twine upload dist/* -u __token__ -p $PYPI_TOKEN
