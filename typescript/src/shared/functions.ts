@@ -37,6 +37,7 @@ import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "
 import { TypeOf } from "zod";
 import debug from "debug";
 import PayPalClient from './client';
+import { toLlmError, LlmError } from "./llmError";
 
 const logger = debug('agent-toolkit:functions');
 
@@ -291,7 +292,7 @@ export async function createProduct(
   } catch (error) {
     // @ts-ignore
     console.error("Error Creating Product:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 }
 
@@ -311,7 +312,7 @@ export async function listProducts(
   } catch (error) {
     // @ts-ignore
     console.error("Error Listing Product:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 };
 
@@ -332,7 +333,7 @@ export async function showProductDetails(
   } catch (error) {
     // @ts-ignore
     console.error("Error Show Product Details:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 };
 
@@ -353,7 +354,7 @@ export async function createSubscriptionPlan(
   } catch (error) {
     // @ts-ignore
     console.error("Error Creating Plan:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 }
 
@@ -375,7 +376,7 @@ export async function listSubscriptionPlans(
   } catch (error) {
     // @ts-ignore
     console.error("Error Creating Plan:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 }
 
@@ -395,7 +396,7 @@ export async function showSubscriptionPlanDetails(
   } catch (error) {
     // @ts-ignore
     console.error("Error Show Plan Details:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 }
 
@@ -416,7 +417,7 @@ export async function createSubscription(
   } catch (error) {
     // @ts-ignore
     console.error("Error Creating Subscription:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 }
 
@@ -439,7 +440,7 @@ export async function showSubscriptionDetails(
   } catch (error) {
     // @ts-ignore
     console.error("Error Show Subscription Details:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 }
 
@@ -459,7 +460,7 @@ export async function cancelSubscription(
   } catch (error) {
     // @ts-ignore
     console.error("Error Creating Subscription:", error.response?.data || error);
-    throw error;
+    handleAxiosError(error);
   }
 }
 
@@ -555,9 +556,9 @@ export const captureOrder = async (
         response: response.data
       };
     }
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to capture order');
+  } catch (error: any) {
+    logger('[captureOrder] Error capturing order:', error.message);
+    handleAxiosError(error);
   }
 }
 
@@ -1014,56 +1015,6 @@ export async function updatePlan(
   }
 }
 
-// Helper function to handle Axios errors
-function handleAxiosError(error: any): never {
-  logger('[handleAxiosError] Processing error from PayPal API');
-
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    logger(`[handleAxiosError] Response error status: ${error.response.status}`);
-    logger(`[handleAxiosError] Response error headers: ${JSON.stringify(error.response.headers)}`);
-
-    try {
-      const errorData = error.response.data;
-      logger(`[handleAxiosError] Error data: ${JSON.stringify(errorData)}`);
-
-      let errorMessage = errorData.message || 'Unknown error';
-
-      if (errorData.details && Array.isArray(errorData.details)) {
-        const detailDescriptions = errorData.details
-          .map((detail: any) => detail.description || '')
-          .filter(Boolean)
-          .join('; ');
-
-        if (detailDescriptions) {
-          errorMessage += ': ' + detailDescriptions;
-          logger(`[handleAxiosError] Error details: ${detailDescriptions}`);
-        }
-      }
-
-      logger(`[handleAxiosError] Throwing error with message: PayPal API error (${error.response.status}): ${errorMessage}`);
-      throw new Error(`PayPal API error (${error.response.status}): ${errorMessage}`);
-    } catch (e) {
-      // In case of parsing issues, throw a more generic error
-      logger('[handleAxiosError] Error parsing response data, using raw data');
-      logger(`[handleAxiosError] Throwing error with message: PayPal API error (${error.response.status}): ${error.response.data}`);
-      throw new Error(`PayPal API error (${error.response.status}): ${error.response.data}`);
-    }
-  } else if (error.request) {
-    // The request was made but no response was received
-    logger('[handleAxiosError] No response received from PayPal API');
-    logger(`[handleAxiosError] Request: ${JSON.stringify(error.request)}`);
-    logger(`[handleAxiosError] Throwing error with message: PayPal API error: No response received - ${error.message}`);
-    throw new Error(`PayPal API error: No response received - ${error.message}`);
-  } else {
-    // Something happened in setting up the request that triggered an Error
-    logger(`[handleAxiosError] Error setting up request: ${error.message}`);
-    logger(`[handleAxiosError] Throwing error with message: PayPal API error: ${error.message}`);
-    throw new Error(`PayPal API error: ${error.message}`);
-  }
-}
-
 export async function getMerchantInsights(
   client: PayPalClient,
   context: Context,
@@ -1082,4 +1033,78 @@ export async function getMerchantInsights(
     logger('[updatePlan] Error retrieving insights:', error.message);
     handleAxiosError(error);
   }
+}
+
+
+// Helper function to handle Axios errors -> throws LlmError
+export function handleAxiosError(error: any): never {
+  logger("[handleAxiosError] Processing error from PayPal API");
+
+  if (error?.response) {
+    const { status, headers, data } = error.response;
+    logger(
+      `[handleAxiosError] Response error status: ${status}; header keys: ${JSON.stringify(
+        Object.keys(headers ?? {})
+      )}`
+    );
+
+    let baseMessage: string =
+      data?.message ||
+      data?.error_description ||
+      data?.name ||
+      "Unknown error";
+
+    if (data?.details && Array.isArray(data.details)) {
+      const detailDescriptions = data.details
+        .map((d: any) => d?.description || d?.issue || "")
+        .filter(Boolean)
+        .join("; ");
+      if (detailDescriptions) {
+        baseMessage += `: ${detailDescriptions}`;
+        logger(`[handleAxiosError] Error details: ${detailDescriptions}`);
+      }
+    }
+
+    const llmErr: LlmError = toLlmError(baseMessage, {
+      code: "PAYPAL_API_HTTP_ERROR",
+      status,
+      maxDetailLen: 200,
+    });
+
+    logger(
+      `[handleAxiosError] Throwing LlmError { code: ${llmErr.code}, status: ${llmErr.status} }`
+    );
+    throw llmErr;
+  }
+
+  if (error?.request) {
+    logger("[handleAxiosError] No response received from PayPal API");
+
+    const llmErr: LlmError = toLlmError(error, {
+      code: "PAYPAL_API_NO_RESPONSE",
+      maxDetailLen: 200,
+    });
+
+    logger(
+      `[handleAxiosError] Throwing LlmError { code: ${llmErr.code} }`
+    );
+    throw llmErr;
+  }
+
+  // Setup / config error before sending request
+  logger(
+    `[handleAxiosError] Error setting up request: ${
+      error?.message ?? "Unknown"
+    }`
+  );
+
+  const llmErr: LlmError = toLlmError(error, {
+    code: "PAYPAL_API_SETUP_ERROR",
+    maxDetailLen: 200,
+  });
+
+  logger(
+    `[handleAxiosError] Throwing LlmError { code: ${llmErr.code} }`
+  );
+  throw llmErr;
 }

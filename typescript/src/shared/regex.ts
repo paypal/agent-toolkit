@@ -1,0 +1,8 @@
+export const INVOICE_ID_REGEX = /^[A-Za-z0-9_-]{1,127}$/;
+export const ORDER_ID_REGEX = /^[A-Z0-9]{17,32}$/;
+export const SUBSCRIPTION_ID_REGEX = /^[A-Za-z0-9_-]{3,50}$/;
+export const PRODUCT_ID_REGEX = /^[A-Za-z0-9_-]{12,50}$/;
+export const PLAN_ID_REGEX = /^[A-Za-z0-9_-]{12,32}$/;
+export const DISPUTE_ID_REGEX = /^[A-Za-z0-9_-]{1,255}$/;
+export const REFUND_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
+export const CAPTURE_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
