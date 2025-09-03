@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
 import {subscriptionKeys} from "./constants";
+import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX} from "./regex"
 
 // === INVOICE PARAMETERS ===
 const invoiceItem = z.object({
@@ -44,19 +45,21 @@ export const createInvoiceParameters = (context: Context) => z.object({
 }).describe("create invoice request payload");
 
 export const getInvoicParameters = (context: Context) => z.object({
-  invoice_id: z.string().describe('The ID of the invoice to retrieve.'),
+  invoice_id: z.string()
+        .regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID")
+        .describe('The ID of the invoice to retrieve.'),
 });
 
 export const listInvoicesParameters = (context: Context) =>
   z.object({
-    page: z.number().default(1).optional().describe('The page number of the result set to fetch.').default(1),
+    page: z.number().min(1).max(1000).default(1).optional().describe('The page number of the result set to fetch.').default(1),
     page_size: z.number().min(1).max(100).default(100).optional().describe('The number of records to return per page (maximum 100).'),
     total_required: z.boolean().optional().describe('Indicates whether the response should include the total count of items.'),
   });
 
 export const sendInvoiceParameters = (context: Context) =>
   z.object({
-    invoice_id: z.string().describe('The ID of the invoice to send.'),
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice to send.'),
     note: z.string().optional().describe('A note to the recipient.'),
     send_to_recipient: z.boolean().optional().describe('Indicates whether to send the invoice to the recipient.'),
     additional_recipients: z.array(z.string()).optional().describe('Additional email addresses to which to send the invoice.'),
@@ -64,7 +67,7 @@ export const sendInvoiceParameters = (context: Context) =>
 
 export const sendInvoiceReminderParameters = (context: Context) =>
   z.object({
-    invoice_id: z.string().describe('The ID of the invoice for which to send a reminder.'),
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice for which to send a reminder.'),
     subject: z.string().optional().describe('The subject of the reminder email.'),
     note: z.string().optional().describe('A note to the recipient.'),
     additional_recipients: z.array(z.string()).optional().describe('Additional email addresses to which to send the reminder.'),
@@ -72,14 +75,14 @@ export const sendInvoiceReminderParameters = (context: Context) =>
 
 export const cancelSentInvoiceParameters = (context: Context) =>
   z.object({
-    invoice_id: z.string().describe('The ID of the invoice to cancel.'),
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice to cancel.'),
     note: z.string().optional().describe('A cancellation note to the recipient.'),
     send_to_recipient: z.boolean().optional().describe('Indicates whether to send the cancellation to the recipient.'),
     additional_recipients: z.array(z.string()).optional().describe('Additional email addresses to which to send the cancellation.'),
   });
 
 export const generateInvoiceQrCodeParameters = (context: Context) => z.object({
-  invoice_id: z.string().describe('The invoice id to generate QR code for'),
+  invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The invoice id to generate QR code for'),
   width: z.number().default(300).describe("The QR code width"),
   height: z.number().default(300).describe("The QR code height")
 }).describe("generate invoice qr code request payload");
@@ -93,22 +96,22 @@ export const updateProductParameters = (context: Context) =>
 
 export const createShipmentParameters = (context: Context) =>
   z.object({
-    order_id: z.string().describe('The ID of the order for which to create a shipment').optional(),
+    order_id: z.string().regex(ORDER_ID_REGEX, "Invalid PayPal Order ID").describe('The ID of the order for which to create a shipment').optional(),
     tracking_number: z.string().describe('The tracking number for the shipment. Id is provided by the shipper. This is required to create a shipment.'),
-    transaction_id: z.string().describe('The transaction ID associated with the shipment. Transaction id available after the order is paid or captured. This is required to create a shipment.'),
+    transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Transaction ID").describe('The transaction ID associated with the shipment. Transaction id available after the order is paid or captured. This is required to create a shipment.'),
     status: z.string().optional().describe('The status of the shipment. It can be "ON_HOLD", "SHIPPED", "DELIVERED", or "CANCELLED".').default("SHIPPED"),
     carrier: z.string().optional().describe('The carrier handling the shipment.'),
   });
 
 export const getShipmentTrackingParameters = (context: Context) =>
   z.object({
-    order_id: z.string().describe('The ID of the order for which to create a shipment.').optional(),
-    transaction_id: z.string().describe('The transaction ID associated with the shipment tracking to retrieve.').optional(),
+    order_id: z.string().regex(ORDER_ID_REGEX, "Invalid PayPal Order ID").describe('The ID of the order for which to create a shipment.').optional(),
+    transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Transaction ID").describe('The transaction ID associated with the shipment tracking to retrieve.').optional(),
   });
 
 export const updateShipmentTrackingParameters = (context: Context) =>
   z.object({
-    transaction_id: z.string().describe('The transaction ID associated with the shipment tracking to retrieve.'),
+    transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Transaction ID").describe('The transaction ID associated with the shipment tracking to retrieve.'),
     tracking_number: z.string().describe('The tracking number that you want to update.'),
     new_tracking_number: z.string().describe('The new tracking number for the shipment if being updated.').optional(),
     status: z.string().describe('The status of the item shipment. It can be "CANCELLED", "DELIVERED", "LOCAL_PICKUP", "ON_HOLD", or "SHIPPED".'),
@@ -153,17 +156,17 @@ export const createOrderParameters = (context: Context) => z.object({
 });
 
 export const getOrderParameters = (context: Context) => z.object({
-  id: z.string().describe('The order id generated during create call'),
+  id: z.string().regex(ORDER_ID_REGEX, "Invalid PayPal Order ID").describe('The order id generated during create call'),
 });
 
 export const captureOrderParameters = (context: Context) => z.object({
-  id: z.string().describe('The order id generated during create call'),
+  id: z.string().regex(ORDER_ID_REGEX, "Invalid PayPal Order ID").describe('The order id generated during create call'),
 });
 
 // === Disputes Parameters ===
 
 export const listDisputesParameters = (context: Context) => z.object({
-  disputed_transaction_id: z.string().nullable().default(null),
+  disputed_transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Dispute ID").nullable().default(null),
   dispute_state: z.enum([
     "REQUIRED_ACTION",
     "REQUIRED_OTHER_PARTY_ACTION",
@@ -171,23 +174,23 @@ export const listDisputesParameters = (context: Context) => z.object({
     "RESOLVED",
     "OPEN_INQUIRIES",
     "APPEALABLE"]).optional().describe("OPEN_INQUIRIES"),
-  page_size: z.number().default(10).optional(),
-  page: z.number().default(1).optional()
+  page_size: z.number().min(1).max(50).default(10).optional(),
+  page: z.number().min(1).max(1000).default(1).optional()
 });
 
 export const getDisputeParameters = (context: Context) => z.object({
-  dispute_id: z.string().describe('The order id generated during create call'),
+  dispute_id: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal Dispute ID").describe('The order id generated during create call'),
 })
 
 export const acceptDisputeClaimParameters = (context: Context) => z.object({
   dispute_id: z.string(),
-  note: z.string().describe("A note about why the seller is accepting the claim"),
+  note: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal Dispute ID").describe("A note about why the seller is accepting the claim"),
 });
 
 // === Transaction Search ===
 
 export const listTransactionsParameters = (context: Context) => z.object({
-  transaction_id: z.string().optional().describe('The ID of the transaction to retrieve.').nullable().default(null),
+  transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Transaction ID").optional().describe('The ID of the transaction to retrieve.').nullable().default(null),
   transaction_status: z.enum([
     "D",
     "P",
@@ -204,8 +207,8 @@ export const listTransactionsParameters = (context: Context) => z.object({
     return now.toISOString();
   }),
   search_months: z.number().optional().describe('Number of months to search back for a transaction by ID. Default is 12 months.').default(12),
-  page_size: z.number().default(100).optional(),
-  page: z.number().default(1).optional()
+  page_size: z.number().min(1).max(500).default(100).optional(),
+  page: z.number().min(1).max(10000).default(1).optional()
 });
 
 
@@ -220,13 +223,13 @@ export const createProductParameters = (context: Context) => z.object({
 });
 
 export const listProductsParameters = (context: Context) => z.object({
-  page: z.number().optional().describe('The page number of the result set to fetch.'),
-  page_size: z.number().optional().describe('The number of records to return per page (maximum 100).'),
+  page: z.number().min(1).max(100000).optional().describe('The page number of the result set to fetch.'),
+  page_size: z.number().min(1).max(20).optional().describe('The number of records to return per page (maximum 100).'),
   total_required: z.boolean().optional().describe('Indicates whether the response should include the total count of products.'),
 });
 
 export const showProductDetailsParameters = (context: Context) => z.object({
-  product_id: z.string().describe('The ID of the product to update.'),
+  product_id: z.string().regex(PRODUCT_ID_REGEX, "Invalid PayPal Product ID").describe('The ID of the product to update.'),
 });
 
 // === SUBSCRIPTION PLAN PARAMETERS ===
@@ -288,13 +291,13 @@ export const createSubscriptionPlanParameters = (context: Context) => z.object({
 
 export const listSubscriptionPlansParameters = (context: Context) => z.object({
   product_id: z.string().optional().describe('The ID of the product for which to get subscription plans.'),
-  page: z.number().optional().describe('The page number of the result set to fetch.'),
-  page_size: z.number().optional().describe('The number of records to return per page (maximum 100).'),
+  page: z.number().min(1).max(100000).optional().describe('The page number of the result set to fetch.'),
+  page_size: z.number().min(1).max(20).optional().describe('The number of records to return per page (maximum 100).'),
   total_required: z.boolean().optional().describe('Indicates whether the response should include the total count of plans.'),
 });
 
 export const showSubscriptionPlanDetailsParameters = (context: Context) => z.object({
-  plan_id: z.string().describe('The ID of the subscription plan to show.'),
+  plan_id: z.string().regex(PLAN_ID_REGEX, "Invalid PayPal Plan ID").describe('The ID of the subscription plan to show.'),
 });
 
 // === SUBSCRIPTION PARAMETERS ===
@@ -353,12 +356,12 @@ export const createSubscriptionParameters = (context: Context) => z.object({
 });
 
 export const showSubscriptionDetailsParameters = (context: Context) => z.object({
-  subscription_id: z.string().describe('The ID of the subscription to show details.'),
+  subscription_id: z.string().regex(SUBSCRIPTION_ID_REGEX, "Invalid PayPal Subscription ID").describe('The ID of the subscription to show details.'),
   get_additional_details: z.boolean().optional().describe('Get all detailed information for the subscription.'),
 });
 
 export const cancelSubscriptionParameters = (context: Context) => z.object({
-  subscription_id: z.string().describe('The ID of the subscription to show details.'),
+  subscription_id: z.string().regex(SUBSCRIPTION_ID_REGEX, "Invalid PayPal Subscription ID").describe('The ID of the subscription to show details.'),
   payload: z.object({
     reason: z.string().describe('The reason for the cancellation of a subscription.'),
   }).passthrough().describe('Payload for subscription cancellation.'),
@@ -367,7 +370,7 @@ export const cancelSubscriptionParameters = (context: Context) => z.object({
 
 export const updatePlanParameters = (context: Context) =>
   z.object({
-    plan_id: z.string().describe('The ID of the plan to update.'),
+    plan_id: z.string().regex(PLAN_ID_REGEX, "Invalid PayPal Plan ID").describe('The ID of the plan to update.'),
     description: z.string().optional().describe('Plan description.'),
     auto_bill_outstanding: z.string().optional().describe('Auto bill outstanding'),
     percentage: z.string().optional().describe('Taxes percentage'),
@@ -383,7 +386,7 @@ export const updatePlanParameters = (context: Context) =>
 
 
 export const updateSubscriptionParameters = (context: Context) => z.object({
-  [subscriptionKeys.subscriptionId]: z.string().describe('The ID of the subscription to update.'),
+  [subscriptionKeys.subscriptionId]: z.string().regex(SUBSCRIPTION_ID_REGEX, "Invalid PayPal Subscription ID").describe('The ID of the subscription to update.'),
   [subscriptionKeys.currencyCode]: z.enum(['USD']).optional().default("USD").describe('Currency code of the amount.'),
   [subscriptionKeys.outstandingBalance]: z.string().optional().describe('Outstanding Balance in the subscription'),
   [subscriptionKeys.customId]: z.string().optional().describe("The custom id for the subscription"),
@@ -402,16 +405,16 @@ export const updateSubscriptionParameters = (context: Context) => z.object({
 // === REFUND PARAMETERS ===
 
 export const getRefundParameters = (context: Context) => z.object({
-  refund_id: z.string().describe('The ID of the refund to get details for.'),
+  refund_id: z.string().regex(REFUND_ID_REGEX, "Invalid refund ID").describe('The ID of the refund to get details for.'),
 });
 
 export const createRefundParameters = (context: Context) => z.object({
-  capture_id: z.string().describe('The ID of the capture to refund.'),
+  capture_id: z.string().regex(CAPTURE_ID_REGEX, "Invalid Transaction ID").describe('The ID of the capture to refund.'),
   amount: z.object({
     currency_code: z.string(),
     value: z.string(),
   }).optional().describe('The amount to refund. If not specified, the full captured amount is refunded.'),
-  invoice_id: z.string().optional().describe('The invoice ID that is used to track this payment.'),
+  invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").optional().describe('The invoice ID that is used to track this payment.'),
   note_to_payer: z.string().optional().describe('A note to the payer.'),
 });
 

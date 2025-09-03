@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
-
+from ..regex import DISPUTE_ID_REGEX, TRANSACTION_ID_REGEX
 # === Disputes Parameters ===
 
 class ListDisputesParameters(BaseModel):
-    disputed_transaction_id: Optional[str] = None
+    disputed_transaction_id: Optional[str] = Field(None, description="Filters the disputes in the response by a transaction, by ID.", pattern=TRANSACTION_ID_REGEX)
     dispute_state: Optional[
         Literal[
             "REQUIRED_ACTION",
@@ -19,9 +19,9 @@ class ListDisputesParameters(BaseModel):
 
 
 class GetDisputeParameters(BaseModel):
-    dispute_id: str = Field(..., description="The order id generated during create call")
+    dispute_id: str = Field(..., description="The order id generated during create call", pattern=DISPUTE_ID_REGEX)
 
 
 class AcceptDisputeClaimParameters(BaseModel):
-    dispute_id: str
+    dispute_id: str  = Field(..., description="The PayPal dispute ID.", pattern=DISPUTE_ID_REGEX)
     note: str = Field(..., description="A note about why the seller is accepting the claim")

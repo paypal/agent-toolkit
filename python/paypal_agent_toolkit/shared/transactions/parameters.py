@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 from datetime import datetime, timedelta
-
+from ..regex import TRANSACTION_ID_REGEX
 
 def default_start_date() -> str:
     return (datetime.utcnow() - timedelta(days=31)).isoformat(timespec="seconds")
@@ -14,7 +14,8 @@ def default_end_date() -> str:
 class ListTransactionsParameters(BaseModel):
     transaction_id: Optional[str] = Field(
         default=None,
-        description="The ID of the transaction to retrieve."
+        description="The ID of the transaction to retrieve.",
+        pattern= TRANSACTION_ID_REGEX
     )
     transaction_status: Optional[Literal["D", "P", "S", "V"]] = Field(
         default="S",

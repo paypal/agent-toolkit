@@ -1,11 +1,12 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
-
+from ..regex import ORDER_ID_REGEX, TRANSACTION_ID_REGEX
 
 class CreateShipmentParameters(BaseModel):
     order_id: Optional[str] = Field(
         default=None,
-        description="The ID of the order for which to create a shipment"
+        description="The ID of the order for which to create a shipment",
+        pattern=ORDER_ID_REGEX
     )
     tracking_number: str = Field(
         ...,
@@ -13,7 +14,8 @@ class CreateShipmentParameters(BaseModel):
     )
     transaction_id: str = Field(
         ...,
-        description="The transaction ID associated with the shipment. Transaction id available after the order is paid or captured. This is required to create a shipment."
+        description="The transaction ID associated with the shipment. Transaction id available after the order is paid or captured. This is required to create a shipment.",
+        pattern=TRANSACTION_ID_REGEX
     )
     status: Optional[str] = Field(
         default="SHIPPED",
@@ -28,17 +30,20 @@ class CreateShipmentParameters(BaseModel):
 class GetShipmentTrackingParameters(BaseModel):
     order_id: Optional[str] = Field(
         default=None,
-        description="The ID of the order for which to create a shipment."
+        description="The ID of the order for which to create a shipment.",
+        pattern=ORDER_ID_REGEX
     )
     transaction_id: Optional[str] = Field(
         default=None,
-        description="The transaction ID associated with the shipment tracking to retrieve."
+        description="The transaction ID associated with the shipment tracking to retrieve.",
+        pattern=TRANSACTION_ID_REGEX
     )
 
 class UpdateShipmentTrackingParameters(BaseModel):
     transaction_id: str = Field(
         ...,
-        description="The transaction ID associated with the shipment tracking to retrieve."
+        description="The transaction ID associated with the shipment tracking to retrieve.",
+        pattern=TRANSACTION_ID_REGEX
     )
     tracking_number: str = Field(
         ...,

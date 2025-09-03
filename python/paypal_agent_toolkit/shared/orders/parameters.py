@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, HttpUrl, validator, field_validator, ConfigDict, constr
 from typing import List, Literal, Optional
-
+from ..regex import ORDER_ID_REGEX
 
 
 class ItemDetails(BaseModel):
@@ -98,8 +98,8 @@ class CreateOrderParameters(BaseModel):
 
 
 class OrderIdParameters(BaseModel):
-    order_id: str
+    order_id: str = Field(..., pattern=ORDER_ID_REGEX)
 
 class CaptureOrderParameters(BaseModel):
-    order_id: str
+    order_id: str = Field(..., pattern=ORDER_ID_REGEX)
     
