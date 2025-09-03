@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, HttpUrl, validator, field_validator, ConfigDict, constr
 from typing import List, Literal, Optional
+from ..regex import SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX
 
 
 class CreateProductParameters(BaseModel):
@@ -11,12 +12,13 @@ class CreateProductParameters(BaseModel):
     home_url: Optional[HttpUrl] = None  # Ensures valid URL
 
 class ListProductsParameters(BaseModel):
-    page: Optional[int] = None
-    page_size: Optional[int] = None
-    total_required: Optional[bool] = None
+    page: Optional[int] = Field(1, ge =1, le=100000, description="The page number of the result set to fetch.")
+    page_size: Optional[int] = Field(100, ge=1, le=20, description="The number of records to return per page (maximum 100).")
+    total_required: Optional[bool] = Field(None, description="Indicates whether the response should include the total count of items.")
 
 class ShowProductDetailsParameters(BaseModel):
-    product_id: str
+    product_id: str = Field(..., pattern=PRODUCT_ID_REGEX)
+    
 
 # Frequency Schema
 class FrequencySchema(BaseModel):
@@ -59,7 +61,7 @@ class TaxesSchema(BaseModel):
 
 # Create Subscription Plan Parameters
 class CreateSubscriptionPlanParameters(BaseModel):
-    product_id: str = Field(..., description="The ID of the product for which to create the plan.")
+    product_id: str = Field(..., description="The ID of the product for which to create the plan.", pattern=PRODUCT_ID_REGEX)
     name: str = Field(..., description="The subscription plan name.")
     description: Optional[str] = Field(None, description="The subscription plan description.")
     billing_cycles: List[BillingCycleSchema] = Field(..., description="The billing cycles of the plan.")
@@ -68,14 +70,14 @@ class CreateSubscriptionPlanParameters(BaseModel):
 
 # List Subscription Plans Parameters
 class ListSubscriptionPlansParameters(BaseModel):
-    product_id: Optional[str] = Field(None, description="The ID of the product for which to get subscription plans.")
-    page: Optional[int] = Field(None, description="The page number of the result set to fetch.")
-    page_size: Optional[int] = Field(None, description="The number of records to return per page (maximum 100).")
-    total_required: Optional[bool] = Field(None, description="Indicates whether the response should include the total count of plans.")
+    product_id: Optional[str] = Field(None, description="The ID of the product for which to get subscription plans.", pattern=PRODUCT_ID_REGEX)
+    page: Optional[int] = Field(1, ge =1, le=100000, description="The page number of the result set to fetch.")
+    page_size: Optional[int] = Field(100, ge=1, le=20, description="The number of records to return per page (maximum 100).")
+    total_required: Optional[bool] = Field(None, description="Indicates whether the response should include the total count of items.")
 
 # Show Subscription Plan Details Parameters
 class ShowSubscriptionPlanDetailsParameters(BaseModel):
-    plan_id: str = Field(..., description="The ID of the subscription plan to show.")
+    plan_id: str = Field(..., description="The ID of the subscription plan to show.", pattern=PLAN_ID_REGEX)
 
 # Name Schema
 class NameSchema(BaseModel):
@@ -124,7 +126,7 @@ class ApplicationContextSchema(BaseModel):
 
 # Create Subscription Parameters
 class CreateSubscriptionParameters(BaseModel):
-    plan_id: str = Field(..., description="The ID of the subscription plan to create.")
+    plan_id: str = Field(..., description="The ID of the subscription plan to create.", pattern=PLAN_ID_REGEX)
     quantity: Optional[int] = Field(None, description="The quantity of the product in the subscription.")
     shipping_amount: Optional[ShippingAmountSchema] = Field(None, description="The shipping amount for the subscription.")
     subscriber: Optional[SubscriberSchema] = Field(None, description="The subscriber details.")
@@ -132,13 +134,13 @@ class CreateSubscriptionParameters(BaseModel):
 
 # Show Subscription Details Parameters
 class ShowSubscriptionDetailsParameters(BaseModel):
-    subscription_id: str = Field(..., description="The ID of the subscription to show details.")
+    subscription_id: str = Field(..., description="The ID of the subscription to show details.", pattern=SUBSCRIPTION_ID_REGEX)
 
 class Reason(BaseModel):
     reason: str = Field(..., description="Reason for Cancellation.")
 
 # Cancel Subscription Parameters
 class CancelSubscriptionParameters(BaseModel):
-    subscription_id: str = Field(..., description="The ID of the subscription to cancel.")
+    subscription_id: str = Field(..., description="The ID of the subscription to cancel.", pattern=SUBSCRIPTION_ID_REGEX)
     payload: Reason = Field(..., description="Reason for cancellation.")
 

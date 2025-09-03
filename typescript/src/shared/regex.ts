@@ -6,3 +6,4 @@ export const PLAN_ID_REGEX = /^[A-Za-z0-9_-]{12,32}$/;
 export const DISPUTE_ID_REGEX = /^[A-Za-z0-9_-]{1,255}$/;
 export const REFUND_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
 export const CAPTURE_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
+export const TRANSACTION_ID_REGEX = /^[A-Za-z0-9_-]{12,255}$/;

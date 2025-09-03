@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
 import {subscriptionKeys} from "./constants";
-import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX} from "./regex"
+import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX} from "./regex"
 
 // === INVOICE PARAMETERS ===
 const invoiceItem = z.object({
@@ -98,7 +98,7 @@ export const createShipmentParameters = (context: Context) =>
   z.object({
     order_id: z.string().regex(ORDER_ID_REGEX, "Invalid PayPal Order ID").describe('The ID of the order for which to create a shipment').optional(),
     tracking_number: z.string().describe('The tracking number for the shipment. Id is provided by the shipper. This is required to create a shipment.'),
-    transaction_id: z.string().describe('The transaction ID associated with the shipment. Transaction id available after the order is paid or captured. This is required to create a shipment.'),
+    transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Transaction ID").describe('The transaction ID associated with the shipment. Transaction id available after the order is paid or captured. This is required to create a shipment.'),
     status: z.string().optional().describe('The status of the shipment. It can be "ON_HOLD", "SHIPPED", "DELIVERED", or "CANCELLED".').default("SHIPPED"),
     carrier: z.string().optional().describe('The carrier handling the shipment.'),
   });
@@ -106,12 +106,12 @@ export const createShipmentParameters = (context: Context) =>
 export const getShipmentTrackingParameters = (context: Context) =>
   z.object({
     order_id: z.string().regex(ORDER_ID_REGEX, "Invalid PayPal Order ID").describe('The ID of the order for which to create a shipment.').optional(),
-    transaction_id: z.string().describe('The transaction ID associated with the shipment tracking to retrieve.').optional(),
+    transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Transaction ID").describe('The transaction ID associated with the shipment tracking to retrieve.').optional(),
   });
 
 export const updateShipmentTrackingParameters = (context: Context) =>
   z.object({
-    transaction_id: z.string().describe('The transaction ID associated with the shipment tracking to retrieve.'),
+    transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Transaction ID").describe('The transaction ID associated with the shipment tracking to retrieve.'),
     tracking_number: z.string().describe('The tracking number that you want to update.'),
     new_tracking_number: z.string().describe('The new tracking number for the shipment if being updated.').optional(),
     status: z.string().describe('The status of the item shipment. It can be "CANCELLED", "DELIVERED", "LOCAL_PICKUP", "ON_HOLD", or "SHIPPED".'),
@@ -166,7 +166,7 @@ export const captureOrderParameters = (context: Context) => z.object({
 // === Disputes Parameters ===
 
 export const listDisputesParameters = (context: Context) => z.object({
-  disputed_transaction_id: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal Dispute ID").nullable().default(null),
+  disputed_transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Dispute ID").nullable().default(null),
   dispute_state: z.enum([
     "REQUIRED_ACTION",
     "REQUIRED_OTHER_PARTY_ACTION",
@@ -190,7 +190,7 @@ export const acceptDisputeClaimParameters = (context: Context) => z.object({
 // === Transaction Search ===
 
 export const listTransactionsParameters = (context: Context) => z.object({
-  transaction_id: z.string().optional().describe('The ID of the transaction to retrieve.').nullable().default(null),
+  transaction_id: z.string().regex(TRANSACTION_ID_REGEX, "Invalid PayPal Transaction ID").optional().describe('The ID of the transaction to retrieve.').nullable().default(null),
   transaction_status: z.enum([
     "D",
     "P",
