@@ -1,6 +1,6 @@
 {
   "name": "@paypal/mcp",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "A command line tool for setting up PayPal MCP server",
   "bin": "dist/index.js",
   "files": [
