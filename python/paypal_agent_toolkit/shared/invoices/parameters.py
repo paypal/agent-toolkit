@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
-
+from ..regex import INVOICE_ID_REGEX
 
 class UnitAmount(BaseModel):
     currency_code: str = Field(..., description="Currency code of the unit amount")
@@ -57,37 +57,37 @@ class CreateInvoiceParameters(BaseModel):
     items: Optional[List[InvoiceItem]] = Field(None, description="Array of invoice line items")
 
 class GetInvoiceParameters(BaseModel):
-    invoice_id: str = Field(..., description="The ID of the invoice to retrieve.")
+    invoice_id: str = Field(..., description="The ID of the invoice to retrieve.", pattern=INVOICE_ID_REGEX)
 
 
 class ListInvoicesParameters(BaseModel):
-    page: Optional[int] = Field(1, description="The page number of the result set to fetch.")
+    page: Optional[int] = Field(1, ge =1, le=1000, description="The page number of the result set to fetch.")
     page_size: Optional[int] = Field(100, ge=1, le=100, description="The number of records to return per page (maximum 100).")
     total_required: Optional[bool] = Field(None, description="Indicates whether the response should include the total count of items.")
 
 
 class SendInvoiceParameters(BaseModel):
-    invoice_id: str = Field(..., description="The ID of the invoice to send.")
+    invoice_id: str = Field(..., description="The ID of the invoice to send.", pattern=INVOICE_ID_REGEX)
     note: Optional[str] = Field(None, description="A note to the recipient.")
     send_to_recipient: Optional[bool] = Field(None, description="Indicates whether to send the invoice to the recipient.")
     additional_recipients: Optional[List[str]] = Field(None, description="Additional email addresses to which to send the invoice.")
 
 
 class SendInvoiceReminderParameters(BaseModel):
-    invoice_id: str = Field(..., description="The ID of the invoice for which to send a reminder.")
+    invoice_id: str = Field(..., description="The ID of the invoice for which to send a reminder.", pattern=INVOICE_ID_REGEX)
     subject: Optional[str] = Field(None, description="The subject of the reminder email.")
     note: Optional[str] = Field(None, description="A note to the recipient.")
     additional_recipients: Optional[List[str]] = Field(None, description="Additional email addresses to which to send the reminder.")
 
 
 class CancelSentInvoiceParameters(BaseModel):
-    invoice_id: str = Field(..., description="The ID of the invoice to cancel.")
+    invoice_id: str = Field(..., description="The ID of the invoice to cancel.", pattern=INVOICE_ID_REGEX)
     note: Optional[str] = Field(None, description="A cancellation note to the recipient.")
     send_to_recipient: Optional[bool] = Field(None, description="Indicates whether to send the cancellation to the recipient.")
     additional_recipients: Optional[List[str]] = Field(None, description="Additional email addresses to which to send the cancellation.")
 
 
 class GenerateInvoiceQrCodeParameters(BaseModel):
-    invoice_id: str = Field(..., description="The invoice id to generate QR code for")
+    invoice_id: str = Field(..., description="The invoice id to generate QR code for", pattern=INVOICE_ID_REGEX)
     width: int = Field(300, description="The QR code width")
     height: int = Field(300, description="The QR code height")

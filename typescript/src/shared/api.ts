@@ -33,6 +33,7 @@ import {
 
 import type { Context } from './configuration';
 import PayPalClient from './client';
+import {LlmError} from "./llmError"
 
 class PayPalAPI {
   paypalClient: PayPalClient;
@@ -64,6 +65,10 @@ class PayPalAPI {
       const output = await this.executeMethod(method, arg);
       return JSON.stringify(output);
     } catch (error: any) {
+
+      if (error instanceof LlmError) {
+        return JSON.stringify(error);
+      }
       const errorMessage = error.message || 'Unknown error';
       return JSON.stringify({
         error: {
