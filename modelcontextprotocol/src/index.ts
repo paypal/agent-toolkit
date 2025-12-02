@@ -50,6 +50,11 @@ const ACCEPTED_TOOLS = [
   'transactions.list',
   'payments.createRefund',
   'payments.getRefunds',
+  'paymentLinks.create',
+  'paymentLinks.list',
+  'paymentLinks.get',
+  'paymentLinks.update',
+  'paymentLinks.delete',
 ];
 
 export function parseArgs(args: string[]): Options {

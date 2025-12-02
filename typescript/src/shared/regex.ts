@@ -7,3 +7,4 @@ export const DISPUTE_ID_REGEX = /^[A-Za-z0-9_-]{1,255}$/;
 export const REFUND_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
 export const CAPTURE_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
 export const TRANSACTION_ID_REGEX = /^[A-Za-z0-9_-]{12,255}$/;
+export const PAYMENT_LINK_ID_REGEX = /^PLB-[A-Z0-9]{12,16}$/;

@@ -45,6 +45,14 @@ from ..shared.insights.prompts import (
     GET_MERCHANT_INSIGHTS_PROMPT
 )
 
+from ..shared.payment_links.prompts import (
+    CREATE_PAYMENT_LINK_PROMPT,
+    LIST_PAYMENT_LINKS_PROMPT,
+    GET_PAYMENT_LINK_PROMPT,
+    UPDATE_PAYMENT_LINK_PROMPT,
+    DELETE_PAYMENT_LINK_PROMPT
+)
+
 from ..shared.orders.parameters import (
     
     CreateOrderParameters,
@@ -94,6 +102,14 @@ from ..shared.insights.parameters import (
     GetMerchantInsightsParameters
 )
 
+from ..shared.payment_links.parameters import (
+    CreatePaymentLinkParameters,
+    ListPaymentLinksParameters,
+    GetPaymentLinkParameters,
+    UpdatePaymentLinkParameters,
+    DeletePaymentLinkParameters
+)
+
 from ..shared.orders.tool_handlers import (
     create_order,
     capture_order,
@@ -141,6 +157,14 @@ from ..shared.transactions.tool_handlers import (
 
 from ..shared.insights.tool_handlers import (
     get_merchant_insights
+)
+
+from ..shared.payment_links.tool_handlers import (
+    create_payment_link,
+    list_payment_links,
+    get_payment_link,
+    update_payment_link,
+    delete_payment_link
 )
 
 from pydantic import BaseModel
@@ -361,5 +385,45 @@ tools = [
         "args_schema": GetMerchantInsightsParameters,
         "actions": {"insights": {"get": True}},
         "execute": get_merchant_insights,
+    },
+    {
+        "method": "create_payment_link",
+        "name": "Create Payment Link",
+        "description": CREATE_PAYMENT_LINK_PROMPT.strip(),
+        "args_schema": CreatePaymentLinkParameters,
+        "actions": {"paymentLinks": {"create": True}},
+        "execute": create_payment_link,
+    },
+    {
+        "method": "list_payment_links",
+        "name": "List Payment Links",
+        "description": LIST_PAYMENT_LINKS_PROMPT.strip(),
+        "args_schema": ListPaymentLinksParameters,
+        "actions": {"paymentLinks": {"list": True}},
+        "execute": list_payment_links,
+    },
+    {
+        "method": "get_payment_link",
+        "name": "Get Payment Link",
+        "description": GET_PAYMENT_LINK_PROMPT.strip(),
+        "args_schema": GetPaymentLinkParameters,
+        "actions": {"paymentLinks": {"get": True}},
+        "execute": get_payment_link,
+    },
+    {
+        "method": "update_payment_link",
+        "name": "Update Payment Link",
+        "description": UPDATE_PAYMENT_LINK_PROMPT.strip(),
+        "args_schema": UpdatePaymentLinkParameters,
+        "actions": {"paymentLinks": {"update": True}},
+        "execute": update_payment_link,
+    },
+    {
+        "method": "delete_payment_link",
+        "name": "Delete Payment Link",
+        "description": DELETE_PAYMENT_LINK_PROMPT.strip(),
+        "args_schema": DeletePaymentLinkParameters,
+        "actions": {"paymentLinks": {"delete": True}},
+        "execute": delete_payment_link,
     }
 ]

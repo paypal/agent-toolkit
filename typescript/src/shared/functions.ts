@@ -31,7 +31,12 @@ import {
   createRefundParameters,
   updateSubscriptionParameters,
   updatePlanParameters,
-  getMerchantInsightsParameters
+  getMerchantInsightsParameters,
+  createPaymentLinkParameters,
+  listPaymentLinksParameters,
+  getPaymentLinkParameters,
+  updatePaymentLinkParameters,
+  deletePaymentLinkParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -1031,6 +1036,173 @@ export async function getMerchantInsights(
     return response.data;
   } catch (error: any) {
     logger('[updatePlan] Error retrieving insights:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+// === PAYMENT LINK FUNCTIONS ===
+
+export async function createPaymentLink(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createPaymentLinkParameters>>
+): Promise<any> {
+  logger('[createPaymentLink] Starting payment link creation process');
+  logger('[createPaymentLink] Request params received:', JSON.stringify(params, null, 2));
+  
+  // Ensure required fields have defaults
+  const payload = {
+    integration_mode: params.integration_mode || 'LINK',
+    type: params.type,
+    reusable: params.reusable || 'MULTIPLE',
+    line_items: params.line_items,
+    ...(params.return_url && { return_url: params.return_url }),
+  };
+  
+  logger('[createPaymentLink] Final payload to send:', JSON.stringify(payload, null, 2));
+
+  const headers = await client.getHeaders();
+
+  // PayPal Payment Links API requires PayPal-Request-Id header for idempotency
+  // Generate a unique request ID if not already set in context
+  if (!headers['PayPal-Request-Id']) {
+    headers['PayPal-Request-Id'] = Date.now().toString();
+  }
+
+  logger('[createPaymentLink] Headers obtained');
+  logger('[createPaymentLink] PayPal-Request-Id:', headers['PayPal-Request-Id']);
+
+  const url = `${client.getBaseUrl()}/v1/checkout/payment-resources`;
+  logger(`[createPaymentLink] API URL: ${url}`);
+
+  try {
+    logger('[createPaymentLink] Sending request to PayPal API');
+    const response = await axios.post(url, payload, { headers });
+    logger(`[createPaymentLink] Payment link created successfully. Status: ${response.status}`);
+    logger(`[createPaymentLink] Payment link ID: ${response.data.id || 'N/A'}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createPaymentLink] Error creating payment link:', error.message);
+    if (error.response) {
+      logger('[createPaymentLink] Error response data:', JSON.stringify(error.response.data, null, 2));
+    }
+    handleAxiosError(error);
+  }
+}
+
+// === LIST PAYMENT LINKS ===
+export async function listPaymentLinks(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof listPaymentLinksParameters>>
+): Promise<any> {
+  logger('[listPaymentLinks] Starting payment links list process');
+
+  const headers = await client.getHeaders();
+  const url = `${client.getBaseUrl()}/v1/checkout/payment-resources`;
+
+  try {
+    logger('[listPaymentLinks] Sending request to PayPal API');
+    const response = await axios.get(url, { headers, params });
+    logger(`[listPaymentLinks] Payment links retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[listPaymentLinks] Error listing payment links:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+// === GET PAYMENT LINK ===
+export async function getPaymentLink(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getPaymentLinkParameters>>
+): Promise<any> {
+  logger('[getPaymentLink] Starting payment link retrieval process');
+  logger(`[getPaymentLink] Payment Link ID: ${params.payment_link_id}`);
+
+  const headers = await client.getHeaders();
+  const url = `${client.getBaseUrl()}/v1/checkout/payment-resources/${params.payment_link_id}`;
+
+  try {
+    logger('[getPaymentLink] Sending request to PayPal API');
+    const response = await axios.get(url, { headers });
+    logger(`[getPaymentLink] Payment link retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getPaymentLink] Error getting payment link:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+// === UPDATE PAYMENT LINK (PUT - Full Replacement) ===
+export async function updatePaymentLink(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updatePaymentLinkParameters>>
+): Promise<any> {
+  logger('[updatePaymentLink] Starting payment link update process');
+  logger('[updatePaymentLink] Request params received:', JSON.stringify(params, null, 2));
+
+  const { payment_link_id, ...updateData } = params;
+
+  // Ensure required fields have defaults (same as create)
+  const payload = {
+    integration_mode: updateData.integration_mode || 'LINK',
+    type: updateData.type,
+    reusable: updateData.reusable || 'MULTIPLE',
+    line_items: updateData.line_items,
+    ...(updateData.return_url && { return_url: updateData.return_url }),
+  };
+
+  logger('[updatePaymentLink] Final payload to send:', JSON.stringify(payload, null, 2));
+
+  const headers = await client.getHeaders();
+  const url = `${client.getBaseUrl()}/v1/checkout/payment-resources/${payment_link_id}`;
+
+  try {
+    logger('[updatePaymentLink] Sending PUT request to PayPal API');
+    const response = await axios.put(url, payload, { headers });
+    logger(`[updatePaymentLink] Payment link updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updatePaymentLink] Error updating payment link:', error.message);
+    if (error.response) {
+      logger('[updatePaymentLink] Error response data:', JSON.stringify(error.response.data, null, 2));
+    }
+    handleAxiosError(error);
+  }
+}
+
+// === DELETE PAYMENT LINK ===
+export async function deletePaymentLink(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof deletePaymentLinkParameters>>
+): Promise<any> {
+  logger('[deletePaymentLink] Starting payment link deletion process');
+  logger(`[deletePaymentLink] Payment Link ID: ${params.payment_link_id}`);
+
+  const headers = await client.getHeaders();
+  const url = `${client.getBaseUrl()}/v1/checkout/payment-resources/${params.payment_link_id}`;
+
+  try {
+    logger('[deletePaymentLink] Sending DELETE request to PayPal API');
+    const response = await axios.delete(url, { headers });
+
+    // DELETE operations often return 204 No Content
+    if (response.status === 204) {
+      logger(`[deletePaymentLink] Payment link deleted successfully. Status: ${response.status}`);
+      return { success: true, payment_link_id: params.payment_link_id };
+    }
+
+    logger(`[deletePaymentLink] Payment link deleted successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[deletePaymentLink] Error deleting payment link:', error.message);
+    if (error.response) {
+      logger('[deletePaymentLink] Error response data:', JSON.stringify(error.response.data, null, 2));
+    }
     handleAxiosError(error);
   }
 }

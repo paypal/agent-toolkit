@@ -59,6 +59,14 @@ The PayPal Agent toolkit provides the following tools:
 - `list_transactions`: List transactions with optional pagination and filtering
 - `get_merchant_insights`: Retrieve business intelligence metrics and analytics for a merchant
 
+**Payment Links**
+
+- `create_payment_link`: Create a shareable payment link for products or services
+- `list_payment_links`: List all payment links with pagination
+- `get_payment_link`: Retrieve details of a specific payment link
+- `update_payment_link`: Update an existing payment link (full replacement)
+- `delete_payment_link`: Permanently delete a payment link
+
 ## TypeScript
 
 ### Installation
