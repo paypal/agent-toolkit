@@ -28,7 +28,12 @@ import {
   createRefund,
   getRefund,
   updateSubscription,
-  getMerchantInsights
+  getMerchantInsights,
+  createPaymentLink,
+  listPaymentLinks,
+  getPaymentLink,
+  updatePaymentLink,
+  deletePaymentLink
 } from './functions';
 
 import type { Context } from './configuration';
@@ -147,6 +152,16 @@ class PayPalAPI {
         return getRefund(this.paypalClient, this.context, arg);
       case 'get_merchant_insights':
         return getMerchantInsights(this.paypalClient, this.context, arg);
+      case 'create_payment_link':
+        return createPaymentLink(this.paypalClient, this.context, arg);
+      case 'list_payment_links':
+        return listPaymentLinks(this.paypalClient, this.context, arg);
+      case 'get_payment_link':
+        return getPaymentLink(this.paypalClient, this.context, arg);
+      case 'update_payment_link':
+        return updatePaymentLink(this.paypalClient, this.context, arg);
+      case 'delete_payment_link':
+        return deletePaymentLink(this.paypalClient, this.context, arg);
       default:
         throw new Error(`Invalid method: ${method}`);
     }

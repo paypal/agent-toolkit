@@ -32,7 +32,12 @@ import {
   updateSubscriptionPrompt,
   getRefundPrompt,
   createRefundPrompt,
-  getMerchantInsightsPrompt
+  getMerchantInsightsPrompt,
+  createPaymentLinkPrompt,
+  listPaymentLinksPrompt,
+  getPaymentLinkPrompt,
+  updatePaymentLinkPrompt,
+  deletePaymentLinkPrompt
 } from './prompts';
 
 import {
@@ -67,7 +72,12 @@ import {
   updateSubscriptionParameters,
   getRefundParameters,
   createRefundParameters,
-  getMerchantInsightsParameters
+  getMerchantInsightsParameters,
+  createPaymentLinkParameters,
+  listPaymentLinksParameters,
+  getPaymentLinkParameters,
+  updatePaymentLinkParameters,
+  deletePaymentLinkParameters
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -434,6 +444,61 @@ const tools = (context: Context): Tool[] => [
     actions: {
       insights: {
         get: true,
+      }
+    }
+  },
+  {
+    method: 'create_payment_link',
+    name: 'Create Payment Link',
+    description: createPaymentLinkPrompt(context),
+    parameters: createPaymentLinkParameters(context),
+    actions: {
+      paymentLinks: {
+        create: true,
+      }
+    }
+  },
+  {
+    method: 'list_payment_links',
+    name: 'List Payment Links',
+    description: listPaymentLinksPrompt(context),
+    parameters: listPaymentLinksParameters(context),
+    actions: {
+      paymentLinks: {
+        list: true,
+      }
+    }
+  },
+  {
+    method: 'get_payment_link',
+    name: 'Get Payment Link',
+    description: getPaymentLinkPrompt(context),
+    parameters: getPaymentLinkParameters(context),
+    actions: {
+      paymentLinks: {
+        get: true,
+      }
+    }
+  },
+  {
+    method: 'update_payment_link',
+    name: 'Update Payment Link',
+    description: updatePaymentLinkPrompt(context),
+    parameters: updatePaymentLinkParameters(context),
+    actions: {
+      paymentLinks: {
+        update: true,
+      }
+    }
+  },
+  {
+    method: 'delete_payment_link',
+    name: 'Delete Payment Link',
+    description: deletePaymentLinkPrompt(context),
+    parameters: deletePaymentLinkParameters(context),
+    actions: {
+      paymentLinks: {
+        delete: true,
       }
     }
   }
