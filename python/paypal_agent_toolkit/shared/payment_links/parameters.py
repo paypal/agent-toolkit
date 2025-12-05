@@ -64,8 +64,8 @@ class CreatePaymentLinkParameters(BaseModel):
     integration_mode: str = Field(default="LINK", description="The integration mode for the payment link. Default and recommended: 'LINK'. This determines how the payment link is presented.")
     type: str = Field(..., description="The type of payment link. Use 'BUY_NOW' for standard e-commerce purchases (fully supported).")
     reusable: Literal['MULTIPLE'] = Field(default="MULTIPLE", description="Determines link reusability. For BUY_NOW type, must be set to 'MULTIPLE' to enable sharing and multiple uses across different customers.")
-    return_url: Optional[str] = Field(None, description="Optional URL to redirect customers after successful payment. Example: 'https://yoursite.com/thank-you'. If omitted, customers will stay in PayPal default success page")
-    line_items: List[LineItem] = Field(..., min_items=1, description="AArray of products/services in this payment link. Currently supports exactly 1 item. Each item represents a product with pricing, taxes, shipping, and optional variants.")
+    return_url: Optional[str] = Field(None, description="Optional URL to redirect customers after successful payment. Example: 'https://yoursite.com/thank-you'. If omitted, customers will stay on the PayPal default success page")
+    line_items: List[LineItem] = Field(..., min_items=1, description="Array of products/services in this payment link. Currently supports exactly 1 item. Each item represents a product with pricing, taxes, shipping, and optional variants.")
 
 
 class ListPaymentLinksParameters(BaseModel):
