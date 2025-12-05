@@ -63,9 +63,9 @@ PAYMENT_LINK_ID_REGEX = r"^PLB-[A-Z0-9]{12,16}$"
 class CreatePaymentLinkParameters(BaseModel):
     integration_mode: str = Field(default="LINK", description="The integration mode for the payment link. Default and recommended: 'LINK'. This determines how the payment link is presented.")
     type: str = Field(..., description="The type of payment link. Use 'BUY_NOW' for standard e-commerce purchases (fully supported).")
-    reusable: Literal['MULTIPLE'] = Field(default="MULTIPLE", description="Whether the link can be used multiple times. Set to 'MULTIPLE' (only supported value for BUY_NOW type). The link can be shared with and used by multiple customers.")
-    return_url: Optional[str] = Field(None, description="Optional URL to redirect customers after successful payment. Example: 'https://yoursite.com/thank-you'. If omitted, customers stay at PayPal default success page.")
-    line_items: List[LineItem] = Field(..., min_items=1, description="Array of products/services in this payment link (minimum 1 item required). Each item represents a product with pricing, taxes, shipping, and optional variants.")
+    reusable: Literal['MULTIPLE'] = Field(default="MULTIPLE", description="Determines link reusability. For BUY_NOW type, must be set to 'MULTIPLE' to enable sharing and multiple uses across different customers.")
+    return_url: Optional[str] = Field(None, description="Optional URL to redirect customers after successful payment. Example: 'https://yoursite.com/thank-you'. If omitted, customers will stay in PayPal default success page")
+    line_items: List[LineItem] = Field(..., min_items=1, description="AArray of products/services in this payment link. Currently supports exactly 1 item. Each item represents a product with pricing, taxes, shipping, and optional variants.")
 
 
 class ListPaymentLinksParameters(BaseModel):
@@ -85,7 +85,7 @@ class UpdatePaymentLinkParameters(BaseModel):
     payment_link_id: str = Field(..., pattern=PAYMENT_LINK_ID_REGEX, description="The PayPal Payment Link ID to update. Format: PLB-XXXXXXXXXXXX (PLB- prefix followed by 12-16 alphanumeric characters). Example: 'PLB-1A2B3C4D5E6F'")
     integration_mode: str = Field(default="LINK", description="The integration mode for the payment link. Default and recommended: 'LINK'.")
     type: str = Field(..., description="The type of payment link. Use 'BUY_NOW' for standard e-commerce purchases (fully supported). Note: 'DONATION' type has limited support and may cause validation errors.")
-    reusable: Literal['MULTIPLE'] = Field(default="MULTIPLE", description="Whether the link can be used multiple times. Set to 'MULTIPLE' (only supported value for BUY_NOW type). The link can be shared with and used by multiple customers.")
+    reusable: Literal['MULTIPLE'] = Field(default="MULTIPLE", description="Determines link reusability. For BUY_NOW type, must be set to 'MULTIPLE' to enable sharing and multiple uses across different customers.")
     return_url: Optional[str] = Field(None, description="Optional URL to redirect customers after successful payment. Updates the return URL for this payment link.")
     line_items: List[LineItem] = Field(..., min_items=1, description="Complete array of line items for the payment link. This is a full replacement - all items must be provided, not just changes.")
 
