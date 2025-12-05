@@ -459,15 +459,14 @@ const paymentLinkLineItem = z.object({
   }).optional().describe('Product variants configuration for size, color, material, etc. IMPORTANT: If variants have unit_amount in options, do NOT include product-level unit_amount (causes validation error). If variants have NO pricing, product-level unit_amount is REQUIRED.'),
   adjustable_quantity: z.object({
     maximum: z.number().int().min(1).max(100).describe('Maximum quantity customers can select (1-100). Use 1 for limited edition items, higher values for bulk products. Examples: 1 for unique items, 10 for regular products, 100 for wholesale.'),
-  }).optional().describe('Enables quantity selection during checkout. Customers can choose from 1 up to the maximum. Useful for allowing bulk purchases or limiting quantities for special items.'),
-  return_url: z.string().optional().describe('The URL to redirect to after payment completion')
+  }).optional().describe('Enables quantity selection during checkout. Customers can choose from 1 up to the maximum. Useful for allowing bulk purchases or limiting quantities for special items.')
 }).describe('Payment link line item');
 
 export const createPaymentLinkParameters = (context: Context) => z.object({
   integration_mode: z.string().optional().default('LINK').describe('The integration mode for the payment link. Default and recommended: "LINK". This determines how the payment link is presented.'),
   type: z.string().describe('The type of payment link. Use "BUY_NOW" for standard e-commerce purchases (fully supported). Note: "DONATION" type has limited support and may cause validation errors.'),
   reusable: z.literal('MULTIPLE').optional().default('MULTIPLE').describe('Determines link reusability. For BUY_NOW type, must be set to "MULTIPLE" to enable sharing and multiple uses across different customers.'),
-  return_url: z.string().optional().describe('Optional URL to redirect customers after successful payment. Example: "https://yoursite.com/thank-you". If omitted, customers will stay in PayPal default success page'),
+  return_url: z.string().optional().describe('Optional URL to redirect customers after successful payment. Example: "https://yoursite.com/thank-you". If omitted, customers will stay on the PayPal default success page'),
   line_items: z.array(paymentLinkLineItem).min(1).describe('Array of products/services in this payment link. Currently supports exactly 1 item. Each item represents a product with pricing, taxes, shipping, and optional variants.'),
 }).describe('Parameters for creating a new PayPal payment link')
 
