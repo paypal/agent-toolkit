@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
 import {subscriptionKeys} from "./constants";
-import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX} from "./regex"
+import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX, PAYMENT_LINK_ID_REGEX} from "./regex"
 
 // === INVOICE PARAMETERS ===
 const invoiceItem = z.object({
@@ -423,6 +423,74 @@ export const getMerchantInsightsParameters = (context: Context) => z.object({
   end_date: z.string().describe('The end date range to filter insights'),
   insight_type: z.string().describe('The type of insight to retrieve. It can be "ORDERS" or "SALES"'),
   time_interval: z.string().describe('The time periods used for segmenting metrics data. It can be "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", or "YEARLY"'),
+})
+
+// === PAYMENT LINK PARAMETERS ===
+
+// Shared line item schema for payment links (used by both create and update)
+const paymentLinkLineItem = z.object({
+  name: z.string().min(1).max(127).describe('The product or service name displayed to customers during checkout'),
+  product_id: z.string().min(1).max(50).optional().describe('Your internal identifier for this product or SKU'),
+  description: z.string().min(1).max(2048).optional().describe('Detailed information about the product or service shown to customers during checkout'),
+  unit_amount: z.object({
+    currency_code: z.string().length(3).describe('The three-character ISO-4217 currency code (e.g., USD, EUR, GBP, JPY, CAD, AUD). Note: JPY is a zero-decimal currency - use whole numbers without decimal points.'),
+    value: z.string().max(32).regex(/^((-?\d+)|(-?(\d+)?[.]\d+))$/).describe('The monetary value. Supports up to 3 decimal places for most currencies. For JPY, use whole numbers (e.g., "15000" not "15000.00"). Examples: "29.99", "15000", "9.995"'),
+  }).describe('The currency and amount for this line item. IMPORTANT: If using variants with pricing in options, this field should be omitted OR set to the base price. Cannot have unit_amount at both product level and variant option level.'),
+  taxes: z.array(z.object({
+    name: z.string().min(1).max(127).optional().describe('Internal label for this tax (e.g., "Sales Tax", "VAT", "GST"). Not visible to customer during checkout.'),
+    type: z.enum(['PERCENTAGE', 'PREFERENCE']).describe('Tax calculation method. PERCENTAGE: percentage of price (e.g., 8.5% tax). PREFERENCE: uses account default tax settings.'),
+    value: z.string().min(1).max(20).describe('Tax value. For PERCENTAGE: enter numeric percentage (e.g., "8.5" for 8.5% tax rate). For PREFERENCE: must be "PROFILE" to use account defaults. Maximum 20 characters.'),
+  })).max(1).optional().describe('Tax configuration for this item (maximum 1). Tax is displayed separately during checkout.'),
+  shipping: z.array(z.object({
+    type: z.enum(['FLAT', 'PREFERENCE']).describe('Shipping calculation method. FLAT: fixed amount (e.g., $9.99 flat rate). PREFERENCE: uses account default shipping settings.'),
+    value: z.string().min(1).max(20).describe('Shipping value. For FLAT: enter fixed cost (e.g., "9.99" for $9.99 shipping). For PREFERENCE: must be "PROFILE" to use account defaults. Maximum 20 characters.'),
+  })).max(1).optional().describe('Shipping configuration for this item (maximum 1). Shipping fee is displayed separately during checkout.'),
+  collect_shipping_address: z.boolean().optional().describe('Set to true to prompt customers for a shipping address during checkout. Required for physical goods that need to be shipped. Default: false'),
+  customer_notes: z.array(z.object({
+    required: z.boolean().optional().describe('When true, customer must provide input before checkout. When false, input is optional. Use for collecting gift messages, custom instructions, engraving text, etc.'),
+    label: z.string().min(1).max(127).optional().describe('The label displayed to customers for this custom input field. Examples: "Gift message", "Special instructions", "Engraving text", "Delivery notes"'),
+  })).max(1).optional().describe('Custom field to collect additional information from customers about this item (maximum 1 field per item). Useful for personalization, special requests, or delivery instructions.'),
+  variants: z.object({
+    dimensions: z.array(z.object({
+      name: z.string().min(1).max(64).describe('The name of this variant dimension. Examples: "Size", "Color", "Material", "Style". Maximum 64 characters.'),
+      primary: z.boolean().describe('IMPORTANT: Exactly ONE dimension must have primary: true, all others must be primary: false. The primary dimension typically contains the main product variation and can include pricing in options. Common pattern: Size=primary, Color=non-primary.'),
+      options: z.array(z.object({}).passthrough()).min(1).max(10).describe('Array of variant options (1-10 options). Each option can have: label (required), unit_amount (optional - only if no product-level unit_amount). Example: [{label: "Small"}, {label: "Medium"}, {label: "Large"}]'),
+    })).min(1).max(5).describe('List of variant dimensions (1-5 dimensions). Must have exactly 1 primary dimension. Additional dimensions must be non-primary. Example: Size (primary) + Color (non-primary) for t-shirts.'),
+  }).optional().describe('Product variants configuration for size, color, material, etc. IMPORTANT: If variants have unit_amount in options, do NOT include product-level unit_amount (causes validation error). If variants have NO pricing, product-level unit_amount is REQUIRED.'),
+  adjustable_quantity: z.object({
+    maximum: z.number().int().min(1).max(100).describe('Maximum quantity customers can select (1-100). Use 1 for limited edition items, higher values for bulk products. Examples: 1 for unique items, 10 for regular products, 100 for wholesale.'),
+  }).optional().describe('Enables quantity selection during checkout. Customers can choose from 1 up to the maximum. Useful for allowing bulk purchases or limiting quantities for special items.')
+}).describe('Payment link line item');
+
+export const createPaymentLinkParameters = (context: Context) => z.object({
+  integration_mode: z.string().optional().default('LINK').describe('The integration mode for the payment link. Default and recommended: "LINK". This determines how the payment link is presented.'),
+  type: z.string().describe('The type of payment link. Use "BUY_NOW" for standard e-commerce purchases.'),
+  reusable: z.literal('MULTIPLE').optional().default('MULTIPLE').describe('Determines link reusability. For BUY_NOW type, must be set to "MULTIPLE" to enable sharing and multiple uses across different customers.'),
+  return_url: z.string().optional().describe('Optional URL to redirect customers after successful payment. Example: "https://yoursite.com/thank-you". If omitted, customers will stay on the PayPal default success page'),
+  line_items: z.array(paymentLinkLineItem).min(1).describe('Array of products/services in this payment link. Currently supports exactly 1 item. Each item represents a product with pricing, taxes, shipping, and optional variants.'),
+}).describe('Parameters for creating a new PayPal payment link')
+
+export const listPaymentLinksParameters = (context: Context) => z.object({
+  page: z.number().int().min(1).max(1000).default(1).optional().describe('Page number to retrieve (1-1000). Default: 1. Use for pagination when you have many payment links.'),
+  page_size: z.number().int().min(1).max(100).default(10).optional().describe('Number of payment links per page (1-100). Default: 10. Increase for bulk operations, decrease for faster responses.'),
+  total_required: z.boolean().optional().describe('Set to true to include total count of all payment links in response. Useful for pagination UI. Default: false (faster response).'),
+})
+
+export const getPaymentLinkParameters = (context: Context) => z.object({
+  payment_link_id: z.string().regex(PAYMENT_LINK_ID_REGEX, "Invalid PayPal Payment Link ID").describe('The PayPal Payment Link ID to retrieve. Format: PLB-XXXXXXXXXXXX (PLB- prefix followed by 12-16 alphanumeric characters). Example: "PLB-1A2B3C4D5E6F"'),
+})
+
+export const updatePaymentLinkParameters = (context: Context) => z.object({
+  payment_link_id: z.string().regex(PAYMENT_LINK_ID_REGEX, "Invalid PayPal Payment Link ID").describe('The PayPal Payment Link ID to update. Format: PLB-XXXXXXXXXXXX (PLB- prefix followed by 12-16 alphanumeric characters). Example: "PLB-1A2B3C4D5E6F"'),
+  type: z.string().describe('The type of payment link. Use "BUY_NOW" for standard e-commerce purchases.'),
+  integration_mode: z.string().optional().default('LINK').describe('The integration mode for the payment link. Default and recommended: "LINK".'),
+  reusable: z.literal('MULTIPLE').optional().default('MULTIPLE').describe('Determines link reusability. For BUY_NOW type, must be set to "MULTIPLE" to enable sharing and multiple uses across different customers.'),
+  return_url: z.string().optional().describe('Optional URL to redirect customers after successful payment. Updates the return URL for this payment link.'),
+  line_items: z.array(paymentLinkLineItem).min(1).describe('Complete array of line items for the payment link. This is a full replacement - all items must be provided, not just changes.'),
+})
+
+export const deletePaymentLinkParameters = (context: Context) => z.object({
+  payment_link_id: z.string().regex(PAYMENT_LINK_ID_REGEX, "Invalid PayPal Payment Link ID").describe('The PayPal Payment Link ID to delete permanently. Format: PLB-XXXXXXXXXXXX (PLB- prefix followed by 12-16 alphanumeric characters). ⚠️ WARNING: Deletion is permanent and cannot be undone.'),
 })
 
 
