@@ -232,19 +232,12 @@ def validate_payment_link_type(payment_type: str) -> ValidationResult:
     """
     Validate payment link type
     """
-    supported_types = ['BUY_NOW', 'DONATION']
+    supported_types = ['BUY_NOW']
 
     if payment_type not in supported_types:
         return {
             "valid": False,
             "error": f'Payment link type must be one of: {", ".join(supported_types)}. Got: "{payment_type}"',
-            "field": "type"
-        }
-
-    if payment_type == 'DONATION':
-        return {
-            "valid": True,
-            "error": "Warning: DONATION type has limited support and may cause validation errors. Consider using BUY_NOW for standard transactions.",
             "field": "type"
         }
 
