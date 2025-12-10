@@ -37,9 +37,22 @@ Note: This is a full replacement operation. All fields must be provided, not jus
 """
 
 DELETE_PAYMENT_LINK_PROMPT = """
-Delete a payment link from PayPal.
+Delete a payment link created through the PayPal Pay Links & Buttons API.
 
-This function permanently deletes a payment link. Once deleted, the shareable link URL will no longer work and the operation cannot be undone. Use with caution.
+This operation deactivates the payment link so it can no longer be used by customers.
+Once deleted, the shareable link URL will stop working.
 
-Note: PayPal API may return a 500 error instead of 404 for non-existent payment link IDs. This is expected API behavior.
+### Important notes
+- Deletion removes the payment resource from active use. A deleted link cannot be used for future payments.
+- If an invalid or non-existent payment link ID is provided, the PayPal API may return a 404 Not Found error.
+- This operation does not affect completed transactions tied to the link.
+
+### Required fields
+- `id`: Unique identifier of the payment link you want to delete.
+
+### Example usage
+To delete a payment link:
+delete_payment_link(
+id="PR-1234567890"
+)
 """

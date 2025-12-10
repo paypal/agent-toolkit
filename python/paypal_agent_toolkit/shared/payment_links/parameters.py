@@ -84,7 +84,7 @@ class UpdatePaymentLinkParameters(BaseModel):
     """Parameters for updating a payment link (full replacement)"""
     payment_link_id: str = Field(..., pattern=PAYMENT_LINK_ID_REGEX, description="The PayPal Payment Link ID to update. Format: PLB-XXXXXXXXXXXX (PLB- prefix followed by 12-16 alphanumeric characters). Example: 'PLB-1A2B3C4D5E6F'")
     integration_mode: str = Field(default="LINK", description="The integration mode for the payment link. Default and recommended: 'LINK'.")
-    type: str = Field(..., description="The type of payment link. Use 'BUY_NOW' for standard e-commerce purchases (fully supported). Note: 'DONATION' type has limited support and may cause validation errors.")
+    type: str = Field(..., description="The type of payment link. Use 'BUY_NOW' for standard e-commerce purchases.")
     reusable: Literal['MULTIPLE'] = Field(default="MULTIPLE", description="Determines link reusability. For BUY_NOW type, must be set to 'MULTIPLE' to enable sharing and multiple uses across different customers.")
     return_url: Optional[str] = Field(None, description="Optional URL to redirect customers after successful payment. Updates the return URL for this payment link.")
     line_items: List[LineItem] = Field(..., min_items=1, description="Complete array of line items for the payment link. This is a full replacement - all items must be provided, not just changes.")

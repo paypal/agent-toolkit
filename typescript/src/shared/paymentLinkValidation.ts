@@ -270,20 +270,12 @@ export function validateReusableMode(reusable: string, type: string): Validation
  * Validate payment link type
  */
 export function validatePaymentLinkType(type: string): ValidationResult {
-  const supportedTypes = ['BUY_NOW', 'DONATION'];
+  const supportedTypes = ['BUY_NOW'];
 
   if (!supportedTypes.includes(type)) {
     return {
       valid: false,
       error: `Payment link type must be one of: ${supportedTypes.join(', ')}. Got: "${type}"`,
-      field: 'type'
-    };
-  }
-
-  if (type === 'DONATION') {
-    return {
-      valid: true,  // Warning, not error
-      error: 'Warning: DONATION type has limited support and may cause validation errors. Consider using BUY_NOW for standard transactions.',
       field: 'type'
     };
   }

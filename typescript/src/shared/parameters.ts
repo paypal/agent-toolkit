@@ -464,7 +464,7 @@ const paymentLinkLineItem = z.object({
 
 export const createPaymentLinkParameters = (context: Context) => z.object({
   integration_mode: z.string().optional().default('LINK').describe('The integration mode for the payment link. Default and recommended: "LINK". This determines how the payment link is presented.'),
-  type: z.string().describe('The type of payment link. Use "BUY_NOW" for standard e-commerce purchases (fully supported). Note: "DONATION" type has limited support and may cause validation errors.'),
+  type: z.string().describe('The type of payment link. Use "BUY_NOW" for standard e-commerce purchases.'),
   reusable: z.literal('MULTIPLE').optional().default('MULTIPLE').describe('Determines link reusability. For BUY_NOW type, must be set to "MULTIPLE" to enable sharing and multiple uses across different customers.'),
   return_url: z.string().optional().describe('Optional URL to redirect customers after successful payment. Example: "https://yoursite.com/thank-you". If omitted, customers will stay on the PayPal default success page'),
   line_items: z.array(paymentLinkLineItem).min(1).describe('Array of products/services in this payment link. Currently supports exactly 1 item. Each item represents a product with pricing, taxes, shipping, and optional variants.'),
@@ -482,7 +482,7 @@ export const getPaymentLinkParameters = (context: Context) => z.object({
 
 export const updatePaymentLinkParameters = (context: Context) => z.object({
   payment_link_id: z.string().regex(PAYMENT_LINK_ID_REGEX, "Invalid PayPal Payment Link ID").describe('The PayPal Payment Link ID to update. Format: PLB-XXXXXXXXXXXX (PLB- prefix followed by 12-16 alphanumeric characters). Example: "PLB-1A2B3C4D5E6F"'),
-  type: z.string().describe('The type of payment link. Use "BUY_NOW" for standard e-commerce purchases (fully supported). Note: "DONATION" type has limited support and may cause validation errors.'),
+  type: z.string().describe('The type of payment link. Use "BUY_NOW" for standard e-commerce purchases.'),
   integration_mode: z.string().optional().default('LINK').describe('The integration mode for the payment link. Default and recommended: "LINK".'),
   reusable: z.literal('MULTIPLE').optional().default('MULTIPLE').describe('Determines link reusability. For BUY_NOW type, must be set to "MULTIPLE" to enable sharing and multiple uses across different customers.'),
   return_url: z.string().optional().describe('Optional URL to redirect customers after successful payment. Updates the return URL for this payment link.'),
