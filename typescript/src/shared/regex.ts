@@ -7,3 +7,6 @@ export const DISPUTE_ID_REGEX = /^[A-Za-z0-9_-]{1,255}$/;
 export const REFUND_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
 export const CAPTURE_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
 export const TRANSACTION_ID_REGEX = /^[A-Za-z0-9_-]{12,255}$/;
+export const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
+export const DATE_NO_TIME_REGEX = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/;
+export const RECURRING_SERIES_ID_REGEX = /^RI-[A-Z0-9]{17}$/;

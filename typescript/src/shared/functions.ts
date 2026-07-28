@@ -4,6 +4,9 @@ import {
   getInvoicParameters,
   cancelSentInvoiceParameters,
   createInvoiceParameters,
+  createInvoiceWithThemeParameters,
+  createRecurringSeriesParameters,
+  activateRecurringSeriesParameters,
   createOrderParameters,
   generateInvoiceQrCodeParameters,
   getOrderParameters,
@@ -96,6 +99,64 @@ export async function createInvoice(
     }
   } catch (error: any) {
     logger('[createInvoice] Error creating invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createInvoiceWithTheme(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createInvoiceWithThemeParameters>>
+) {
+  logger('[createInvoiceWithTheme] Delegating to createInvoice with theme configuration');
+  return createInvoice(client, context, params);
+}
+
+export async function createRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createRecurringSeriesParameters>>
+) {
+  logger('[createRecurringSeries] Starting recurring series creation process');
+
+  const headers = await client.getHeaders();
+  logger('[createRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices`;
+  logger(`[createRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[createRecurringSeries] Sending request to PayPal API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[createRecurringSeries] Recurring series created successfully. Status: ${response.status}`);
+
+    return response.data;
+  } catch (error: any) {
+    logger('[createRecurringSeries] Error creating recurring series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function activateRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof activateRecurringSeriesParameters>>
+) {
+  logger('[activateRecurringSeries] Starting recurring series activation process');
+
+  const headers = await client.getHeaders();
+  logger('[activateRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${params.recurring_series_id}/activate`;
+  logger(`[activateRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[activateRecurringSeries] Sending request to PayPal API');
+    const response = await axios.post(url, {}, { headers });
+    logger(`[activateRecurringSeries] Recurring series activated successfully. Status: ${response.status}`);
+    return { recurring_series_id: params.recurring_series_id, status: response.status };
+  } catch (error: any) {
+    logger('[activateRecurringSeries] Error activating recurring series:', error.message);
     handleAxiosError(error);
   }
 }

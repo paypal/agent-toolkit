@@ -10,6 +10,8 @@ The PayPal Agent toolkit provides the following tools:
 **Invoices**
 
 - `create_invoice`: Create a new invoice in the PayPal system
+- `create_invoice_with_theme`: Create a new invoice with a custom color theme
+- `create_recurring_series`: Create a recurring invoice series that automatically generates and sends invoices on a schedule
 - `list_invoices`: List invoices with optional pagination and filtering
 - `get_invoice`: Retrieve details of a specific invoice
 - `send_invoice`: Send an invoice to recipients
@@ -90,6 +92,7 @@ const paypalToolkit = new PayPalAgentToolkit({
     actions: {
       invoices: {
         create: true,
+        createRecurringSeries: true,
         list: true,
         send: true,
         sendReminder: true,

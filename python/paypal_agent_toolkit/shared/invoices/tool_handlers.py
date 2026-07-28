@@ -6,11 +6,7 @@ from typing import Union, Dict, Any
 
 
 
-def create_invoice(client, params: dict):
-    
-    validated = CreateInvoiceParameters(**params)
-    invoice_payload = validated.model_dump()
-
+def _submit_invoice(client, invoice_payload: dict):
     url = "/v2/invoicing/invoices"
     response = client.post(uri=url, payload=invoice_payload)
 
@@ -36,6 +32,22 @@ def create_invoice(client, params: dict):
     return json.dumps(response)
 
 
+def create_invoice(client, params: dict):
+
+    validated = CreateInvoiceParameters(**params)
+    invoice_payload = validated.model_dump()
+
+    return _submit_invoice(client, invoice_payload)
+
+
+def create_invoice_with_theme(client, params: dict):
+
+    validated = CreateInvoiceWithThemeParameters(**params)
+    invoice_payload = validated.model_dump()
+
+    return _submit_invoice(client, invoice_payload)
+
+
 def send_invoice(client, params: dict):
 
     validated = SendInvoiceParameters(**params)
@@ -46,6 +58,28 @@ def send_invoice(client, params: dict):
 
     response =  client.post(uri=url, payload=payload)
     return json.dumps(response)
+
+
+def create_recurring_series(client, params: dict):
+
+    validated = CreateRecurringSeriesParameters(**params)
+    payload = validated.model_dump()
+
+    url = "/v2/invoicing/recurring-invoices"
+    response = client.post(uri=url, payload=payload)
+
+    return json.dumps(response)
+
+
+def activate_recurring_series(client, params: dict):
+
+    validated = ActivateRecurringSeriesParameters(**params)
+    recurring_series_id = validated.recurring_series_id
+
+    url = f"/v2/invoicing/recurring-invoices/{recurring_series_id}/activate"
+    client.post(uri=url, payload={})
+
+    return json.dumps({"recurring_series_id": recurring_series_id, "status": "ACTIVATED"})
 
 
 def list_invoices(client, params: dict):

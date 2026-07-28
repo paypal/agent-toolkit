@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
-from ..regex import INVOICE_ID_REGEX
+from ..regex import INVOICE_ID_REGEX, HEX_COLOR_REGEX, DATE_NO_TIME_REGEX, RECURRING_SERIES_ID_REGEX
 
 class UnitAmount(BaseModel):
     currency_code: str = Field(..., description="Currency code of the unit amount")
@@ -55,6 +55,57 @@ class CreateInvoiceParameters(BaseModel):
     invoicer: Optional[Invoicer] = Field(None, description="The invoicer business information that appears on the invoice.")
     primary_recipients: Optional[List[PrimaryRecipient]] = Field(None, description="array of recipients")
     items: Optional[List[InvoiceItem]] = Field(None, description="Array of invoice line items")
+
+
+class InvoiceTheme(BaseModel):
+    primary_color: str = Field(..., pattern=HEX_COLOR_REGEX.pattern, description="The primary color used to render the invoice, as a hex color code (e.g. #000000)")
+
+
+class InvoiceConfiguration(BaseModel):
+    theme: InvoiceTheme = Field(..., description="The invoice theme configuration")
+
+
+class CreateInvoiceWithThemeParameters(CreateInvoiceParameters):
+    configuration: InvoiceConfiguration = Field(..., description="The invoice configuration")
+
+
+class RecurringFrequency(BaseModel):
+    interval_unit: Literal["DAY", "WEEK", "MONTH", "YEAR"] = Field(..., description="The time unit for the recurring invoice cycle interval")
+    interval_count: int = Field(..., ge=1, le=52, description="The number of intervals between each recurring invoice cycle. For example, an interval_count of 2 with interval_unit of MONTH means the invoice recurs every 2 months")
+
+
+class RecurringPlanDetail(BaseModel):
+    frequency: RecurringFrequency = Field(..., description="The billing frequency that determines the time interval between successive invoice generations")
+    start_series_date: Optional[str] = Field(None, pattern=DATE_NO_TIME_REGEX.pattern, description="The date when the recurring series begins and the first invoice is generated, in yyyy-MM-DD format. Cannot be a past date. If omitted, the current date is used.")
+
+
+class RecurringSeriesDetail(BaseModel):
+    currency_code: str = Field(..., description="Currency code of the recurring invoice series")
+
+
+class RecurringBillingInfo(BaseModel):
+    email_address: str = Field(..., description="Email address of the invoice recipient")
+
+
+class RecurringPrimaryRecipient(BaseModel):
+    billing_info: RecurringBillingInfo = Field(..., description="The billing information of the invoice recipient")
+
+
+class RecurringInfo(BaseModel):
+    detail: RecurringSeriesDetail = Field(..., description="The recurring series configuration details")
+    invoicer: Optional[Invoicer] = Field(None, description="The invoicer business information that appears on the invoice.")
+    primary_recipients: List[RecurringPrimaryRecipient] = Field(..., min_length=1, max_length=1, description="The primary recipient of the recurring invoices")
+    items: List[InvoiceItem] = Field(..., min_length=1, description="The line items that will appear on each invoice in the recurring series")
+
+
+class CreateRecurringSeriesParameters(BaseModel):
+    plan_detail: RecurringPlanDetail = Field(..., description="The scheduling and recurrence configuration for the recurring series")
+    recurring_info: RecurringInfo = Field(..., description="The invoice template information used for generating each invoice in the series")
+
+
+class ActivateRecurringSeriesParameters(BaseModel):
+    recurring_series_id: str = Field(..., description="The ID of the recurring invoice series to activate.", pattern=RECURRING_SERIES_ID_REGEX.pattern)
+
 
 class GetInvoiceParameters(BaseModel):
     invoice_id: str = Field(..., description="The ID of the invoice to retrieve.", pattern=INVOICE_ID_REGEX)

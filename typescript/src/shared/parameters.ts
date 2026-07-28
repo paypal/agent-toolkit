@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
 import {subscriptionKeys} from "./constants";
-import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX} from "./regex"
+import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX, HEX_COLOR_REGEX, DATE_NO_TIME_REGEX, RECURRING_SERIES_ID_REGEX} from "./regex"
 
 // === INVOICE PARAMETERS ===
 const invoiceItem = z.object({
@@ -19,19 +19,21 @@ const invoiceItem = z.object({
 }).describe("invoice line item object");
 
 
+const invoicer = z.object({
+  business_name: z.string().max(300).describe("business name of the invoicer"),
+  name: z.object({
+    given_name: z.string().optional().describe("given name of the invoicer"),
+    surname: z.string().optional().describe("surname of the invoicer")
+  }).optional().describe("name of the invoicer"),
+  email_address: z.string().optional().describe("email address of the invoicer"),
+}).describe("The invoicer business information that appears on the invoice.");
+
 export const createInvoiceParameters = (context: Context) => z.object({
   detail: z.object({
     invoice_date: z.string().optional().describe("The invoice date in YYYY-MM-DD format"),
     currency_code: z.string().describe("currency code of the invoice"),
   }).describe("The invoice detail"),
-  invoicer: z.object({
-    business_name: z.string().max(300).describe("business name of the invoicer"),
-    name: z.object({
-      given_name: z.string().optional().describe("given name of the invoicer"),
-      surname: z.string().optional().describe("surname of the invoicer")
-    }).optional().describe("name of the invoicer"),
-    email_address: z.string().optional().describe("email address of the invoicer"),
-  }).optional().describe("The invoicer business information that appears on the invoice."),
+  invoicer: invoicer.optional(),
   primary_recipients: z.array(z.object({
     billing_info: z.object({
       name: z.object({
@@ -43,6 +45,43 @@ export const createInvoiceParameters = (context: Context) => z.object({
   })).describe("array of recipients").optional(),
   items: z.array(invoiceItem).describe("Array of invoice line items").optional(),
 }).describe("create invoice request payload");
+
+export const createInvoiceWithThemeParameters = (context: Context) =>
+  createInvoiceParameters(context).extend({
+    configuration: z.object({
+      theme: z.object({
+        primary_color: z.string().regex(HEX_COLOR_REGEX, "primary_color must be a hex color code, e.g. #000000").describe("The primary color used to render the invoice, as a hex color code (e.g. #000000)"),
+      }).describe("The invoice theme configuration"),
+    }).describe("The invoice configuration"),
+  }).describe("create invoice with theme request payload");
+
+export const createRecurringSeriesParameters = (context: Context) => z.object({
+  plan_detail: z.object({
+    frequency: z.object({
+      interval_unit: z.enum(["DAY", "WEEK", "MONTH", "YEAR"]).describe("The time unit for the recurring invoice cycle interval"),
+      interval_count: z.number().int().min(1).max(52).describe("The number of intervals between each recurring invoice cycle. For example, an interval_count of 2 with interval_unit of MONTH means the invoice recurs every 2 months"),
+    }).describe("The billing frequency that determines the time interval between successive invoice generations"),
+    start_series_date: z.string().regex(DATE_NO_TIME_REGEX, "start_series_date must be in yyyy-MM-DD format").optional().describe("The date when the recurring series begins and the first invoice is generated, in yyyy-MM-DD format. Cannot be a past date. If omitted, the current date is used."),
+  }).describe("The scheduling and recurrence configuration for the recurring series"),
+  recurring_info: z.object({
+    detail: z.object({
+      currency_code: z.string().describe("Currency code of the recurring invoice series"),
+    }).describe("The recurring series configuration details"),
+    invoicer: invoicer.optional(),
+    primary_recipients: z.array(z.object({
+      billing_info: z.object({
+        email_address: z.string().describe("Email address of the invoice recipient"),
+      }).describe("The billing information of the invoice recipient"),
+    })).min(1).max(1).describe("The primary recipient of the recurring invoices"),
+    items: z.array(invoiceItem).min(1).describe("The line items that will appear on each invoice in the recurring series"),
+  }).describe("The invoice template information used for generating each invoice in the series"),
+}).describe("create recurring invoice series request payload");
+
+export const activateRecurringSeriesParameters = (context: Context) => z.object({
+  recurring_series_id: z.string()
+    .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
+    .describe("The ID of the recurring invoice series to activate."),
+});
 
 export const getInvoicParameters = (context: Context) => z.object({
   invoice_id: z.string()
