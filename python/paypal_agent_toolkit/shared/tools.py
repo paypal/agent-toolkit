@@ -17,7 +17,6 @@ from ..shared.subscriptions.prompts import (
 
 from ..shared.invoices.prompts import (
     CREATE_INVOICE_PROMPT,
-    CREATE_INVOICE_WITH_THEME_PROMPT,
     CREATE_RECURRING_SERIES_PROMPT,
     ACTIVATE_RECURRING_SERIES_PROMPT,
     LIST_INVOICE_PROMPT,
@@ -69,7 +68,6 @@ from ..shared.subscriptions.parameters import (
 
 from ..shared.invoices.parameters import (
     CreateInvoiceParameters,
-    CreateInvoiceWithThemeParameters,
     CreateRecurringSeriesParameters,
     ActivateRecurringSeriesParameters,
     SendInvoiceParameters,
@@ -120,7 +118,6 @@ from ..shared.subscriptions.tool_handlers import (
 
 from ..shared.invoices.tool_handlers import (
     create_invoice,
-    create_invoice_with_theme,
     create_recurring_series,
     activate_recurring_series,
     send_invoice,
@@ -258,14 +255,6 @@ tools = [
         "args_schema": CreateInvoiceParameters,
         "actions": {"invoices": {"create": True}},
         "execute": create_invoice,
-    },
-    {
-        "method": "create_invoice_with_theme",
-        "name": "Create PayPal Invoice With Theme",
-        "description": CREATE_INVOICE_WITH_THEME_PROMPT.strip(),
-        "args_schema": CreateInvoiceWithThemeParameters,
-        "actions": {"invoices": {"createWithTheme": True}},
-        "execute": create_invoice_with_theme,
     },
     {
         "method": "create_recurring_series",

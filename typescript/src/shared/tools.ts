@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import {
   createInvoicePrompt,
-  createInvoiceWithThemePrompt,
   createRecurringSeriesPrompt,
   activateRecurringSeriesPrompt,
   listInvoicesPrompt,
@@ -40,7 +39,6 @@ import {
 
 import {
   createInvoiceParameters,
-  createInvoiceWithThemeParameters,
   createRecurringSeriesParameters,
   activateRecurringSeriesParameters,
   listInvoicesParameters,
@@ -99,17 +97,6 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         create: true,
-      },
-    },
-  },
-  {
-    method: 'create_invoice_with_theme',
-    name: 'Create Invoice With Theme',
-    description: createInvoiceWithThemePrompt(context),
-    parameters: createInvoiceWithThemeParameters(context),
-    actions: {
-      invoices: {
-        createWithTheme: true,
       },
     },
   },

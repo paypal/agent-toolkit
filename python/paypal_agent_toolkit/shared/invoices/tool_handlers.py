@@ -1,5 +1,6 @@
 
 from .parameters import *
+from .payload_util import build_create_invoice_payload, build_create_recurring_series_payload
 import json
 import httpx
 from typing import Union, Dict, Any
@@ -35,15 +36,7 @@ def _submit_invoice(client, invoice_payload: dict):
 def create_invoice(client, params: dict):
 
     validated = CreateInvoiceParameters(**params)
-    invoice_payload = validated.model_dump()
-
-    return _submit_invoice(client, invoice_payload)
-
-
-def create_invoice_with_theme(client, params: dict):
-
-    validated = CreateInvoiceWithThemeParameters(**params)
-    invoice_payload = validated.model_dump()
+    invoice_payload = build_create_invoice_payload(validated.model_dump(exclude_none=True))
 
     return _submit_invoice(client, invoice_payload)
 
@@ -63,7 +56,7 @@ def send_invoice(client, params: dict):
 def create_recurring_series(client, params: dict):
 
     validated = CreateRecurringSeriesParameters(**params)
-    payload = validated.model_dump()
+    payload = build_create_recurring_series_payload(validated.model_dump(exclude_none=True))
 
     url = "/v2/invoicing/recurring-invoices"
     response = client.post(uri=url, payload=payload)

@@ -4,7 +4,6 @@ import {
   getInvoicParameters,
   cancelSentInvoiceParameters,
   createInvoiceParameters,
-  createInvoiceWithThemeParameters,
   createRecurringSeriesParameters,
   activateRecurringSeriesParameters,
   createOrderParameters,
@@ -36,7 +35,7 @@ import {
   updatePlanParameters,
   getMerchantInsightsParameters
 } from "./parameters";
-import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
+import {parseOrderDetails, parseUpdateSubscriptionPayload, buildCreateInvoicePayload, buildCreateRecurringSeriesPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
 import debug from "debug";
 import PayPalClient from './client';
@@ -62,7 +61,8 @@ export async function createInvoice(
   // Make API call
   try {
     logger('[createInvoice] Sending request to PayPal API');
-    const response = await axios.post(url, params, { headers });
+    const invoicePayload = buildCreateInvoicePayload(params);
+    const response = await axios.post(url, invoicePayload, { headers });
     logger(`[createInvoice] Invoice created successfully. Status: ${response.status}`);
 
     // Check if response matches the expected format for a successful invoice creation
@@ -103,15 +103,6 @@ export async function createInvoice(
   }
 }
 
-export async function createInvoiceWithTheme(
-  client: PayPalClient,
-  context: Context,
-  params: TypeOf<ReturnType<typeof createInvoiceWithThemeParameters>>
-) {
-  logger('[createInvoiceWithTheme] Delegating to createInvoice with theme configuration');
-  return createInvoice(client, context, params);
-}
-
 export async function createRecurringSeries(
   client: PayPalClient,
   context: Context,
@@ -127,7 +118,8 @@ export async function createRecurringSeries(
 
   try {
     logger('[createRecurringSeries] Sending request to PayPal API');
-    const response = await axios.post(url, params, { headers });
+    const recurringSeriesPayload = buildCreateRecurringSeriesPayload(params);
+    const response = await axios.post(url, recurringSeriesPayload, { headers });
     logger(`[createRecurringSeries] Recurring series created successfully. Status: ${response.status}`);
 
     return response.data;
