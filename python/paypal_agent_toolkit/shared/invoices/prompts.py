@@ -39,3 +39,25 @@ Generate a QR code for an invoice.
 
 This function generates a QR code for an invoice, which can be used to pay the invoice using a mobile device or scanning app.
 """
+
+SETUP_INVOICE_AUTO_REMINDER_PROMPT = """
+Initialize the invoice auto reminder configuration for the merchant's PayPal account.
+
+This function sets up automatic reminders for unpaid invoices. It supports up to two reminder types: BEFORE_DUE (sent before the invoice due date) and AFTER_DUE (sent after the invoice due date).
+
+- If both reminder types are provided, both are created using the supplied configuration and set to ACTIVE.
+- If only one reminder type is provided, it is created as ACTIVE and the missing type is created with the default configuration set to INACTIVE.
+- If no configurations are provided, both reminder types are created with the default configuration set to INACTIVE.
+
+Default configuration: BEFORE_DUE (interval: 2 days, repetition: 1, send_to_invoicer: false), AFTER_DUE (interval: 2 days, repetition: 2, send_to_invoicer: false).
+
+Note: reminder configurations can only be initialized once per merchant account. If configurations already exist, this call fails with a 422 error.
+"""
+
+UPDATE_INVOICE_AUTO_REMINDER_PROMPT = """
+Update an existing invoice auto reminder configuration by its configuration ID.
+
+This function performs a full update of the reminder configuration's timing interval, repetition count, and notification preferences. Since this is a full update, all required fields (type, interval, repetition) must be included in the request.
+
+Note: the reminder type is immutable and cannot be changed once created. Repetition must be 1 for BEFORE_DUE reminders.
+"""

@@ -87,6 +87,42 @@ export const generateInvoiceQrCodeParameters = (context: Context) => z.object({
   height: z.number().default(300).describe("The QR code height")
 }).describe("generate invoice qr code request payload");
 
+const invoiceReminderConfiguration = z.object({
+  type: z.enum(['BEFORE_DUE', 'AFTER_DUE']).describe('The type of reminder. BEFORE_DUE sends a reminder before the invoice due date; AFTER_DUE sends a reminder after the invoice due date.'),
+  interval: z.object({
+    unit: z.literal('DAY').default('DAY').describe('The unit of time for the reminder interval. The interval unit is always DAY.'),
+    value: z.number().int().describe('The number of interval units before/after the due date at which to send the reminder.'),
+  }).describe('The interval at which to send the reminder.'),
+  repetition: z.number().int().describe('The number of times to send the reminder. Must be 1 for BEFORE_DUE reminders.'),
+  notification: z.object({
+    send_to_invoicer: z.boolean().optional().describe('Indicates whether to also notify the invoicer when the reminder is sent.'),
+  }).optional().describe('Notification settings for the reminder.'),
+}).describe('An invoice auto reminder configuration.');
+
+export const setupInvoiceAutoReminderParameters = (context: Context) =>
+  z.object({
+    configurations: z
+      .array(invoiceReminderConfiguration)
+      .optional()
+      .describe(
+        'An array of up to two invoice auto reminder configurations, one for BEFORE_DUE and one for AFTER_DUE. If omitted, both reminder types are created with the default configuration in INACTIVE state. If only one type is provided, the other is created with the default configuration in INACTIVE state.'
+      ),
+  });
+
+export const updateInvoiceAutoReminderParameters = (context: Context) =>
+  z.object({
+    reminder_configuration_id: z.string().describe('The ID of the auto reminder configuration to update.'),
+    type: z.enum(['BEFORE_DUE', 'AFTER_DUE']),
+    status: z.enum(['NONE', 'ACTIVE', 'INACTIVE']).optional().describe('Select an option.'),
+    interval: z.object({
+      value: z.number().int().describe('The number of interval units before/after the due date at which to send the reminder.'),
+    }).describe('The interval at which to send the reminder. The interval unit is always DAY.'),
+    repetition: z.number().int().describe('The number of times to send the reminder. Must be 1 for BEFORE_DUE reminders.'),
+    notification: z.object({
+      send_to_invoicer: z.boolean().optional().describe('Indicates whether to also notify the invoicer when the reminder is sent.'),
+    }).optional().describe('Notification settings for the reminder.'),
+  }).describe('Full replacement configuration for an existing invoice auto reminder. All required fields must be included since this performs a full update.');
+
 
 export const updateProductParameters = (context: Context) =>
   z.object({

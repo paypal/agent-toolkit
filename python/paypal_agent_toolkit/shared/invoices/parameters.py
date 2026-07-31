@@ -91,3 +91,41 @@ class GenerateInvoiceQrCodeParameters(BaseModel):
     invoice_id: str = Field(..., description="The invoice id to generate QR code for", pattern=INVOICE_ID_REGEX)
     width: int = Field(300, description="The QR code width")
     height: int = Field(300, description="The QR code height")
+
+
+class ReminderInterval(BaseModel):
+    unit: Literal["DAY"] = Field("DAY", description="The unit of time for the reminder interval. The interval unit is always DAY.")
+    value: int = Field(..., description="The number of interval units before/after the due date at which to send the reminder.")
+
+
+class ReminderNotification(BaseModel):
+    send_to_invoicer: Optional[bool] = Field(None, description="Indicates whether to also notify the invoicer when the reminder is sent.")
+
+
+class UpdateReminderInterval(BaseModel):
+    value: int = Field(..., description="The number of interval units before/after the due date at which to send the reminder.")
+
+
+class ReminderConfiguration(BaseModel):
+    type: Literal["BEFORE_DUE", "AFTER_DUE"] = Field(..., description="The type of reminder. BEFORE_DUE sends a reminder before the invoice due date; AFTER_DUE sends a reminder after the invoice due date.")
+    interval: ReminderInterval = Field(..., description="The interval at which to send the reminder.")
+    repetition: int = Field(..., description="The number of times to send the reminder. Must be 1 for BEFORE_DUE reminders.")
+    notification: Optional[ReminderNotification] = Field(None, description="Notification settings for the reminder.")
+
+
+class SetupInvoiceAutoReminderParameters(BaseModel):
+    configurations: Optional[List[ReminderConfiguration]] = Field(
+        None,
+        description="An array of up to two invoice auto reminder configurations, one for BEFORE_DUE and one for AFTER_DUE. If omitted, both reminder types are created with the default configuration in INACTIVE state. If only one type is provided, the other is created with the default configuration in INACTIVE state."
+    )
+
+
+class UpdateInvoiceAutoReminderParameters(BaseModel):
+    reminder_configuration_id: str = Field(..., description="The ID of the auto reminder configuration to update.")
+    type: Literal["BEFORE_DUE", "AFTER_DUE"]
+    status: Optional[Literal["NONE", "ACTIVE", "INACTIVE"]] = Field(None, description="Select an option.")
+    interval: UpdateReminderInterval = Field(..., description="The interval at which to send the reminder. The interval unit is always DAY.")
+    repetition: int = Field(..., description="The number of times to send the reminder. Must be 1 for BEFORE_DUE reminders.")
+    notification: Optional[ReminderNotification] = Field(None, description="Notification settings for the reminder.")
+
+

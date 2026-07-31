@@ -31,7 +31,9 @@ import {
   createRefundParameters,
   updateSubscriptionParameters,
   updatePlanParameters,
-  getMerchantInsightsParameters
+  getMerchantInsightsParameters,
+  setupInvoiceAutoReminderParameters,
+  updateInvoiceAutoReminderParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -209,6 +211,60 @@ export async function sendInvoiceReminder(
     return response.data;
   } catch (error: any) {
     logger('[sendInvoiceReminder] Error sending invoice reminder:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function setupInvoiceAutoReminder(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof setupInvoiceAutoReminderParameters>>
+) {
+  logger('[setupInvoiceAutoReminder] Starting invoice auto reminder setup');
+  const headers = await client.getHeaders();
+  logger('[setupInvoiceAutoReminder] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/setup-reminders`;
+
+  try {
+    logger('[setupInvoiceAutoReminder] Sending request to PayPal API');
+    const response = await axios.post(url, params, { headers });
+    logger(`[setupInvoiceAutoReminder] Invoice auto reminder setup successful. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[setupInvoiceAutoReminder] Error setting up invoice auto reminder:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updateInvoiceAutoReminder(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateInvoiceAutoReminderParameters>>
+) {
+  logger('[updateInvoiceAutoReminder] Starting to update invoice auto reminder configuration');
+  const { reminder_configuration_id, type, status, interval, repetition, notification } = params;
+
+  const body = {
+    type,
+    interval: { unit: 'DAY', value: interval.value },
+    repetition,
+    ...(status != null && status !== 'NONE' && { status }),
+    ...(notification != null && { notification }),
+  };
+
+  const headers = await client.getHeaders();
+  logger('[updateInvoiceAutoReminder] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/reminders/${reminder_configuration_id}`;
+
+  try {
+    logger('[updateInvoiceAutoReminder] Sending request to PayPal API');
+    const response = await axios.put(url, body, { headers: { ...headers, Prefer: 'return=representation' } });
+    logger(`[updateInvoiceAutoReminder] Invoice auto reminder configuration updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateInvoiceAutoReminder] Error updating invoice auto reminder configuration:', error.message);
     handleAxiosError(error);
   }
 }

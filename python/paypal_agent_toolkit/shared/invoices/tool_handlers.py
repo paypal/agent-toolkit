@@ -116,3 +116,30 @@ def generate_invoice_qrcode(client, params: dict):
         return {"success": True, "invoice_id": invoice_id}
 
     return json.dumps(response)
+
+
+def setup_invoice_auto_reminders(client, params: dict):
+
+    validated = SetupInvoiceAutoReminderParameters(**params)
+    payload = validated.model_dump(exclude_none=True)
+
+    url = "/v2/invoicing/setup-reminders"
+    response = client.post(uri=url, payload=payload)
+
+    return json.dumps(response)
+
+
+def update_invoice_auto_reminder(client, params: dict):
+
+    validated = UpdateInvoiceAutoReminderParameters(**params)
+    reminder_configuration_id = validated.reminder_configuration_id
+    payload = validated.model_dump(exclude_none=True, exclude={"reminder_configuration_id"})
+    if payload.get("status") == "NONE":
+        payload.pop("status", None)
+    payload["interval"] = {"unit": "DAY", "value": validated.interval.value}
+    payload["repetition"] = validated.repetition
+
+    url = f"/v2/invoicing/reminders/{reminder_configuration_id}"
+    response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
+
+    return json.dumps(response)
