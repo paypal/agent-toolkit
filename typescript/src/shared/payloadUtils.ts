@@ -43,10 +43,20 @@ export function buildCreateInvoicePayload(params: TypeOf<ReturnType<typeof creat
         })]
         : undefined;
 
+    const partialPayment = params.allow_partial_payment !== undefined
+        ? compact({
+            allow_partial_payment: params.allow_partial_payment,
+            minimum_amount_due: params.minimum_partial_payment_amount !== undefined
+                ? { currency_code, value: params.minimum_partial_payment_amount }
+                : undefined,
+        })
+        : undefined;
+
     const configuration = compact({
         allow_tip: params.allow_tip,
         theme: params.theme_color !== undefined ? { primary_color: params.theme_color } : undefined,
         payment_method_overrides: paymentMethodOverrides,
+        partial_payment: partialPayment,
     });
 
     const amount = params.shipping_cost !== undefined
@@ -87,8 +97,18 @@ export function buildCreateRecurringSeriesPayload(params: TypeOf<ReturnType<type
         tax_id: params.invoicer_tax_id,
     });
 
+    const partialPayment = params.allow_partial_payment !== undefined
+        ? compact({
+            allow_partial_payment: params.allow_partial_payment,
+            minimum_amount_due: params.minimum_partial_payment_amount !== undefined
+                ? { currency_code, value: params.minimum_partial_payment_amount }
+                : undefined,
+        })
+        : undefined;
+
     const configuration = compact({
         allow_tip: params.allow_tip,
+        partial_payment: partialPayment,
     });
 
     const amount = params.shipping_cost !== undefined

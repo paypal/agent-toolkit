@@ -120,6 +120,9 @@ export const createInvoiceParameters = (context: Context) => z.object({
 
   enable_pay_by_bank: z.boolean().optional().describe("Whether to enable PAY_BY_BANK as a payment method for this invoice, letting the payer pay directly from their bank account. Available only for US-based merchants and invoices with USD currency."),
   pay_by_bank_exclusive_above_threshold: z.boolean().optional().describe("When true, PAY_BY_BANK becomes the only available payment method once the invoice total exceeds PayPal's system-defined threshold ($1000), disabling all other payment methods above that threshold."),
+
+  allow_partial_payment: z.boolean().optional().describe("Whether the invoice allows a partial payment. If false, the invoice must be paid in full. If true, the invoice allows partial payments. Not available for users in India, Brazil, or Israel."),
+  minimum_partial_payment_amount: z.string().regex(DECIMAL_STRING_REGEX, "minimum_partial_payment_amount must be a numeric value, e.g. \"20.00\"").optional().describe("The minimum amount allowed for a partial payment, in the invoice's currency_code. Valid only when allow_partial_payment is true."),
 }).describe("Simplified create-invoice request. The tool implementation builds PayPal's actual nested invoicing API request from these flat fields.");
 
 export const createRecurringSeriesParameters = (context: Context) => z.object({
@@ -149,6 +152,9 @@ export const createRecurringSeriesParameters = (context: Context) => z.object({
 
   allow_tip: z.boolean().optional().describe("Whether the payer can add a tip when paying. Not available in Hong Kong, Taiwan, India, or Japan."),
   shipping_cost: z.string().regex(DECIMAL_STRING_REGEX, "shipping_cost must be a numeric value, e.g. \"25.00\"").optional().describe("The shipping cost for each generated invoice, in the series' currency_code."),
+
+  allow_partial_payment: z.boolean().optional().describe("Whether each generated invoice allows a partial payment. If false, each invoice must be paid in full. If true, each invoice allows partial payments. Not available for users in India, Brazil, or Israel."),
+  minimum_partial_payment_amount: z.string().regex(DECIMAL_STRING_REGEX, "minimum_partial_payment_amount must be a numeric value, e.g. \"20.00\"").optional().describe("The minimum amount allowed for a partial payment on each generated invoice, in the series' currency_code. Valid only when allow_partial_payment is true."),
 }).describe("Simplified create-recurring-series request. The tool implementation builds PayPal's actual nested recurring-invoicing API request from these flat fields.");
 
 export const activateRecurringSeriesParameters = (context: Context) => z.object({

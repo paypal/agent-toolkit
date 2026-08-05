@@ -43,10 +43,19 @@ def build_create_invoice_payload(params: dict) -> dict:
             "rules": rules,
         })]
 
+    partial_payment = None
+    if params.get("allow_partial_payment") is not None:
+        partial_payment = _compact({
+            "allow_partial_payment": params.get("allow_partial_payment"),
+            "minimum_amount_due": {"currency_code": currency_code, "value": params["minimum_partial_payment_amount"]}
+            if params.get("minimum_partial_payment_amount") is not None else None,
+        })
+
     configuration = _compact({
         "allow_tip": params.get("allow_tip"),
         "theme": {"primary_color": params["theme_color"]} if params.get("theme_color") is not None else None,
         "payment_method_overrides": payment_method_overrides,
+        "partial_payment": partial_payment,
     })
 
     amount = None
@@ -92,8 +101,17 @@ def build_create_recurring_series_payload(params: dict) -> dict:
         "tax_id": params.get("invoicer_tax_id"),
     })
 
+    partial_payment = None
+    if params.get("allow_partial_payment") is not None:
+        partial_payment = _compact({
+            "allow_partial_payment": params.get("allow_partial_payment"),
+            "minimum_amount_due": {"currency_code": currency_code, "value": params["minimum_partial_payment_amount"]}
+            if params.get("minimum_partial_payment_amount") is not None else None,
+        })
+
     configuration = _compact({
         "allow_tip": params.get("allow_tip"),
+        "partial_payment": partial_payment,
     })
 
     amount = None
