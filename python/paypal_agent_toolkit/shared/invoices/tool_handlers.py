@@ -75,6 +75,39 @@ def activate_recurring_series(client, params: dict):
     return json.dumps({"recurring_series_id": recurring_series_id, "status": "ACTIVATED"})
 
 
+def get_recurring_series(client, params: dict):
+
+    validated = GetRecurringSeriesParameters(**params)
+    recurring_series_id = validated.recurring_series_id
+
+    url = f"/v2/invoicing/recurring-invoices/{recurring_series_id}"
+    response = client.get(uri=url)
+
+    return json.dumps(response)
+
+
+def cancel_recurring_series(client, params: dict):
+
+    validated = CancelRecurringSeriesParameters(**params)
+    recurring_series_id = validated.recurring_series_id
+
+    url = f"/v2/invoicing/recurring-invoices/{recurring_series_id}/cancel"
+    client.post(uri=url, payload={})
+
+    return json.dumps({"recurring_series_id": recurring_series_id, "status": "CANCELLED"})
+
+
+def delete_recurring_series(client, params: dict):
+
+    validated = DeleteRecurringSeriesParameters(**params)
+    recurring_series_id = validated.recurring_series_id
+
+    url = f"/v2/invoicing/recurring-invoices/{recurring_series_id}"
+    client.delete(uri=url)
+
+    return json.dumps({"recurring_series_id": recurring_series_id, "status": "DELETED"})
+
+
 def list_invoices(client, params: dict):
 
     validated = ListInvoicesParameters(**params)

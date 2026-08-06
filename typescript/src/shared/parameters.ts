@@ -243,6 +243,24 @@ export const activateRecurringSeriesParameters = (context: Context) => z.object(
     .describe("The ID of the recurring invoice series to activate."),
 });
 
+export const getRecurringSeriesParameters = (context: Context) => z.object({
+  recurring_series_id: z.string()
+    .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
+    .describe("The ID of the recurring invoice series to retrieve."),
+});
+
+export const cancelRecurringSeriesParameters = (context: Context) => z.object({
+  recurring_series_id: z.string()
+    .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
+    .describe("The ID of the recurring invoice series to cancel."),
+});
+
+export const deleteRecurringSeriesParameters = (context: Context) => z.object({
+  recurring_series_id: z.string()
+    .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
+    .describe("The ID of the recurring invoice series to delete. Only series in DRAFT status can be deleted; use cancel_recurring_series for an activated series."),
+});
+
 export const getInvoicParameters = (context: Context) => z.object({
   invoice_id: z.string()
         .regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID")

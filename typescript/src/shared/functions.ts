@@ -7,6 +7,9 @@ import {
   createInvoiceParameters,
   createRecurringSeriesParameters,
   activateRecurringSeriesParameters,
+  getRecurringSeriesParameters,
+  cancelRecurringSeriesParameters,
+  deleteRecurringSeriesParameters,
   createOrderParameters,
   generateInvoiceQrCodeParameters,
   generateInvoiceNumberParameters,
@@ -201,6 +204,30 @@ async function updateInvoice(
   }
 }
 
+export async function getRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getRecurringSeriesParameters>>
+) {
+  logger('[getRecurringSeries] Starting to get recurring series');
+
+  const headers = await client.getHeaders();
+  logger('[getRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${params.recurring_series_id}`;
+  logger(`[getRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[getRecurringSeries] Sending request to PayPal API');
+    const response = await axios.get(url, { headers });
+    logger(`[getRecurringSeries] Recurring series retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getRecurringSeries] Error getting recurring series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
 async function updateRecurringSeries(
   client: PayPalClient,
   context: Context,
@@ -221,6 +248,30 @@ async function updateRecurringSeries(
     return response.data;
   } catch (error: any) {
     logger('[updateRecurringSeries] Error updating recurring series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function cancelRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof cancelRecurringSeriesParameters>>
+) {
+  logger('[cancelRecurringSeries] Starting recurring series cancellation process');
+
+  const headers = await client.getHeaders();
+  logger('[cancelRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${params.recurring_series_id}/cancel`;
+  logger(`[cancelRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[cancelRecurringSeries] Sending request to PayPal API');
+    const response = await axios.post(url, {}, { headers });
+    logger(`[cancelRecurringSeries] Recurring series cancelled successfully. Status: ${response.status}`);
+    return { recurring_series_id: params.recurring_series_id, status: response.status };
+  } catch (error: any) {
+    logger('[cancelRecurringSeries] Error cancelling recurring series:', error.message);
     handleAxiosError(error);
   }
 }
@@ -252,6 +303,30 @@ export async function updateInvoicing(
     throw new Error("recurring_series_update.recurring_series_id is required when resource_type is 'recurring_series'.");
   }
   return updateRecurringSeries(client, context, params.recurring_series_update as TypeOf<ReturnType<typeof updateRecurringSeriesBodyParameters>> & { recurring_series_id: string });
+}
+
+export async function deleteRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof deleteRecurringSeriesParameters>>
+) {
+  logger('[deleteRecurringSeries] Starting recurring series deletion process');
+
+  const headers = await client.getHeaders();
+  logger('[deleteRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${params.recurring_series_id}`;
+  logger(`[deleteRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[deleteRecurringSeries] Sending request to PayPal API');
+    const response = await axios.delete(url, { headers });
+    logger(`[deleteRecurringSeries] Recurring series deleted successfully. Status: ${response.status}`);
+    return { recurring_series_id: params.recurring_series_id, status: response.status };
+  } catch (error: any) {
+    logger('[deleteRecurringSeries] Error deleting recurring series:', error.message);
+    handleAxiosError(error);
+  }
 }
 
 export async function listInvoices(

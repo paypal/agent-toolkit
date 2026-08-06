@@ -190,6 +190,18 @@ class ActivateRecurringSeriesParameters(BaseModel):
     recurring_series_id: str = Field(..., description="The ID of the recurring invoice series to activate.", pattern=RECURRING_SERIES_ID_REGEX.pattern)
 
 
+class GetRecurringSeriesParameters(BaseModel):
+    recurring_series_id: str = Field(..., description="The ID of the recurring invoice series to retrieve.", pattern=RECURRING_SERIES_ID_REGEX.pattern)
+
+
+class CancelRecurringSeriesParameters(BaseModel):
+    recurring_series_id: str = Field(..., description="The ID of the recurring invoice series to cancel.", pattern=RECURRING_SERIES_ID_REGEX.pattern)
+
+
+class DeleteRecurringSeriesParameters(BaseModel):
+    recurring_series_id: str = Field(..., description="The ID of the recurring invoice series to delete. Only series in DRAFT status can be deleted; use CancelRecurringSeriesParameters for an activated series.", pattern=RECURRING_SERIES_ID_REGEX.pattern)
+
+
 class GetInvoiceParameters(BaseModel):
     invoice_id: str = Field(..., description="The ID of the invoice to retrieve.", pattern=INVOICE_ID_REGEX)
 
