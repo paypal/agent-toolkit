@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import {
   createInvoicePrompt,
+  createRecurringSeriesPrompt,
+  activateRecurringSeriesPrompt,
   listInvoicesPrompt,
   getInvoicePrompt,
   sendInvoicePrompt,
@@ -39,6 +41,8 @@ import {
 
 import {
   createInvoiceParameters,
+  createRecurringSeriesParameters,
+  activateRecurringSeriesParameters,
   listInvoicesParameters,
   getInvoicParameters,
   sendInvoiceParameters,
@@ -97,6 +101,28 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         create: true,
+      },
+    },
+  },
+  {
+    method: 'create_recurring_series',
+    name: 'Create Recurring Invoice Series',
+    description: createRecurringSeriesPrompt(context),
+    parameters: createRecurringSeriesParameters(context),
+    actions: {
+      invoices: {
+        createRecurringSeries: true,
+      },
+    },
+  },
+  {
+    method: 'activate_recurring_series',
+    name: 'Activate Recurring Invoice Series',
+    description: activateRecurringSeriesPrompt(context),
+    parameters: activateRecurringSeriesParameters(context),
+    actions: {
+      invoices: {
+        activateRecurringSeries: true,
       },
     },
   },

@@ -1,48 +1,167 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
 import {subscriptionKeys} from "./constants";
-import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX} from "./regex"
+import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX, HEX_COLOR_REGEX, DATE_NO_TIME_REGEX, RECURRING_SERIES_ID_REGEX, COUNTRY_CODE_REGEX, LANGUAGE_REGEX, DECIMAL_STRING_REGEX} from "./regex"
 
 // === INVOICE PARAMETERS ===
-const invoiceItem = z.object({
+// Shared building blocks, reused across create_invoice and create_recurring_series (and
+// intended for reuse by a future create_template tool).
+//
+// Every shared schema below is a FACTORY FUNCTION (returns a fresh z.object() on each
+// call) rather than a shared const instance. The MCP SDK converts these zod schemas to
+// JSON Schema via zod-to-json-schema, which dedupes repeated *object-identity* schema
+// instances into "$ref" pointers -- and tool-schema viewers such as the MCP Inspector
+// don't render an input for a "$ref"'d field. Calling these as functions at every usage
+// site guarantees each field gets its own independent schema instance, so the generated
+// JSON schema is always fully inlined instead of using $ref.
+
+const money = () => z.object({
+  currency_code: z.string().describe("The three-character ISO-4217 currency code that identifies the currency."),
+  value: z.string().regex(DECIMAL_STRING_REGEX, "value must be a numeric value, e.g. \"50\" or \"50.00\"").describe("The amount, as a signed decimal string with up to 2 decimal places (e.g. '50.00')."),
+});
+
+const personName = () => z.object({
+  given_name: z.string().optional().describe("The first name of the person."),
+  surname: z.string().optional().describe("The last name of the person."),
+}).describe("name object");
+
+const address = () => z.object({
+  address_line_1: z.string().optional().describe("The first line of the address, for example, number and street."),
+  address_line_2: z.string().optional().describe("The second line of the address, for example, suite or apartment number."),
+  admin_area_2: z.string().optional().describe("A city, town, or village."),
+  admin_area_1: z.string().optional().describe("The highest-level sub-division in a country, such as a state or province."),
+  postal_code: z.string().optional().describe("The postal code, which is the zip code or equivalent."),
+  country_code: z.string().regex(COUNTRY_CODE_REGEX, "country_code must be a two-character ISO 3166-1 country code").optional().describe("The two-character ISO 3166-1 country code (for example, US or GB)."),
+}).describe("address object");
+
+const phone = () => z.object({
+  country_code: z.string().describe("The country calling code, in E.164 format (for example, '1' for the United States)."),
+  national_number: z.string().describe("The national number, in E.164 format."),
+  phone_type: z.enum(["FAX", "HOME", "MOBILE", "OTHER", "PAGER"]).describe("The type of phone number."),
+}).describe("phone object");
+
+const tax = () => z.object({
+  name: z.string().describe("The name of the tax applied on the item, for example 'Sales Tax'."),
+  percent: z.string().regex(DECIMAL_STRING_REGEX, "percent must be a numeric value, e.g. \"18\" or \"18.5\"").describe("The tax rate, as a percent value from 0 to 100. Supports up to five decimal places."),
+  tax_note: z.string().optional().describe("A note about the tax, used to track tax-related data."),
+}).describe("tax object");
+
+const discount = () => z.object({
+  percent: z.string().regex(DECIMAL_STRING_REGEX, "percent must be a numeric value, e.g. \"10\" or \"10.5\"").optional().describe("The discount as a percent value, from 0 to 100. Supports up to five decimal places. Mutually exclusive with amount -- set only one."),
+  amount: money().optional().describe("The discount as a fixed amount. Mutually exclusive with percent -- set only one."),
+}).refine((val) => val.percent === undefined || val.amount === undefined, {
+  message: "percent and amount cannot both be set on the same discount -- use only one.",
+  path: ["amount"],
+}).describe("discount object");
+
+const invoiceItem = () => z.object({
   name: z.string().describe('The name of the item'),
+  description: z.string().optional().describe("The description of the item."),
   quantity: z.string().describe('The quantity of the item that the invoicer provides to the payer. Value is from -1000000 to 1000000. Supports up to five decimal places. Cast to string'),
-  unit_amount: z.object({
-    currency_code: z.string().describe('Currency code of the unit amount'),
-    value: z.string().describe('The unit price. Up to 2 decimal points'),
-  }).describe("unit amount object"),
-  tax: z.object({
-    name: z.string().optional().describe("Tax name"),
-    percent: z.string().optional().describe("Tax Percent"),
-  }).optional().describe("tax object"),
+  unit_amount: money().describe("The unit price of the item. Does not include tax or discount."),
+  tax: tax().optional(),
+  discount: discount().optional().describe("The discount for this line item, subtracted from the item total."),
+  item_date: z.string().regex(DATE_NO_TIME_REGEX, "item_date must be in yyyy-MM-DD format").optional().describe("The date, in yyyy-MM-DD format, when the item or service was provided."),
   unit_of_measure: z.enum(["QUANTITY", "HOURS", "AMOUNT"]).optional().describe("The unit of measure for the invoiced item"),
 }).describe("invoice line item object");
 
 
+const billingInfo = () => z.object({
+  business_name: z.string().optional().describe("The business name of the invoice recipient."),
+  name: personName().optional().describe("name of the recipient"),
+  address: address().optional().describe("The address of the invoice recipient."),
+  email_address: z.string().optional().describe("email address of the recipient"),
+  phones: z.array(phone()).optional().describe("The invoice recipient's phone numbers."),
+  additional_info: z.string().max(40).optional().describe("Any additional information about the recipient."),
+  language: z.string().regex(LANGUAGE_REGEX, "language must be a BCP-47 language tag, e.g. en-US").optional().describe("The BCP-47 language tag used for the recipient's email notification (for example, 'en-US'). Only used when the recipient has no PayPal account."),
+}).describe("The billing information of the invoice recipient");
+
+const shippingInfo = () => z.object({
+  business_name: z.string().optional().describe("The business name for the shipping destination."),
+  name: personName().optional().describe("The name for the shipping destination."),
+  address: address().optional().describe("The shipping address."),
+}).describe("The shipping information of the invoice recipient.");
+
+const primaryRecipient = () => z.object({
+  billing_info: billingInfo().optional(),
+  shipping_info: shippingInfo().optional(),
+});
+
+// create_invoice and create_recurring_series both reuse the nested primaryRecipient()/invoiceItem()
+// factories above directly for recipients and items (passed straight through to PayPal); all other
+// top-level fields keep their own flat shape for a simpler LLM-facing top level. See
+// buildCreateInvoicePayload/buildCreateRecurringSeriesPayload in payloadUtils.ts.
+
 export const createInvoiceParameters = (context: Context) => z.object({
-  detail: z.object({
-    invoice_date: z.string().optional().describe("The invoice date in YYYY-MM-DD format"),
-    currency_code: z.string().describe("currency code of the invoice"),
-  }).describe("The invoice detail"),
-  invoicer: z.object({
-    business_name: z.string().max(300).describe("business name of the invoicer"),
-    name: z.object({
-      given_name: z.string().optional().describe("given name of the invoicer"),
-      surname: z.string().optional().describe("surname of the invoicer")
-    }).optional().describe("name of the invoicer"),
-    email_address: z.string().optional().describe("email address of the invoicer"),
-  }).optional().describe("The invoicer business information that appears on the invoice."),
-  primary_recipients: z.array(z.object({
-    billing_info: z.object({
-      name: z.object({
-        given_name: z.string().optional().describe("given name of the recipient"),
-        surname: z.string().optional().describe("surname of the recipient"),
-      }).optional().describe("name of the recipient"),
-      email_address: z.string().describe("email address of the recipient").optional(),
-    }).describe("The billing information of the invoice recipient").optional(),
-  })).describe("array of recipients").optional(),
-  items: z.array(invoiceItem).describe("Array of invoice line items").optional(),
-}).describe("create invoice request payload");
+  currency_code: z.string().describe("The three-character ISO-4217 currency code for the invoice (for example, USD). Applies to every monetary amount on the invoice."),
+  invoice_number: z.string().optional().describe("The invoice number. If omitted, PayPal auto-increments from the last invoice number used."),
+  invoice_date: z.string().regex(DATE_NO_TIME_REGEX, "invoice_date must be in yyyy-MM-DD format").optional().describe("The invoice date in yyyy-MM-DD format."),
+  reference: z.string().optional().describe("A reference value, such as a purchase order number."),
+  note: z.string().optional().describe("A note to the invoice recipient. Also appears on the invoice notification email."),
+
+  invoicer_business_name: z.string().max(300).optional().describe("The business name of the invoicer."),
+  invoicer_given_name: z.string().optional().describe("The first name of the invoicer."),
+  invoicer_surname: z.string().optional().describe("The last name of the invoicer."),
+  invoicer_email_address: z.string().optional().describe("The email address of the invoicer."),
+  invoicer_tax_id: z.string().optional().describe("The invoicer's tax ID."),
+  invoicer_address_line_1: z.string().optional().describe("The first line of the invoicer's address, for example, number and street."),
+  invoicer_address_line_2: z.string().optional().describe("The second line of the invoicer's address, for example, suite or apartment number."),
+  invoicer_city: z.string().optional().describe("The city, town, or village of the invoicer's address."),
+  invoicer_state: z.string().optional().describe("The state or province of the invoicer's address."),
+  invoicer_postal_code: z.string().optional().describe("The postal code of the invoicer's address."),
+  invoicer_country_code: z.string().regex(COUNTRY_CODE_REGEX, "invoicer_country_code must be a two-character ISO 3166-1 country code").optional().describe("The two-character ISO 3166-1 country code of the invoicer's address (for example, US or GB)."),
+
+  primary_recipients: z.array(primaryRecipient()).describe("The recipients who will be billed for this invoice."),
+  items: z.array(invoiceItem()).describe("The line items on the invoice."),
+
+  allow_tip: z.boolean().optional().describe("Whether the payer can add a tip when paying. Not available in Hong Kong, Taiwan, India, or Japan."),
+  theme_color: z.string().regex(HEX_COLOR_REGEX, "theme_color must be a hex color code, e.g. #000000 or #000").optional().describe("The primary color used to render the invoice, as a hex color code (e.g. #000000). If omitted, the default theme is used."),
+  shipping_cost: z.string().regex(DECIMAL_STRING_REGEX, "shipping_cost must be a numeric value, e.g. \"25.00\"").optional().describe("The shipping cost for the invoice, in the invoice's currency_code."),
+
+  enable_pay_by_bank: z.boolean().optional().describe("Whether to enable PAY_BY_BANK as a payment method for this invoice, letting the payer pay directly from their bank account. Available only for US-based merchants and invoices with USD currency."),
+  pay_by_bank_exclusive_above_threshold: z.boolean().optional().describe("When true, PAY_BY_BANK becomes the only available payment method once the invoice total exceeds PayPal's system-defined threshold ($1000), disabling all other payment methods above that threshold."),
+
+  allow_partial_payment: z.boolean().optional().describe("Whether the invoice allows a partial payment. If false, the invoice must be paid in full. If true, the invoice allows partial payments. Not available for users in India, Brazil, or Israel."),
+  minimum_partial_payment_amount: z.string().regex(DECIMAL_STRING_REGEX, "minimum_partial_payment_amount must be a numeric value, e.g. \"20.00\"").optional().describe("The minimum amount allowed for a partial payment, in the invoice's currency_code. Valid only when allow_partial_payment is true."),
+}).describe("Simplified create-invoice request. The tool implementation builds PayPal's actual nested invoicing API request from these flat fields.");
+
+export const createRecurringSeriesParameters = (context: Context) => z.object({
+  interval_unit: z.enum(["DAY", "WEEK", "MONTH", "YEAR"]).describe("The time unit for the recurring invoice cycle interval"),
+  interval_count: z.number().int().min(1).max(52).describe("The number of intervals between each recurring invoice cycle. For example, an interval_count of 2 with interval_unit of MONTH means the invoice recurs every 2 months"),
+  start_series_date: z.string().regex(DATE_NO_TIME_REGEX, "start_series_date must be in yyyy-MM-DD format").describe("The date when the recurring series begins and the first invoice is generated, in yyyy-MM-DD format. Cannot be a past date."),
+  total_cycles: z.number().int().min(0).max(99).optional().describe("The total number of invoices to generate in the series. If omitted, the series runs indefinitely until cancelled."),
+
+  reference: z.string().optional().describe("A reference value, such as a purchase order number."),
+  currency_code: z.string().describe("Currency code of the recurring invoice series"),
+  note: z.string().optional().describe("A note to the invoice recipient. Also appears on the invoice notification email."),
+
+  invoicer_business_name: z.string().max(300).optional().describe("The business name of the invoicer."),
+  invoicer_given_name: z.string().optional().describe("The first name of the invoicer."),
+  invoicer_surname: z.string().optional().describe("The last name of the invoicer."),
+  invoicer_email_address: z.string().optional().describe("The email address of the invoicer."),
+  invoicer_tax_id: z.string().optional().describe("The invoicer's tax ID."),
+  invoicer_address_line_1: z.string().optional().describe("The first line of the invoicer's address, for example, number and street."),
+  invoicer_address_line_2: z.string().optional().describe("The second line of the invoicer's address, for example, suite or apartment number."),
+  invoicer_city: z.string().optional().describe("The city, town, or village of the invoicer's address."),
+  invoicer_state: z.string().optional().describe("The state or province of the invoicer's address."),
+  invoicer_postal_code: z.string().optional().describe("The postal code of the invoicer's address."),
+  invoicer_country_code: z.string().regex(COUNTRY_CODE_REGEX, "invoicer_country_code must be a two-character ISO 3166-1 country code").optional().describe("The two-character ISO 3166-1 country code of the invoicer's address (for example, US or GB)."),
+
+  primary_recipients: z.array(primaryRecipient()).min(1).max(1).describe("The primary recipient of the recurring invoices"),
+  items: z.array(invoiceItem()).min(1).optional().describe("The line items that will appear on each invoice in the recurring series"),
+
+  allow_tip: z.boolean().optional().describe("Whether the payer can add a tip when paying. Not available in Hong Kong, Taiwan, India, or Japan."),
+  shipping_cost: z.string().regex(DECIMAL_STRING_REGEX, "shipping_cost must be a numeric value, e.g. \"25.00\"").optional().describe("The shipping cost for each generated invoice, in the series' currency_code."),
+
+  allow_partial_payment: z.boolean().optional().describe("Whether each generated invoice allows a partial payment. If false, each invoice must be paid in full. If true, each invoice allows partial payments. Not available for users in India, Brazil, or Israel."),
+  minimum_partial_payment_amount: z.string().regex(DECIMAL_STRING_REGEX, "minimum_partial_payment_amount must be a numeric value, e.g. \"20.00\"").optional().describe("The minimum amount allowed for a partial payment on each generated invoice, in the series' currency_code. Valid only when allow_partial_payment is true."),
+}).describe("Simplified create-recurring-series request. The tool implementation builds PayPal's actual nested recurring-invoicing API request from these flat fields.");
+
+export const activateRecurringSeriesParameters = (context: Context) => z.object({
+  recurring_series_id: z.string()
+    .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
+    .describe("The ID of the recurring invoice series to activate."),
+});
 
 export const getInvoicParameters = (context: Context) => z.object({
   invoice_id: z.string()

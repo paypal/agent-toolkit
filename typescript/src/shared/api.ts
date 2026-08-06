@@ -1,5 +1,7 @@
 import {
   createInvoice,
+  createRecurringSeries,
+  activateRecurringSeries,
   listInvoices,
   getInvoice,
   sendInvoice,
@@ -89,6 +91,10 @@ class PayPalAPI {
     switch (method) {
       case 'create_invoice':
         return createInvoice(this.paypalClient, this.context, arg);
+      case 'create_recurring_series':
+        return createRecurringSeries(this.paypalClient, this.context, arg);
+      case 'activate_recurring_series':
+        return activateRecurringSeries(this.paypalClient, this.context, arg);
       case 'list_invoices':
         return listInvoices(this.paypalClient, this.context, arg);
       case 'get_invoice':

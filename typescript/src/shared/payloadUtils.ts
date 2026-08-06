@@ -1,11 +1,143 @@
 import {TypeOf, z} from "zod";
-import {createOrderParameters, updateSubscriptionParameters} from "./parameters";
+import {createOrderParameters, createInvoiceParameters, createRecurringSeriesParameters, updateSubscriptionParameters} from "./parameters";
 import { round } from "mathjs";
 import { snakeCase, camelCase } from "lodash";
 import {subscriptionKeys, updateSubscriptionPathMapping} from "./constants";
 import debug from "debug";
 
 const logger = debug('agent-toolkit:payloadUtils');
+
+// Drops undefined-valued keys from a shallow object; returns undefined if nothing is left,
+// so callers can omit an entire nested object (e.g. `name`, `address`) when none of its
+// source fields were provided.
+function compact<T extends Record<string, any>>(obj: T): Partial<T> | undefined {
+    const entries = Object.entries(obj).filter(([, v]) => v !== undefined);
+    return entries.length ? Object.fromEntries(entries) as Partial<T> : undefined;
+}
+
+export function buildCreateInvoicePayload(params: TypeOf<ReturnType<typeof createInvoiceParameters>>) {
+    const currency_code = params.currency_code;
+
+    const invoicer = compact({
+        business_name: params.invoicer_business_name,
+        name: compact({ given_name: params.invoicer_given_name, surname: params.invoicer_surname }),
+        address: compact({
+            address_line_1: params.invoicer_address_line_1,
+            address_line_2: params.invoicer_address_line_2,
+            admin_area_2: params.invoicer_city,
+            admin_area_1: params.invoicer_state,
+            postal_code: params.invoicer_postal_code,
+            country_code: params.invoicer_country_code,
+        }),
+        email_address: params.invoicer_email_address,
+        tax_id: params.invoicer_tax_id,
+    });
+
+    const paymentMethodOverrides = params.enable_pay_by_bank
+        ? [compact({
+            payment_method_type: "PAY_BY_BANK",
+            enabled: true,
+            rules: params.pay_by_bank_exclusive_above_threshold
+                ? [{ rule_type: "EXCLUSIVE_ABOVE_AMOUNT_THRESHOLD", rule_value: "true" }]
+                : undefined,
+        })]
+        : undefined;
+
+    const partialPayment = params.allow_partial_payment !== undefined
+        ? compact({
+            allow_partial_payment: params.allow_partial_payment,
+            minimum_amount_due: params.minimum_partial_payment_amount !== undefined
+                ? { currency_code, value: params.minimum_partial_payment_amount }
+                : undefined,
+        })
+        : undefined;
+
+    const configuration = compact({
+        allow_tip: params.allow_tip,
+        theme: params.theme_color !== undefined ? { primary_color: params.theme_color } : undefined,
+        payment_method_overrides: paymentMethodOverrides,
+        partial_payment: partialPayment,
+    });
+
+    const amount = params.shipping_cost !== undefined
+        ? { breakdown: { shipping: { amount: { currency_code, value: params.shipping_cost } } } }
+        : undefined;
+
+    return compact({
+        detail: compact({
+            reference: params.reference,
+            invoice_number: params.invoice_number,
+            invoice_date: params.invoice_date,
+            currency_code,
+            note: params.note,
+        }),
+        invoicer,
+        primary_recipients: params.primary_recipients,
+        items: params.items,
+        configuration,
+        amount,
+    });
+}
+
+export function buildCreateRecurringSeriesPayload(params: TypeOf<ReturnType<typeof createRecurringSeriesParameters>>) {
+    const currency_code = params.currency_code;
+
+    const invoicer = compact({
+        business_name: params.invoicer_business_name,
+        name: compact({ given_name: params.invoicer_given_name, surname: params.invoicer_surname }),
+        address: compact({
+            address_line_1: params.invoicer_address_line_1,
+            address_line_2: params.invoicer_address_line_2,
+            admin_area_2: params.invoicer_city,
+            admin_area_1: params.invoicer_state,
+            postal_code: params.invoicer_postal_code,
+            country_code: params.invoicer_country_code,
+        }),
+        email_address: params.invoicer_email_address,
+        tax_id: params.invoicer_tax_id,
+    });
+
+    const partialPayment = params.allow_partial_payment !== undefined
+        ? compact({
+            allow_partial_payment: params.allow_partial_payment,
+            minimum_amount_due: params.minimum_partial_payment_amount !== undefined
+                ? { currency_code, value: params.minimum_partial_payment_amount }
+                : undefined,
+        })
+        : undefined;
+
+    const configuration = compact({
+        allow_tip: params.allow_tip,
+        partial_payment: partialPayment,
+    });
+
+    const amount = params.shipping_cost !== undefined
+        ? { breakdown: { shipping: { amount: { currency_code, value: params.shipping_cost } } } }
+        : undefined;
+
+    return {
+        plan_detail: compact({
+            frequency: {
+                interval_unit: params.interval_unit,
+                interval_count: params.interval_count,
+            },
+            start_series_date: params.start_series_date,
+            total_cycles: params.total_cycles,
+        }),
+        recurring_info: compact({
+            detail: compact({
+                reference: params.reference,
+                currency_code,
+                note: params.note,
+            }),
+            invoicer,
+            primary_recipients: params.primary_recipients,
+            items: params.items,
+            configuration,
+            amount,
+        }),
+    };
+}
 
 export function parseOrderDetails(params: TypeOf<ReturnType<typeof createOrderParameters>>) {
     try {

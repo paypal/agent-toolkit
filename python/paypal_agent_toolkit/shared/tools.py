@@ -17,6 +17,8 @@ from ..shared.subscriptions.prompts import (
 
 from ..shared.invoices.prompts import (
     CREATE_INVOICE_PROMPT,
+    CREATE_RECURRING_SERIES_PROMPT,
+    ACTIVATE_RECURRING_SERIES_PROMPT,
     LIST_INVOICE_PROMPT,
     GET_INVOICE_PROMPT,
     SEND_INVOICE_PROMPT,
@@ -68,6 +70,8 @@ from ..shared.subscriptions.parameters import (
 
 from ..shared.invoices.parameters import (
     CreateInvoiceParameters,
+    CreateRecurringSeriesParameters,
+    ActivateRecurringSeriesParameters,
     SendInvoiceParameters,
     ListInvoicesParameters,
     GetInvoiceParameters,
@@ -118,6 +122,8 @@ from ..shared.subscriptions.tool_handlers import (
 
 from ..shared.invoices.tool_handlers import (
     create_invoice,
+    create_recurring_series,
+    activate_recurring_series,
     send_invoice,
     list_invoices,
     get_invoice,
@@ -255,6 +261,22 @@ tools = [
         "args_schema": CreateInvoiceParameters,
         "actions": {"invoices": {"create": True}},
         "execute": create_invoice,
+    },
+    {
+        "method": "create_recurring_series",
+        "name": "Create Recurring Invoice Series",
+        "description": CREATE_RECURRING_SERIES_PROMPT.strip(),
+        "args_schema": CreateRecurringSeriesParameters,
+        "actions": {"invoices": {"createRecurringSeries": True}},
+        "execute": create_recurring_series,
+    },
+    {
+        "method": "activate_recurring_series",
+        "name": "Activate Recurring Invoice Series",
+        "description": ACTIVATE_RECURRING_SERIES_PROMPT.strip(),
+        "args_schema": ActivateRecurringSeriesParameters,
+        "actions": {"invoices": {"activateRecurringSeries": True}},
+        "execute": activate_recurring_series,
     },
     {
         "method": "list_invoices",

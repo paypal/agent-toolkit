@@ -1,7 +1,25 @@
 CREATE_INVOICE_PROMPT = """
 Create Invoices on PayPal.
 
-This function is used to create an invoice in the PayPal system. It allows you to generate a new invoice, specifying details such as customer information, items, quantities, pricing, and tax information. Once created, an invoice can be sent to the customer for payment.
+This function creates a draft invoice, specifying a currency code, the invoicer's business information, one or more recipients to bill, and line items. Once created, the invoice can be sent to the customer for payment.
+
+primary_recipients and items use PayPal's real nested shape (billing_info/shipping_info for recipients; unit_amount/tax/discount for items); other fields use a simplified flat shape.
+"""
+
+CREATE_RECURRING_SERIES_PROMPT = """
+Create a recurring invoice series on PayPal.
+
+This function creates a recurring invoice series that automatically generates and sends invoices to a customer on a schedule, specifying a billing frequency, a start date, a currency code, a primary recipient, and line items for the series template.
+
+primary_recipients and items use PayPal's real nested shape (billing_info/shipping_info for recipients; unit_amount/tax/discount for items); other fields use a simplified flat shape.
+
+A newly created series is in DRAFT status and will not generate invoices until activated -- call activate_recurring_series with the returned series ID to activate it.
+"""
+
+ACTIVATE_RECURRING_SERIES_PROMPT = """
+Activate a recurring invoice series on PayPal.
+
+This function activates a recurring invoice series by its ID, moving it out of DRAFT status. Once activated, PayPal automatically generates and sends invoices to the customer based on the series' configured schedule. Call this after create_recurring_series to make the series active.
 """
 
 LIST_INVOICE_PROMPT = """
