@@ -7,6 +7,8 @@ import {
   sendInvoicePrompt,
   sendInvoiceReminderPrompt,
   cancelSentInvoicePrompt,
+  setupInvoiceAutoReminderPrompt,
+  updateInvoiceAutoReminderPrompt,
   createShipmentPrompt,
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
@@ -42,6 +44,8 @@ import {
   sendInvoiceParameters,
   sendInvoiceReminderParameters,
   cancelSentInvoiceParameters,
+  setupInvoiceAutoReminderParameters,
+  updateInvoiceAutoReminderParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
@@ -148,6 +152,28 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         cancel: true,
+      },
+    },
+  },
+  {
+    method: 'setup_invoice_auto_reminders',
+    name: 'Setup Invoice Auto Reminders',
+    description: setupInvoiceAutoReminderPrompt(context),
+    parameters: setupInvoiceAutoReminderParameters(context),
+    actions: {
+      invoices: {
+        setupReminders: true,
+      },
+    },
+  },
+  {
+    method: 'update_invoice_auto_reminder',
+    name: 'Update Invoice Auto Reminder',
+    description: updateInvoiceAutoReminderPrompt(context),
+    parameters: updateInvoiceAutoReminderParameters(context),
+    actions: {
+      invoices: {
+        updateReminder: true,
       },
     },
   },

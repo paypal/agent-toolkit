@@ -38,6 +38,18 @@ Cancel a sent invoice.
 This function cancels an invoice that has already been sent to the recipient(s).
 `;
 
+export const setupInvoiceAutoReminderPrompt = (context: Context) => `
+Initialize the invoice auto reminder configuration for the merchant's PayPal account.
+
+This function sets up automatic reminders for unpaid invoices, for BEFORE_DUE and/or AFTER_DUE reminder types.
+`;
+
+export const updateInvoiceAutoReminderPrompt = (context: Context) => `
+Update an existing invoice auto reminder configuration by its configuration ID.
+
+This function performs a full update of the reminder configuration's timing interval, repetition count and notification preferences.
+`;
+
 export const generateInvoiceQrCodePrompt = (context: Context) => `
 Generate a QR code for an invoice.
 

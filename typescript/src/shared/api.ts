@@ -5,6 +5,8 @@ import {
   sendInvoice,
   sendInvoiceReminder,
   cancelSentInvoice,
+  setupInvoiceAutoReminder,
+  updateInvoiceAutoReminder,
   createProduct,
   listProducts,
   createSubscriptionPlan,
@@ -97,6 +99,10 @@ class PayPalAPI {
         return sendInvoiceReminder(this.paypalClient, this.context, arg);
       case 'cancel_sent_invoice':
         return cancelSentInvoice(this.paypalClient, this.context, arg);
+      case 'setup_invoice_auto_reminders':
+        return setupInvoiceAutoReminder(this.paypalClient, this.context, arg);
+      case 'update_invoice_auto_reminder':
+        return updateInvoiceAutoReminder(this.paypalClient, this.context, arg);
       case 'generate_invoice_qr_code':
         return generateInvoiceQrCode(this.paypalClient, this.context, arg);
       case 'create_product':
