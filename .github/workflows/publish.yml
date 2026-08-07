@@ -114,6 +114,7 @@ jobs:
         working-directory: ./typescript
         run: |
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+          npm cache clean --force
           npm install
           npm run build
           npm publish --access public
