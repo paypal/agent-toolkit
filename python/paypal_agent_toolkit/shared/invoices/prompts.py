@@ -75,3 +75,9 @@ Update an existing invoice auto reminder configuration by its configuration ID.
 
 This function performs a full update of the reminder configuration's timing interval, repetition count and notification preferences.
 """
+
+SEARCH_INVOICING_PROMPT = """
+Search for invoices or recurring invoice series on PayPal.
+
+Use resource_type "invoice" with invoice_filters, or "recurring_series" with recurring_series_filters -- only set the matching filters object. Recurring series search covers only the past 3 years.
+"""

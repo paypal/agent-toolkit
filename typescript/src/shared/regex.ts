@@ -9,6 +9,7 @@ export const CAPTURE_ID_REGEX = /^[A-Za-z0-9_-]{15,32}$/;
 export const TRANSACTION_ID_REGEX = /^[A-Za-z0-9_-]{12,255}$/;
 export const HEX_COLOR_REGEX = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
 export const DATE_NO_TIME_REGEX = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/;
+export const DATE_TIME_REGEX = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])$/;
 export const RECURRING_SERIES_ID_REGEX = /^RI-[A-Z0-9]{17}$/;
 export const COUNTRY_CODE_REGEX = /^([A-Z]{2}|C2)$/;
 export const LANGUAGE_REGEX = /^[a-z]{2}(-[A-Z][a-z]{3})?(-([A-Z]{2}|[0-9]{3}))?$/;

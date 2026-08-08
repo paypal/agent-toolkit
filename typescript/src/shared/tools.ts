@@ -11,6 +11,7 @@ import {
   cancelSentInvoicePrompt,
   setupInvoiceAutoReminderPrompt,
   updateInvoiceAutoReminderPrompt,
+  searchInvoicingPrompt,
   createShipmentPrompt,
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
@@ -51,6 +52,7 @@ import {
   cancelSentInvoiceParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
+  searchInvoicingParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
@@ -202,6 +204,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         updateReminder: true,
+      },
+    },
+  },
+  {
+    method: 'search_invoicing',
+    name: 'Search Invoices or Recurring Invoice Series',
+    description: searchInvoicingPrompt(context),
+    parameters: searchInvoicingParameters(context),
+    actions: {
+      invoices: {
+        search: true,
       },
     },
   },

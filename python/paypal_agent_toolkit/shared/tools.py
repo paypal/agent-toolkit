@@ -28,6 +28,7 @@ from ..shared.invoices.prompts import (
     GENERATE_INVOICE_NUMBER_PROMPT,
     SETUP_INVOICE_AUTO_REMINDER_PROMPT,
     UPDATE_INVOICE_AUTO_REMINDER_PROMPT,
+    SEARCH_INVOICING_PROMPT,
 )
 
 from ..shared.disputes.prompts import (
@@ -82,6 +83,7 @@ from ..shared.invoices.parameters import (
     GenerateInvoiceNumberParameters,
     SetupInvoiceAutoReminderParameters,
     UpdateInvoiceAutoReminderParameters,
+    SearchInvoicingParameters,
 )
 
 from ..shared.disputes.parameters import (
@@ -135,6 +137,7 @@ from ..shared.invoices.tool_handlers import (
     generate_invoice_number,
     setup_invoice_auto_reminders,
     update_invoice_auto_reminder,
+    search_invoicing,
 )
 
 
@@ -352,6 +355,14 @@ tools = [
         "args_schema": UpdateInvoiceAutoReminderParameters,
         "actions": {"invoices": {"updateReminder": True}},
         "execute": update_invoice_auto_reminder,
+    },
+    {
+        "method": "search_invoicing",
+        "name": "Search Invoices or Recurring Invoice Series",
+        "description": SEARCH_INVOICING_PROMPT.strip(),
+        "args_schema": SearchInvoicingParameters,
+        "actions": {"invoices": {"search": True}},
+        "execute": search_invoicing,
     },
     {
         "method": "list_disputes",

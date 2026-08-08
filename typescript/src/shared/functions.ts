@@ -36,7 +36,8 @@ import {
   updatePlanParameters,
   getMerchantInsightsParameters,
   setupInvoiceAutoReminderParameters,
-  updateInvoiceAutoReminderParameters
+  updateInvoiceAutoReminderParameters,
+  searchInvoicingParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, buildCreateInvoicePayload, buildCreateRecurringSeriesPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -319,6 +320,97 @@ export async function updateInvoiceAutoReminder(
     return response.data;
   } catch (error: any) {
     logger('[updateInvoiceAutoReminder] Error updating invoice auto reminder configuration:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+// Some MCP clients keep a previous call's filters object attached (now fully blanked out)
+// after switching resource_type, instead of removing the key -- treat a filters object with
+// no actual content as equivalent to not having been provided at all.
+function isEmptyFilters(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value === 'string') return value.trim().length === 0;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.values(value as Record<string, unknown>).every(isEmptyFilters);
+  return false;
+}
+
+// search_invoicing: one external tool that internally branches to invoice search or
+// recurring-series search based on resource_type. invoice_filters/recurring_series_filters
+// map 1:1 onto PayPal's real request bodies for /v2/invoicing/search-invoices and
+// /v2/invoicing/search-recurring-invoices respectively -- no payload reshaping needed.
+export async function searchInvoicing(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  const { resource_type, recurring_series_filters, invoice_filters } = params;
+
+  if (resource_type === 'invoice' && !isEmptyFilters(recurring_series_filters)) {
+    throw new Error("recurring_series_filters cannot be set when resource_type is 'invoice' -- use invoice_filters instead.");
+  }
+  if (resource_type === 'recurring_series' && !isEmptyFilters(invoice_filters)) {
+    throw new Error("invoice_filters cannot be set when resource_type is 'recurring_series' -- use recurring_series_filters instead.");
+  }
+
+  if (resource_type === 'invoice') {
+    return searchInvoices(client, params);
+  }
+  return searchRecurringSeries(client, params);
+}
+
+async function searchInvoices(
+  client: PayPalClient,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  logger('[searchInvoices] Starting to search invoices');
+
+  const { page, page_size, total_required, invoice_filters } = params;
+
+  const headers = await client.getHeaders();
+  logger('[searchInvoices] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/search-invoices`;
+  logger(`[searchInvoices] API URL: ${url}`);
+
+  try {
+    logger('[searchInvoices] Sending request to PayPal API');
+    const response = await axios.post(url, invoice_filters ?? {}, {
+      headers,
+      params: { page, page_size, total_required },
+    });
+    logger(`[searchInvoices] Invoices retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[searchInvoices] Error searching invoices:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+async function searchRecurringSeries(
+  client: PayPalClient,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  logger('[searchRecurringSeries] Starting to search recurring invoice series');
+
+  const { page, page_size, recurring_series_filters } = params;
+
+  const headers = await client.getHeaders();
+  logger('[searchRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/search-recurring-invoices`;
+  logger(`[searchRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[searchRecurringSeries] Sending request to PayPal API');
+    const response = await axios.post(url, recurring_series_filters ?? {}, {
+      headers,
+      params: { page, page_size },
+    });
+    logger(`[searchRecurringSeries] Recurring invoice series retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[searchRecurringSeries] Error searching recurring invoice series:', error.message);
     handleAxiosError(error);
   }
 }
