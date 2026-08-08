@@ -52,6 +52,12 @@ Cancel a sent invoice.
 This function cancels an invoice that has already been sent to the recipient(s).
 """
 
+DELETE_INVOICE_PROMPT = """
+Delete a draft or scheduled invoice on PayPal.
+
+This function permanently deletes an invoice that is in the draft or scheduled state, by ID. It does not work on invoices that have already been sent -- use cancel_sent_invoice for those instead. After deletion, the invoice's details can no longer be retrieved, but its invoice number can be reused.
+"""
+
 GENERATE_INVOICE_QRCODE_PROMPT = """
 Generate a QR code for an invoice.
 

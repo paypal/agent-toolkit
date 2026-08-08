@@ -126,6 +126,20 @@ def cancel_sent_invoice(client, params: dict):
     return json.dumps(response)
 
 
+def delete_invoice(client, params: dict):
+    validated = DeleteInvoiceParameters(**params)
+    invoice_id = validated.invoice_id
+    url = f"/v2/invoicing/invoices/{invoice_id}"
+
+    response = client.delete(uri=url)
+
+    # PayPal responds with 204 No Content on successful deletion (client.delete returns {} for that)
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
+
+    return json.dumps(response)
+
+
 def generate_invoice_qrcode(client, params: dict):
 
     validated = GenerateInvoiceQrCodeParameters(**params)

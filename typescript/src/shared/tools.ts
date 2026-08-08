@@ -9,6 +9,7 @@ import {
   sendInvoicePrompt,
   sendInvoiceReminderPrompt,
   cancelSentInvoicePrompt,
+  deleteInvoicePrompt,
   setupInvoiceAutoReminderPrompt,
   updateInvoiceAutoReminderPrompt,
   createShipmentPrompt,
@@ -48,6 +49,7 @@ import {
   sendInvoiceParameters,
   sendInvoiceReminderParameters,
   cancelSentInvoiceParameters,
+  deleteInvoiceParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
   createShipmentParameters,
@@ -178,6 +180,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         cancel: true,
+      },
+    },
+  },
+  {
+    method: 'delete_invoice',
+    name: 'Delete Invoice',
+    description: deleteInvoicePrompt(context),
+    parameters: deleteInvoiceParameters(context),
+    actions: {
+      invoices: {
+        delete: true,
       },
     },
   },

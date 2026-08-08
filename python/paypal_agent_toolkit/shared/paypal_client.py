@@ -144,5 +144,32 @@ class PayPalClient:
 
         return json_response
 
-    
-    
+    def delete(self, uri):
+
+        url = f"{self.base_url}{uri}"
+        headers = self.build_headers()
+        logRequestPayload(None, url, headers)
+
+        try:
+            response = requests.delete(url, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            self.log_request_exception(e, url)
+            raise
+
+        if response.status_code == 204:
+            logging.debug("Response Status: 204 No Content")
+            return {}
+
+        try:
+            json_response = response.json()
+        except ValueError:
+            logging.warning("Response body is not valid JSON or empty")
+            return {}
+
+        logResponsePayload(response, json_response)
+
+        return json_response
+
+
+

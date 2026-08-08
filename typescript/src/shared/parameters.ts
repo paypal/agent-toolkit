@@ -200,6 +200,10 @@ export const cancelSentInvoiceParameters = (context: Context) =>
     additional_recipients: z.array(z.string()).optional().describe('Additional email addresses to which to send the cancellation.'),
   });
 
+export const deleteInvoiceParameters = (context: Context) => z.object({
+  invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the draft or scheduled invoice to delete.'),
+});
+
 export const generateInvoiceQrCodeParameters = (context: Context) => z.object({
   invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The invoice id to generate QR code for'),
   width: z.number().default(300).describe("The QR code width"),

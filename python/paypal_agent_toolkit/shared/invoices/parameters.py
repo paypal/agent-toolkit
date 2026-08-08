@@ -193,6 +193,10 @@ class CancelSentInvoiceParameters(BaseModel):
     additional_recipients: Optional[List[str]] = Field(None, description="Additional email addresses to which to send the cancellation.")
 
 
+class DeleteInvoiceParameters(BaseModel):
+    invoice_id: str = Field(..., description="The ID of the draft or scheduled invoice to delete.", pattern=INVOICE_ID_REGEX.pattern)
+
+
 class GenerateInvoiceQrCodeParameters(BaseModel):
     invoice_id: str = Field(..., description="The invoice id to generate QR code for", pattern=INVOICE_ID_REGEX)
     width: int = Field(300, description="The QR code width")

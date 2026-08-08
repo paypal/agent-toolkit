@@ -3,6 +3,7 @@ import type { Context } from './configuration';
 import {
   getInvoicParameters,
   cancelSentInvoiceParameters,
+  deleteInvoiceParameters,
   createInvoiceParameters,
   createRecurringSeriesParameters,
   activateRecurringSeriesParameters,
@@ -353,6 +354,33 @@ export async function cancelSentInvoice(
     return response.data;
   } catch (error: any) {
     logger('[cancelSentInvoice] Error cancelling invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function deleteInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof deleteInvoiceParameters>>
+) {
+  logger('[deleteInvoice] Starting to delete invoice');
+  const { invoice_id } = params;
+
+  const headers = await client.getHeaders();
+  logger('[deleteInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}`;
+
+  try {
+    logger('[deleteInvoice] Sending request to PayPal API');
+    const response = await axios.delete(url, { headers });
+    if (response.status === 204) {
+      logger(`[deleteInvoice] Invoice deleted successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    return response.data;
+  } catch (error: any) {
+    logger('[deleteInvoice] Error deleting invoice:', error.message);
     handleAxiosError(error);
   }
 }
