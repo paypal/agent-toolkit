@@ -206,6 +206,8 @@ export const generateInvoiceQrCodeParameters = (context: Context) => z.object({
   height: z.number().default(300).describe("The QR code height")
 }).describe("generate invoice qr code request payload");
 
+export const generateInvoiceNumberParameters = (context: Context) => z.object({}).describe("generate next invoice number request payload");
+
 const invoiceReminderConfiguration = z.object({
   type: z.enum(['BEFORE_DUE', 'AFTER_DUE']).describe('The type of reminder. BEFORE_DUE sends a reminder before the invoice due date; AFTER_DUE sends a reminder after the invoice due date.'),
   interval: z.object({

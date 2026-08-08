@@ -8,6 +8,7 @@ import {
   activateRecurringSeriesParameters,
   createOrderParameters,
   generateInvoiceQrCodeParameters,
+  generateInvoiceNumberParameters,
   getOrderParameters,
   listInvoicesParameters,
   sendInvoiceParameters,
@@ -382,6 +383,22 @@ export async function generateInvoiceQrCode(
     return response.data;
   } catch (error: any) {
     logger('[cancelSentInvoice] Error cancelling invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function generateInvoiceNumber(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof generateInvoiceNumberParameters>>
+) {
+  const url = `${client.getBaseUrl()}/v2/invoicing/generate-next-invoice-number`;
+  const headers = await client.getHeaders();
+  try {
+    const response = await axios.post(url, { fetch_id: false }, { headers });
+    return response.data;
+  } catch (error: any) {
+    logger('[generateInvoiceNumber] Error generating invoice number:', error.message);
     handleAxiosError(error);
   }
 }

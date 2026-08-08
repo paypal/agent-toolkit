@@ -74,6 +74,12 @@ Generate a QR code for an invoice.
 This function generates a QR code for an invoice, which can be used to pay the invoice using a mobile device or scanning app.
 `;
 
+export const generateInvoiceNumberPrompt = (context: Context) => `
+Generate the next invoice number available to the merchant.
+
+This function generates the next invoice number by using the prefix and suffix from the merchant's last invoice number and incrementing the numeric portion by one (e.g. INVOICE-1234 -> INVOICE-1235).
+`;
+
 export const createProductPrompt = (context: Context) => `
 Create a product in PayPal using product catalog - create products API.
 This function creates a new product that will be used in subscription plans, subscriptions.

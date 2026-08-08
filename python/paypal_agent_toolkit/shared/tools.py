@@ -25,6 +25,7 @@ from ..shared.invoices.prompts import (
     SEND_INVOICE_REMINDER_PROMPT,
     CANCEL_SENT_INVOICE_PROMPT,
     GENERATE_INVOICE_QRCODE_PROMPT,
+    GENERATE_INVOICE_NUMBER_PROMPT,
     SETUP_INVOICE_AUTO_REMINDER_PROMPT,
     UPDATE_INVOICE_AUTO_REMINDER_PROMPT,
 )
@@ -78,6 +79,7 @@ from ..shared.invoices.parameters import (
     SendInvoiceReminderParameters,
     CancelSentInvoiceParameters,
     GenerateInvoiceQrCodeParameters,
+    GenerateInvoiceNumberParameters,
     SetupInvoiceAutoReminderParameters,
     UpdateInvoiceAutoReminderParameters,
 )
@@ -130,6 +132,7 @@ from ..shared.invoices.tool_handlers import (
     send_invoice_reminder,
     cancel_sent_invoice,
     generate_invoice_qrcode,
+    generate_invoice_number,
     setup_invoice_auto_reminders,
     update_invoice_auto_reminder,
 )
@@ -325,6 +328,14 @@ tools = [
         "args_schema": GenerateInvoiceQrCodeParameters,
         "actions": {"invoices": {"generateQRC": True}},
         "execute": generate_invoice_qrcode,
+    },
+    {
+        "method": "generate_invoice_number",
+        "name": "Generate Invoice Number",
+        "description": GENERATE_INVOICE_NUMBER_PROMPT.strip(),
+        "args_schema": GenerateInvoiceNumberParameters,
+        "actions": {"invoices": {"generateInvoiceNumber": True}},
+        "execute": generate_invoice_number,
     },
     {
         "method": "setup_invoice_auto_reminders",

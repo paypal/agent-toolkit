@@ -199,6 +199,10 @@ class GenerateInvoiceQrCodeParameters(BaseModel):
     height: int = Field(300, description="The QR code height")
 
 
+class GenerateInvoiceNumberParameters(BaseModel):
+    pass
+
+
 class ReminderInterval(BaseModel):
     unit: Literal["DAY"] = Field("DAY", description="The unit of time for the reminder interval. The interval unit is always DAY.")
     value: int = Field(..., description="The number of interval units before/after the due date at which to send the reminder.")

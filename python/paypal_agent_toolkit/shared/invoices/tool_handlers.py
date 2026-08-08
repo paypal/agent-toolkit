@@ -145,6 +145,17 @@ def generate_invoice_qrcode(client, params: dict):
     return json.dumps(response)
 
 
+def generate_invoice_number(client, params: dict):
+
+    GenerateInvoiceNumberParameters(**params)
+    payload = {"fetch_id": False}
+
+    url = "/v2/invoicing/generate-next-invoice-number"
+    response = client.post(uri=url, payload=payload)
+
+    return json.dumps(response)
+
+
 def setup_invoice_auto_reminders(client, params: dict):
 
     validated = SetupInvoiceAutoReminderParameters(**params)

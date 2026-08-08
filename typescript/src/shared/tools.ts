@@ -14,6 +14,7 @@ import {
   createShipmentPrompt,
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
+  generateInvoiceNumberPrompt,
   createOrderPrompt,
   getOrderPrompt,
   updateShipmentTrackingPrompt,
@@ -53,6 +54,7 @@ import {
   createShipmentParameters,
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
+  generateInvoiceNumberParameters,
   createOrderParameters,
   getOrderParameters,
   updateShipmentTrackingParameters,
@@ -211,6 +213,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         generateQRC: true,
+      },
+    },
+  },
+  {
+    method: 'generate_invoice_number',
+    name: 'Generate Invoice Number',
+    description: generateInvoiceNumberPrompt(context),
+    parameters: generateInvoiceNumberParameters(context),
+    actions: {
+      invoices: {
+        generateInvoiceNumber: true,
       },
     },
   },
