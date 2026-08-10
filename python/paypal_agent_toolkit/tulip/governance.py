@@ -26,7 +26,7 @@ nothing. Flagging this as a real, disclosed finding (not fixed here,
 out of scope for this change) rather than building this module's policy
 against a tool that doesn't actually exist yet.
 
-**What counts as high-risk here, and why**: of the 30 real tools in
+**What counts as high-risk here, and why**: of the 31 real tools in
 `shared/tools.py`, four have a genuine, hard-to-undo financial or
 liability consequence: `pay_order` (captures/moves real money),
 `accept_dispute_claim` (accepts real financial liability on a dispute),
@@ -44,6 +44,36 @@ auto-allow a capture under $50, hold anything over) would need a
 pre-fetch of the order before classifying the capture -- a real, useful
 enhancement this module doesn't attempt, to keep the change small and
 auditable on its own.
+
+**Validated against the full real catalog, not the 4 examples above in
+isolation** (see `examples/tulip/datasets/{full_catalog,full_run,
+adversarial}.py` -- standalone verification scripts, not shipped as part
+of the installable package):
+
+- All 31 real tools classified and hand-reviewed one by one: 0 mismatches
+  against an independently-written ground-truth expectation per tool.
+- All 31 run end-to-end through the real `GovernedPayPalAPI.run()` (mocked
+  PayPal execution): every one of the 4 high-risk tools provably never
+  executed; all 27 low-risk tools that don't hit PayPal's own unrelated
+  sandbox-mode restriction on `get_merchant_insights` actually ran; audit
+  trail intact across all 31 decisions. `get_merchant_insights` itself is
+  a genuine, separate finding: `PayPalAPI.run()` refuses it outright in
+  sandbox mode for its own reasons, unrelated to this gate -- correctly
+  passed through after this gate allowed it, confirming control genuinely
+  reaches real PayPal logic on allow rather than being intercepted by the
+  mock.
+- 29 adversarial near-miss method-name variants (case, hyphenation,
+  whitespace, no-underscore) against the 4 real high-risk method strings,
+  plus 5 real low-risk methods that share a word with a high-risk one
+  (`get_order_details` vs `pay_order`, `list_disputes` vs
+  `accept_dispute_claim`, etc.) -- 0 false positives, 0 false negatives.
+  Worth being precise about what this does and doesn't prove: `method` is
+  a closed, fixed dispatch string chosen by the calling framework's own
+  tool definitions, not attacker-controlled free text -- `PayPalAPI.run()`
+  itself already rejects any string not in the real 31-tool catalog. This
+  isn't the same class of finding as, say, a free-text query language
+  where a fragmented/concatenated value can evade a keyword scan; there's
+  no equivalent evasion surface here to find in the first place.
 """
 
 from __future__ import annotations

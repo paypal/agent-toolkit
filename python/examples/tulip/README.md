@@ -16,7 +16,7 @@ transaction logs.
 
 ## What's gated
 
-Of this toolkit's 30 real tools, four have a genuine, hard-to-undo
+Of this toolkit's 31 real tools, four have a genuine, hard-to-undo
 financial or liability consequence: `pay_order` (captures/moves real
 money), `accept_dispute_claim` (accepts real financial liability),
 `cancel_subscription` (real revenue impact), `cancel_sent_invoice` (a
@@ -68,3 +68,24 @@ governance logic itself (`admit()`, `classify()`, the audit trail) is
 real, unmodified `tulip-agents` code exercised through this toolkit's own
 real `PayPalTool`/`FunctionTool` machinery; only the underlying PayPal
 HTTP call is stubbed.
+
+## Dataset validation
+
+`datasets/` -- three standalone scripts checking `classify()` and
+`GovernedPayPalAPI` against more than the 2-tool demo above, not shipped
+as part of the installable package:
+
+```bash
+python datasets/full_catalog.py    # all 31 real tools, hand-reviewed ground truth, 0 mismatches
+python datasets/full_run.py        # all 31 run end-to-end; 4 high-risk never execute, 27 low-risk do
+python datasets/adversarial.py     # 29 near-miss method-name variants; 0 false positives/negatives
+```
+
+`full_run.py` surfaced one real, unrelated finding along the way:
+`PayPalAPI.run()` itself refuses `get_merchant_insights` in sandbox mode,
+for its own reasons, independent of this gate -- correctly passed through
+once this gate allowed it. See `governance.py`'s module docstring for the
+full results and what the adversarial dataset does and doesn't prove
+(the method name is a closed, fixed dispatch string, not attacker-
+controlled free text, so it's a different kind of check than an evasion
+test against a free-text query language would be).
