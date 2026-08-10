@@ -170,3 +170,18 @@ def update_invoice_auto_reminder(client, params: dict):
     response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
 
     return json.dumps(response)
+
+
+def record_payment_for_invoice(client, params: dict):
+
+    validated = RecordPaymentForInvoiceParameters(**params)
+    invoice_id = validated.invoice_id
+    payload = validated.model_dump(exclude_none=True, exclude={"invoice_id"})
+
+    url = f"/v2/invoicing/invoices/{invoice_id}/payments"
+    response = client.post(uri=url, payload=payload)
+
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
+
+    return json.dumps(response)

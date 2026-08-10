@@ -14,6 +14,7 @@ import {
   createShipmentPrompt,
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
+  recordPaymentForInvoicePrompt,
   createOrderPrompt,
   getOrderPrompt,
   updateShipmentTrackingPrompt,
@@ -53,6 +54,7 @@ import {
   createShipmentParameters,
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
+  recordPaymentForInvoiceParameters,
   createOrderParameters,
   getOrderParameters,
   updateShipmentTrackingParameters,
@@ -211,6 +213,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         generateQRC: true,
+      },
+    },
+  },
+  {
+    method: 'record_payment_for_invoice',
+    name: 'Record Payment For Invoice',
+    description: recordPaymentForInvoicePrompt(context),
+    parameters: recordPaymentForInvoiceParameters(context),
+    actions: {
+      invoices: {
+        recordPayment: true,
       },
     },
   },

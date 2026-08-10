@@ -31,7 +31,7 @@ const address = () => z.object({
   admin_area_2: z.string().optional().describe("A city, town, or village."),
   admin_area_1: z.string().optional().describe("The highest-level sub-division in a country, such as a state or province."),
   postal_code: z.string().optional().describe("The postal code, which is the zip code or equivalent."),
-  country_code: z.string().regex(COUNTRY_CODE_REGEX, "country_code must be a two-character ISO 3166-1 country code").optional().describe("The two-character ISO 3166-1 country code (for example, US or GB)."),
+  country_code: z.preprocess((val) => (val === '' ? undefined : val), z.string().regex(COUNTRY_CODE_REGEX, "country_code must be a two-character ISO 3166-1 country code").optional()).describe("The two-character ISO 3166-1 country code (for example, US or GB)."),
 }).describe("address object");
 
 const phone = () => z.object({
@@ -241,6 +241,18 @@ export const updateInvoiceAutoReminderParameters = (context: Context) =>
       send_to_invoicer: z.boolean().optional().describe('Indicates whether to also notify the invoicer when the reminder is sent.'),
     }).optional().describe('Notification settings for the reminder.'),
   }).describe('Full replacement configuration for an existing invoice auto reminder. All required fields must be included since this performs a full update.');
+
+export const recordPaymentForInvoiceParameters = (context: Context) =>
+  z.object({
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice to record the payment against.'),
+    payment_id: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(22).optional()).describe('The ID for a PayPal payment transaction. Required for the PAYPAL payment type.'),
+    payment_date: z.preprocess((val) => (val === '' ? undefined : val), z.string().regex(DATE_NO_TIME_REGEX, "payment_date must be in yyyy-MM-DD format").optional()).describe('The date when the invoicer recorded the payment, in yyyy-MM-dd format.'),
+    payment_date_time: z.preprocess((val) => (val === '' ? undefined : val), z.string().min(20).max(64).optional()).describe('The date and time when the invoicer recorded the payment, in Internet date and time format (ISO 8601), for example 2018-05-13T21:20:00Z or 2018-05-13T21:20:00.000-08:00. Seconds are required.'),
+    method: z.enum(['BANK_TRANSFER', 'CASH', 'CHECK', 'CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'WIRE_TRANSFER', 'OTHER']).describe('The payment mode or method through which the invoicer can accept the payments.'),
+    note: z.string().max(2000).optional().describe('A note associated with an external cash or check payment.'),
+    amount: money().optional().describe('The currency and amount for a financial transaction.'),
+    shipping_info: shippingInfo().optional().describe('The shipping information associated with this payment.'),
+  }).describe('Record an external or PayPal payment against an invoice.');
 
 
 export const updateProductParameters = (context: Context) =>

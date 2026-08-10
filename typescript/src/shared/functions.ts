@@ -35,7 +35,8 @@ import {
   updatePlanParameters,
   getMerchantInsightsParameters,
   setupInvoiceAutoReminderParameters,
-  updateInvoiceAutoReminderParameters
+  updateInvoiceAutoReminderParameters,
+  recordPaymentForInvoiceParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, buildCreateInvoicePayload, buildCreateRecurringSeriesPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -382,6 +383,53 @@ export async function generateInvoiceQrCode(
     return response.data;
   } catch (error: any) {
     logger('[cancelSentInvoice] Error cancelling invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function recordPaymentForInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof recordPaymentForInvoiceParameters>>
+) {
+  logger('[recordPaymentForInvoice] Starting to record payment for invoice');
+  const {
+    invoice_id,
+    payment_id,
+    payment_date,
+    payment_date_time,
+    method,
+    note,
+    amount,
+    shipping_info,
+  } = params;
+
+  const body = {
+    payment_id,
+    payment_date,
+    payment_date_time,
+    method,
+    note,
+    amount,
+    shipping_info,
+  };
+
+  const headers = await client.getHeaders();
+  logger('[recordPaymentForInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/payments`;
+
+  try {
+    logger('[recordPaymentForInvoice] Sending request to PayPal API');
+    const response = await axios.post(url, body, { headers });
+    if (response.status === 204) {
+      logger(`[recordPaymentForInvoice] Payment recorded successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[recordPaymentForInvoice] Payment record response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[recordPaymentForInvoice] Error recording payment for invoice:', error.message);
     handleAxiosError(error);
   }
 }

@@ -74,6 +74,14 @@ Generate a QR code for an invoice.
 This function generates a QR code for an invoice, which can be used to pay the invoice using a mobile device or scanning app.
 `;
 
+export const recordPaymentForInvoicePrompt = (context: Context) => `
+Record a payment for an invoice on PayPal.
+
+This function records an external or manual payment (for example, cash, check, bank transfer, or a PayPal transaction) against an invoice, by invoice ID. If the recorded amount covers the full amount due, PayPal marks the invoice PAID; otherwise it is marked PARTIALLY_PAID. This does not process a new payment -- it only logs one that was already collected.
+
+method is required. payment_id applies only to PAYPAL-type payments.
+`;
+
 export const createProductPrompt = (context: Context) => `
 Create a product in PayPal using product catalog - create products API.
 This function creates a new product that will be used in subscription plans, subscriptions.

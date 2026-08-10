@@ -27,6 +27,7 @@ from ..shared.invoices.prompts import (
     GENERATE_INVOICE_QRCODE_PROMPT,
     SETUP_INVOICE_AUTO_REMINDER_PROMPT,
     UPDATE_INVOICE_AUTO_REMINDER_PROMPT,
+    RECORD_PAYMENT_FOR_INVOICE_PROMPT,
 )
 
 from ..shared.disputes.prompts import (
@@ -80,6 +81,7 @@ from ..shared.invoices.parameters import (
     GenerateInvoiceQrCodeParameters,
     SetupInvoiceAutoReminderParameters,
     UpdateInvoiceAutoReminderParameters,
+    RecordPaymentForInvoiceParameters,
 )
 
 from ..shared.disputes.parameters import (
@@ -132,6 +134,7 @@ from ..shared.invoices.tool_handlers import (
     generate_invoice_qrcode,
     setup_invoice_auto_reminders,
     update_invoice_auto_reminder,
+    record_payment_for_invoice,
 )
 
 
@@ -341,6 +344,14 @@ tools = [
         "args_schema": UpdateInvoiceAutoReminderParameters,
         "actions": {"invoices": {"updateReminder": True}},
         "execute": update_invoice_auto_reminder,
+    },
+    {
+        "method": "record_payment_for_invoice",
+        "name": "Record Payment For Invoice",
+        "description": RECORD_PAYMENT_FOR_INVOICE_PROMPT.strip(),
+        "args_schema": RecordPaymentForInvoiceParameters,
+        "actions": {"invoices": {"recordPayment": True}},
+        "execute": record_payment_for_invoice,
     },
     {
         "method": "list_disputes",
