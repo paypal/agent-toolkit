@@ -256,3 +256,15 @@ class RecordPaymentForInvoiceParameters(BaseModel):
         return None if v == "" else v
 
 
+class RecordRefundForInvoiceParameters(BaseModel):
+    invoice_id: str = Field(..., pattern=INVOICE_ID_REGEX.pattern, description="The ID of the invoice to mark as refunded.")
+    refund_date: Optional[str] = Field(None, pattern=DATE_NO_TIME_REGEX.pattern, description="The date when the invoicer recorded the refund, in yyyy-MM-dd format.")
+    amount: Optional[Money] = Field(None, description="The currency and amount for a financial transaction.")
+    method: Literal["BANK_TRANSFER", "CASH", "CHECK", "CREDIT_CARD", "DEBIT_CARD", "PAYPAL", "WIRE_TRANSFER", "OTHER"] = Field(..., description="The payment mode or method through which the invoicer can accept the payments.")
+
+    @field_validator("refund_date", mode="before")
+    @classmethod
+    def _empty_string_to_none(cls, v):
+        return None if v == "" else v
+
+

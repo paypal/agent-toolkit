@@ -82,6 +82,14 @@ This function records an external or manual payment (for example, cash, check, b
 method is required. payment_id applies only to PAYPAL-type payments.
 `;
 
+export const recordRefundForInvoicePrompt = (context: Context) => `
+Record a refund for an invoice on PayPal.
+
+This function records a refund against an invoice, by invoice ID. If all payments made against the invoice are refunded, PayPal marks the invoice REFUNDED; otherwise it is marked PARTIALLY_REFUNDED. This does not process a new refund -- it only logs one that was already issued.
+
+method is required.
+`;
+
 export const createProductPrompt = (context: Context) => `
 Create a product in PayPal using product catalog - create products API.
 This function creates a new product that will be used in subscription plans, subscriptions.

@@ -254,6 +254,14 @@ export const recordPaymentForInvoiceParameters = (context: Context) =>
     shipping_info: shippingInfo().optional().describe('The shipping information associated with this payment.'),
   }).describe('Record an external or PayPal payment against an invoice.');
 
+export const recordRefundForInvoiceParameters = (context: Context) =>
+  z.object({
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice to mark as refunded.'),
+    refund_date: z.preprocess((val) => (val === '' ? undefined : val), z.string().regex(DATE_NO_TIME_REGEX, "refund_date must be in yyyy-MM-DD format").optional()).describe('The date when the invoicer recorded the refund, in yyyy-MM-dd format.'),
+    amount: money().optional().describe('The currency and amount for a financial transaction.'),
+    method: z.enum(['BANK_TRANSFER', 'CASH', 'CHECK', 'CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'WIRE_TRANSFER', 'OTHER']).describe('The payment mode or method through which the invoicer can accept the payments.'),
+  }).describe('Record a refund against an invoice.');
+
 
 export const updateProductParameters = (context: Context) =>
   z.object({

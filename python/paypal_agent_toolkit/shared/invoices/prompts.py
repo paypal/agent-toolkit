@@ -77,3 +77,11 @@ This function records an external or manual payment (for example, cash, check, b
 
 method is required. payment_id applies only to PAYPAL-type payments.
 """
+
+RECORD_REFUND_FOR_INVOICE_PROMPT = """
+Record a refund for an invoice on PayPal.
+
+This function records a refund against an invoice, by invoice ID. If all payments on the invoice are refunded, PayPal marks the invoice REFUNDED; otherwise it is marked PARTIALLY_REFUNDED. This does not process a new refund -- it only logs one that was already issued.
+
+method is required.
+"""

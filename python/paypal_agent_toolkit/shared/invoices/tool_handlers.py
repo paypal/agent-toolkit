@@ -185,3 +185,18 @@ def record_payment_for_invoice(client, params: dict):
         return json.dumps({"success": True, "invoice_id": invoice_id})
 
     return json.dumps(response)
+
+
+def record_refund_for_invoice(client, params: dict):
+
+    validated = RecordRefundForInvoiceParameters(**params)
+    invoice_id = validated.invoice_id
+    payload = validated.model_dump(exclude_none=True, exclude={"invoice_id"})
+
+    url = f"/v2/invoicing/invoices/{invoice_id}/refunds"
+    response = client.post(uri=url, payload=payload)
+
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
+
+    return json.dumps(response)

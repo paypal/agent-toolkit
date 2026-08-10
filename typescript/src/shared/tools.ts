@@ -15,6 +15,7 @@ import {
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
   recordPaymentForInvoicePrompt,
+  recordRefundForInvoicePrompt,
   createOrderPrompt,
   getOrderPrompt,
   updateShipmentTrackingPrompt,
@@ -55,6 +56,7 @@ import {
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
   recordPaymentForInvoiceParameters,
+  recordRefundForInvoiceParameters,
   createOrderParameters,
   getOrderParameters,
   updateShipmentTrackingParameters,
@@ -224,6 +226,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         recordPayment: true,
+      },
+    },
+  },
+  {
+    method: 'record_refund_for_invoice',
+    name: 'Record Refund For Invoice',
+    description: recordRefundForInvoicePrompt(context),
+    parameters: recordRefundForInvoiceParameters(context),
+    actions: {
+      invoices: {
+        recordRefund: true,
       },
     },
   },
