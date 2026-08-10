@@ -1,6 +1,6 @@
 # ruff: noqa: E501 -- long single-literal report/message strings; wrapping mid-sentence hurts readability more than it helps here
-"""Dataset 3: adversarial / near-miss method-name variants against the
-four real high-risk methods -- does classify() actually do an exact
+"""Dataset 3: adversarial / near-miss method-name variants against all
+nine real high-risk methods -- does classify() actually do an exact
 match (correct, since HIGH_RISK_METHODS is a real production method-name
 set, not a fuzzy pattern), or does something sloppier let a near-miss
 slip through as low-risk when it shouldn't, or over-block a legitimate
@@ -8,7 +8,12 @@ method it shouldn't?
 
 Same "find the evasion, don't assume it's not there" methodology used
 against the Velociraptor gate's dynamic-artifact-name concatenation case
-earlier this session.
+earlier this session. Two cases below are specifically the sharpest
+near-misses in the real catalog: `send_invoice_reminder` literally
+starts with the string `send_invoice`, and `list_subscription_plans`
+shares two whole words with `create_subscription_plan` -- both real,
+legitimate, low-risk methods that must not get swept up by anything
+looser than an exact match.
 """
 
 from paypal_agent_toolkit.tulip.governance import classify
@@ -18,6 +23,11 @@ REAL_HIGH_RISK = [
     "accept_dispute_claim",
     "cancel_subscription",
     "cancel_sent_invoice",
+    "send_invoice",
+    "create_subscription",
+    "create_subscription_plan",
+    "create_recurring_series",
+    "activate_recurring_series",
 ]
 
 CASES = []
@@ -68,12 +78,22 @@ CASES += [
         False,
         "real, legitimate low-risk method containing 'subscription' -- must NOT be flagged just for sharing a word with cancel_subscription",
     ),
+    (
+        "send_invoice_reminder",
+        False,
+        "real, legitimate low-risk method whose name literally STARTS WITH the string 'send_invoice' -- must NOT be flagged just because it's a prefix match against send_invoice",
+    ),
+    (
+        "list_subscription_plans",
+        False,
+        "real, legitimate low-risk method sharing two whole words with create_subscription_plan -- must NOT be flagged",
+    ),
 ]
 
 
 def main() -> None:
     print(
-        f"{len(CASES)} adversarial/near-miss cases against the 4 real high-risk methods.\n"
+        f"{len(CASES)} adversarial/near-miss cases against the 9 real high-risk methods.\n"
     )
     surprises = []
     for method, expected, why in CASES:

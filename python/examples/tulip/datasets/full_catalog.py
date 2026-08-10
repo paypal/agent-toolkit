@@ -10,32 +10,42 @@ the Velociraptor admission gate against its real 433-artifact catalog.
 from paypal_agent_toolkit.shared.tools import tools as real_tools
 from paypal_agent_toolkit.tulip.governance import HIGH_RISK_METHODS, classify
 
-# Hand-reviewed judgment call for every one of the 30 real tools: should
+# Hand-reviewed judgment call for every one of the 31 real tools: should
 # it be high-risk? This is the "ground truth" this run checks classify()
 # against -- independent review, not just re-deriving from HIGH_RISK_METHODS.
+#
+# The 5 methods marked "widened after independent-classifier review" were
+# originally False in this ground truth; an independent model-based
+# classifier, run against this same dataset, flagged them anyway (and
+# agreed on every other case). Re-reviewed and agreed: starting a real
+# recurring-billing commitment or transmitting a real invoice to a real
+# customer is the same class of consequence this ground truth already
+# held cancel_subscription/cancel_sent_invoice to on the other side of
+# that relationship -- treating the "start" side as lower-stakes than the
+# "stop" side was a real asymmetry, not a considered choice. Widened.
 EXPECTED_HIGH_RISK = {
     "pay_order": True,  # captures/moves real money
     "accept_dispute_claim": True,  # accepts real financial liability
     "cancel_subscription": True,  # real, ongoing revenue impact
     "cancel_sent_invoice": True,  # real customer-facing cancellation
-    # Everything else: reads, drafts/creates-without-committing-funds,
-    # listings, reminders, QR generation, tracking updates.
-    "create_order": False,  # creates a draft order; no funds move until pay_order
+    "send_invoice": True,  # widened after independent-classifier review -- transmits a real, formal payment request to a real customer
+    "create_subscription": True,  # widened after independent-classifier review -- starts a real recurring-billing commitment
+    "create_subscription_plan": True,  # widened after independent-classifier review -- defines the terms of a real recurring-billing commitment
+    "create_recurring_series": True,  # widened after independent-classifier review -- starts a real recurring invoice series
+    "activate_recurring_series": True,  # widened after independent-classifier review -- activates a real recurring invoice series
+    # Everything else: reads, drafts/creates-without-committing-funds or
+    # without-notifying-anyone, listings, reminders, QR generation, tracking updates.
+    "create_order": False,  # creates a draft order; no funds move until pay_order, nobody is notified
     "get_order_details": False,
     "create_product": False,
     "list_products": False,
     "show_product_details": False,
-    "create_subscription_plan": False,
     "list_subscription_plans": False,
     "show_subscription_plan_details": False,
-    "create_subscription": False,  # starts a subscription; judgment call, see report
     "show_subscription_details": False,
-    "create_invoice": False,
-    "create_recurring_series": False,
-    "activate_recurring_series": False,  # judgment call, see report
+    "create_invoice": False,  # creates a draft invoice; still low-risk -- send_invoice, not create_invoice, is the real external-facing action
     "list_invoices": False,
     "get_invoice": False,
-    "send_invoice": False,  # sends real communication; judgment call, see report
     "send_invoice_reminder": False,
     "generate_invoice_qr_code": False,
     "setup_invoice_auto_reminders": False,

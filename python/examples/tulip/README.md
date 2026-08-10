@@ -16,11 +16,17 @@ transaction logs.
 
 ## What's gated
 
-Of this toolkit's 31 real tools, four have a genuine, hard-to-undo
-financial or liability consequence: `pay_order` (captures/moves real
-money), `accept_dispute_claim` (accepts real financial liability),
-`cancel_subscription` (real revenue impact), `cancel_sent_invoice` (a
-real, customer-facing cancellation). Those four are held for a human by
+Of this toolkit's 31 real tools, nine have a genuine, hard-to-undo
+financial, liability, or real-external-party consequence: `pay_order`
+(captures/moves real money), `accept_dispute_claim` (accepts real
+financial liability), `cancel_subscription` / `cancel_sent_invoice`
+(real revenue impact / a real customer-facing cancellation), plus five
+methods widened after testing an independent classifier against this
+same dataset and re-reviewing where it disagreed: `send_invoice`
+(transmits a real payment request to a real customer), and
+`create_subscription` / `create_subscription_plan` /
+`create_recurring_series` / `activate_recurring_series` (each starts a
+real recurring-billing commitment). Those nine are held for a human by
 default; everything else -- reads, drafts, listings -- auto-allows. See
 `paypal_agent_toolkit/tulip/governance.py`'s module docstring for the full
 reasoning, including one real, disclosed gap this toolkit's own top-level
@@ -74,7 +80,7 @@ installable package:
 
 ```bash
 python datasets/full_catalog.py    # all 31 real tools, hand-reviewed ground truth, 0 mismatches
-python datasets/full_run.py        # all 31 run end-to-end (mocked); 4 high-risk never execute, low-risk do
+python datasets/full_run.py        # all 31 run end-to-end (mocked); 9 high-risk never execute, low-risk do
 python datasets/adversarial.py     # 29 near-miss method-name variants; 0 false positives/negatives
 python datasets/live_sandbox.py    # real PayPal sandbox account, no mocks -- see below
 ```
@@ -121,9 +127,12 @@ neither a bug in this gate, and one real bug this run caught in this
 module's own examples -- see `live_sandbox.py`'s and `governance.py`'s
 module docstrings for the full detail.
 
-The other 3 high-risk methods (`accept_dispute_claim`,
-`cancel_subscription`, `cancel_sent_invoice`) remain verified only via
-the mocked `full_run.py` sweep, not live -- exercising them for real
-needs pre-existing sandbox state (an approved subscription, a filed
-dispute) that itself requires a real buyer-approval redirect flow, out
-of scope for this pass. Disclosed, not glossed over.
+The other 8 high-risk methods (`accept_dispute_claim`,
+`cancel_subscription`, `cancel_sent_invoice`, `send_invoice`,
+`create_subscription`, `create_subscription_plan`,
+`create_recurring_series`, `activate_recurring_series`) remain verified
+only via the mocked `full_run.py` sweep, not live -- exercising most of
+them for real needs pre-existing sandbox state (an approved
+subscription, a filed dispute) that itself requires a real
+buyer-approval redirect flow, out of scope for this pass. Disclosed,
+not glossed over.

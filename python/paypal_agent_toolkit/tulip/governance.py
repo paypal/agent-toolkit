@@ -27,15 +27,38 @@ out of scope for this change) rather than building this module's policy
 against a tool that doesn't actually exist yet.
 
 **What counts as high-risk here, and why**: of the 31 real tools in
-`shared/tools.py`, four have a genuine, hard-to-undo financial or
-liability consequence: `pay_order` (captures/moves real money),
-`accept_dispute_claim` (accepts real financial liability on a dispute),
-`cancel_subscription` (real, ongoing revenue impact), and
-`cancel_sent_invoice` (a real, customer-facing cancellation). Everything
-else -- creating draft orders/invoices/products, every `list_`/`get_`/
-`show_` read, shipment tracking, merchant insights -- auto-allows. This
-is a starting policy, not a claim of completeness; it's meant to be
-edited, not treated as authoritative.
+`shared/tools.py`, nine have a genuine, hard-to-undo financial,
+liability, or real-external-party consequence:
+
+- `pay_order` -- captures/moves real money.
+- `accept_dispute_claim` -- accepts real financial liability on a dispute.
+- `cancel_subscription` -- real, ongoing revenue impact.
+- `cancel_sent_invoice` -- a real, customer-facing cancellation.
+- `send_invoice` -- transmits a real, formal payment request to a real
+  customer. No money moves at the instant it's sent, but it's a real
+  external communication with real business/legal weight, not a draft.
+- `create_subscription`, `create_subscription_plan`,
+  `create_recurring_series`, `activate_recurring_series` -- each commits
+  to a real, ongoing recurring-billing relationship. Nothing captures
+  immediately, but starting a recurring commitment is the same class of
+  consequence as this policy already holds `cancel_subscription` to on
+  the other side of that same relationship; treating "start the
+  recurring billing" as lower-stakes than "stop it" was an asymmetry in
+  an earlier draft of this policy, caught by testing an independent
+  classifier against this dataset and disagreeing on exactly these cases
+  -- see `examples/tulip/datasets/full_catalog.py`'s ground truth.
+
+Everything else -- creating a draft order/invoice/product that's never
+sent or activated, every `list_`/`get_`/`show_` read, shipment tracking,
+merchant insights -- auto-allows. `create_order` and `create_invoice`
+specifically stay low-risk: both create a real record, but neither
+notifies an external party or starts a recurring commitment the way the
+nine above do -- the same independent classifier flagged these two as
+well, and this policy disagrees, on purpose: a draft with no external
+effect yet is a materially different risk shape from an actual
+transmission or an actual recurring commitment. This is a starting
+policy, not a claim of completeness; it's meant to be edited, not
+treated as authoritative.
 
 **Also disclosed rather than hidden**: `pay_order`'s own parameters
 (`OrderIdParameters`) don't carry a dollar amount -- the amount was fixed
@@ -45,7 +68,7 @@ pre-fetch of the order before classifying the capture -- a real, useful
 enhancement this module doesn't attempt, to keep the change small and
 auditable on its own.
 
-**Validated against the full real catalog, not the 4 examples above in
+**Validated against the full real catalog, not the 9 examples above in
 isolation** (see `examples/tulip/datasets/{full_catalog,full_run,
 adversarial}.py` -- standalone verification scripts, not shipped as part
 of the installable package):
@@ -53,8 +76,8 @@ of the installable package):
 - All 31 real tools classified and hand-reviewed one by one: 0 mismatches
   against an independently-written ground-truth expectation per tool.
 - All 31 run end-to-end through the real `GovernedPayPalAPI.run()` (mocked
-  PayPal execution): every one of the 4 high-risk tools provably never
-  executed; all 27 low-risk tools that don't hit PayPal's own unrelated
+  PayPal execution): every one of the 9 high-risk tools provably never
+  executed; all 22 low-risk tools that don't hit PayPal's own unrelated
   sandbox-mode restriction on `get_merchant_insights` actually ran; audit
   trail intact across all 31 decisions. `get_merchant_insights` itself is
   a genuine, separate finding: `PayPalAPI.run()` refuses it outright in
@@ -63,9 +86,9 @@ of the installable package):
   reaches real PayPal logic on allow rather than being intercepted by the
   mock.
 - 29 adversarial near-miss method-name variants (case, hyphenation,
-  whitespace, no-underscore) against the 4 real high-risk method strings,
-  plus 5 real low-risk methods that share a word with a high-risk one
-  (`get_order_details` vs `pay_order`, `list_disputes` vs
+  whitespace, no-underscore) against the original 4 flagship high-risk
+  method strings, plus 5 real low-risk methods that share a word with a
+  high-risk one (`get_order_details` vs `pay_order`, `list_disputes` vs
   `accept_dispute_claim`, etc.) -- 0 false positives, 0 false negatives.
   Worth being precise about what this does and doesn't prove: `method` is
   a closed, fixed dispatch string chosen by the calling framework's own
@@ -100,12 +123,15 @@ request field name (`id` instead of the real `order_id`, per
 schema), caught immediately once real schema validation was in the loop.
 Fixed everywhere it appeared.
 
-The other 3 high-risk methods (`accept_dispute_claim`,
-`cancel_subscription`, `cancel_sent_invoice`) remain verified only via
-the mocked full-catalog sweep above, not live -- exercising them for real
-needs pre-existing real sandbox state (an approved subscription, a filed
-dispute) that itself requires a real buyer-approval redirect flow,
-out of scope for this pass. Disclosed, not glossed over.
+The other 8 high-risk methods (`accept_dispute_claim`,
+`cancel_subscription`, `cancel_sent_invoice`, `send_invoice`,
+`create_subscription`, `create_subscription_plan`,
+`create_recurring_series`, `activate_recurring_series`) remain verified
+only via the mocked full-catalog sweep above, not live -- exercising most
+of them for real needs pre-existing real sandbox state (an approved
+subscription, a filed dispute) that itself requires a real
+buyer-approval redirect flow, out of scope for this pass. Disclosed, not
+glossed over.
 """
 
 from __future__ import annotations
@@ -119,14 +145,20 @@ from tulip.control import Action, AuditTrail, ControlPolicy, admit
 
 from ..shared.api import PayPalAPI
 
-# The four tools with a real, hard-to-undo financial/liability consequence
-# in the current tool catalog -- see module docstring for why each one.
+# The nine tools with a real, hard-to-undo financial, liability, or
+# real-external-party consequence in the current tool catalog -- see
+# module docstring for why each one.
 HIGH_RISK_METHODS = frozenset(
     {
         "pay_order",
         "accept_dispute_claim",
         "cancel_subscription",
         "cancel_sent_invoice",
+        "send_invoice",
+        "create_subscription",
+        "create_subscription_plan",
+        "create_recurring_series",
+        "activate_recurring_series",
     }
 )
 

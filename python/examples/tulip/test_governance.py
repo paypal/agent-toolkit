@@ -39,12 +39,17 @@ def _patch_execute(monkeypatch: pytest.MonkeyPatch, method: str, result: str) ->
     raise AssertionError(f"no tool named {method!r} in shared/tools.py")
 
 
-def test_classify_flags_the_four_real_high_risk_methods() -> None:
+def test_classify_flags_all_nine_real_high_risk_methods() -> None:
     for method in (
         "pay_order",
         "accept_dispute_claim",
         "cancel_subscription",
         "cancel_sent_invoice",
+        "send_invoice",
+        "create_subscription",
+        "create_subscription_plan",
+        "create_recurring_series",
+        "activate_recurring_series",
     ):
         action = classify(method, {})
         assert "high-risk" in action.tags, method
