@@ -62,23 +62,21 @@ inside an already-running event loop), to confirm the sync/async bridge
 in `governance.py` actually holds up under the real call pattern, not
 just a simplified one.
 
-**Disclosed, not hidden**: none of this was run against a live PayPal
-sandbox account -- no credentials were available while building it. The
-governance logic itself (`admit()`, `classify()`, the audit trail) is
-real, unmodified `tulip-agents` code exercised through this toolkit's own
-real `PayPalTool`/`FunctionTool` machinery; only the underlying PayPal
-HTTP call is stubbed.
+This particular demo stubs the underlying PayPal HTTP call so it runs
+with no credentials at all. `governance.py`, `classify()`, and the audit
+trail are real, unmodified `tulip-agents` code either way -- see below
+for the same thing run against a real account.
 
 ## Dataset validation
 
-`datasets/` -- three standalone scripts checking `classify()` and
-`GovernedPayPalAPI` against more than the 2-tool demo above, not shipped
-as part of the installable package:
+`datasets/` -- four standalone scripts, not shipped as part of the
+installable package:
 
 ```bash
 python datasets/full_catalog.py    # all 31 real tools, hand-reviewed ground truth, 0 mismatches
-python datasets/full_run.py        # all 31 run end-to-end; 4 high-risk never execute, 27 low-risk do
+python datasets/full_run.py        # all 31 run end-to-end (mocked); 4 high-risk never execute, low-risk do
 python datasets/adversarial.py     # 29 near-miss method-name variants; 0 false positives/negatives
+python datasets/live_sandbox.py    # real PayPal sandbox account, no mocks -- see below
 ```
 
 `full_run.py` surfaced one real, unrelated finding along the way:
@@ -89,3 +87,43 @@ full results and what the adversarial dataset does and doesn't prove
 (the method name is a closed, fixed dispatch string, not attacker-
 controlled free text, so it's a different kind of check than an evasion
 test against a free-text query language would be).
+
+### Live sandbox verification -- no mocks
+
+```bash
+cd datasets && cp ../.env.sample .env   # fill in real PayPal sandbox Client ID/Secret, free at developer.paypal.com
+python live_sandbox.py
+```
+
+Real output against a real sandbox account:
+
+```
+1. create_order (real, low-risk, should auto-allow)
+  EXECUTED -> {"id": "97913981JL2462612", "status": "PAYER_ACTION_REQUIRED", ...}
+
+3. pay_order (real, HIGH-RISK, must be held, must never reach PayPal)
+  REQUIRE_HUMAN -> blast radius 5 exceeds the maximum 1; labels ['high-risk'] require human approval
+
+4. Same pay_order, explicit allow-everything policy override
+   (expect PayPal's own real ORDER_NOT_APPROVED rejection)
+  ALLOWED, THEN REAL PAYPAL API ERROR -> HTTPError: 422 Client Error: ... /capture
+
+primary audit trail: 7 decisions, chain intact: True
+override-policy audit trail: 1 decisions, chain intact: True
+```
+
+The forced-allow override genuinely reaches PayPal's real API and gets
+PayPal's own real business rejection back (no real buyer ever approved
+the order via PayPal's own checkout flow) -- proving the override isn't
+a stub, and that this gate and PayPal's own business rules are two
+independent, composable layers. Two more real findings from that run,
+neither a bug in this gate, and one real bug this run caught in this
+module's own examples -- see `live_sandbox.py`'s and `governance.py`'s
+module docstrings for the full detail.
+
+The other 3 high-risk methods (`accept_dispute_claim`,
+`cancel_subscription`, `cancel_sent_invoice`) remain verified only via
+the mocked `full_run.py` sweep, not live -- exercising them for real
+needs pre-existing sandbox state (an approved subscription, a filed
+dispute) that itself requires a real buyer-approval redirect flow, out
+of scope for this pass. Disclosed, not glossed over.

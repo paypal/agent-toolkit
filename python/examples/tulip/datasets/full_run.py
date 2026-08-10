@@ -17,12 +17,14 @@ from paypal_agent_toolkit.shared import tools as tools_module
 from paypal_agent_toolkit.shared.configuration import Context
 from paypal_agent_toolkit.tulip.governance import HIGH_RISK_METHODS, GovernedPayPalAPI
 
-# Minimal, real-shaped params per method -- enough for classify()'s
-# signature (method, params), not full API-valid payloads (execution is
-# mocked, so payload validity doesn't matter for this dataset).
+# Real field names (order_id, per shared/orders/parameters.py's
+# OrderIdParameters/CaptureOrderParameters) even though execution is
+# mocked here and wouldn't itself catch a wrong key -- see
+# datasets/live_sandbox.py for where using the wrong key ("id") was
+# actually caught, against real schema validation.
 SAMPLE_PARAMS = {
-    "get_order_details": {"id": "ORDER-1"},
-    "pay_order": {"id": "ORDER-1"},
+    "get_order_details": {"order_id": "ORDER-1"},
+    "pay_order": {"order_id": "ORDER-1"},
 }
 
 

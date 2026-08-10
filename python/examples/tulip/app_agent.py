@@ -9,15 +9,16 @@ each (the same coroutine the OpenAI Agents SDK runner calls once an LLM
 decides to invoke a tool), so this demonstrates the real tool-invocation
 path without needing a live LLM call.
 
-**Disclosed, not hidden**: the underlying PayPal HTTP call is stubbed
-(`shared/tools.py`'s `execute` function is swapped for a canned response)
-because no PayPal sandbox credentials were available while building this.
-Nothing about the governance layer itself is stubbed -- `GovernedPayPalAPI`,
+This particular script stubs the underlying PayPal HTTP call, so it runs
+with no credentials at all -- see `datasets/live_sandbox.py` for the same
+governance logic run against a real PayPal sandbox account instead (real
+order created, real capture genuinely held, then a forced-allow override
+that genuinely reaches PayPal's real API and gets PayPal's own real
+`ORDER_NOT_APPROVED` business rejection back). Nothing about the
+governance layer itself is stubbed in either case -- `GovernedPayPalAPI`,
 `classify()`, `tulip.control.admit()`, and the `AuditTrail` are all real,
 unmodified tulip-agents code, exercised through this toolkit's own real
-`PayPalTool`/`FunctionTool` machinery. Swap `_stub_paypal_http_calls()` for
-real credentials (see `.env.sample`) to run the exact same demo against a
-live PayPal sandbox account.
+`PayPalTool`/`FunctionTool` machinery.
 
     pip install -r requirements.txt
     python app_agent.py
@@ -39,15 +40,24 @@ from paypal_agent_toolkit.tulip.governance import GovernedPayPalAPI
 
 def _stub_paypal_http_calls() -> None:
     """Stands in for the real PayPal API -- see this file's module
-    docstring for why, and how to run this against a real account."""
+    docstring for the real-sandbox version. Uses the real param key name
+    (`order_id`, per `shared/orders/parameters.py`'s `OrderIdParameters`/
+    `CaptureOrderParameters`) even though this stub never validates it --
+    matching the real schema here is what caught, in `live_sandbox.py`,
+    that an earlier draft of this file used the wrong key (`id`) and
+    only "worked" because a full stub bypasses real param validation."""
     for tool in tools_module.tools:
         if tool["method"] == "get_order_details":
             tool["execute"] = lambda client, params: json.dumps(
-                {"id": params.get("id"), "status": "COMPLETED", "amount": "42.00 USD"}
+                {
+                    "id": params.get("order_id"),
+                    "status": "COMPLETED",
+                    "amount": "42.00 USD",
+                }
             )
         elif tool["method"] == "pay_order":
             tool["execute"] = lambda client, params: json.dumps(
-                {"id": params.get("id"), "status": "CAPTURED"}
+                {"id": params.get("order_id"), "status": "CAPTURED"}
             )
 
 
@@ -75,12 +85,12 @@ async def main() -> None:
     pay_order_tool = PayPalTool(api, _tool_by_method("pay_order"))
 
     print("[get_order_details] a real read, auto-allowed]")
-    result = await _invoke(get_order_tool, {"id": "ORDER-1"})
+    result = await _invoke(get_order_tool, {"order_id": "ORDER-1"})
     print(f"  -> {result}\n")
 
     print("[pay_order] captures real money -- held for a human")
     try:
-        result = await _invoke(pay_order_tool, {"id": "ORDER-1"})
+        result = await _invoke(pay_order_tool, {"order_id": "ORDER-1"})
         print(f"  -> ALLOWED (unexpected): {result}")
     except AdmissionError as e:
         print(f"  -> {e.decision.outcome.upper()}: {e.decision.reason}")

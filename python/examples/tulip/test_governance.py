@@ -64,11 +64,14 @@ def test_classify_leaves_reads_and_drafts_low_risk() -> None:
 
 
 def test_low_risk_call_executes_for_real(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Response shape uses "id" -- matches PayPal's real response field name
+    # (confirmed live, see datasets/live_sandbox.py); the *request* params
+    # use "order_id" -- the real field OrderIdParameters actually expects.
     _patch_execute(
         monkeypatch, "get_order_details", '{"id": "ORDER123", "status": "COMPLETED"}'
     )
     api = _api()
-    result = api.run("get_order_details", {"id": "ORDER123"})
+    result = api.run("get_order_details", {"order_id": "ORDER123"})
     assert "ORDER123" in result
 
     [record] = api.audit_trail().records()
@@ -88,7 +91,7 @@ def test_high_risk_call_is_held_not_executed(monkeypatch: pytest.MonkeyPatch) ->
 
     api = _api()
     with pytest.raises(AdmissionError) as excinfo:
-        api.run("pay_order", {"id": "ORDER123"})
+        api.run("pay_order", {"order_id": "ORDER123"})
 
     assert excinfo.value.decision.outcome == "require_human"
     assert executed["called"] is False, (
@@ -104,9 +107,9 @@ def test_audit_trail_survives_mixed_decisions_and_verifies(
 ) -> None:
     _patch_execute(monkeypatch, "get_order_details", "{}")
     api = _api()
-    api.run("get_order_details", {"id": "X"})
+    api.run("get_order_details", {"order_id": "X"})
     try:
-        api.run("pay_order", {"id": "X"})
+        api.run("pay_order", {"order_id": "X"})
     except AdmissionError:
         pass
     trail = api.audit_trail()
@@ -126,7 +129,7 @@ def test_run_works_when_called_from_inside_a_running_event_loop(
     api = _api()
 
     async def _invoke_like_openai_does() -> str:
-        return api.run("get_order_details", {"id": "X"})
+        return api.run("get_order_details", {"order_id": "X"})
 
     result = asyncio.run(_invoke_like_openai_does())
     assert "ok" in result

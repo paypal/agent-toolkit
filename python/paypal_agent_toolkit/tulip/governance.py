@@ -74,6 +74,38 @@ of the installable package):
   isn't the same class of finding as, say, a free-text query language
   where a fragmented/concatenated value can evade a keyword scan; there's
   no equivalent evasion surface here to find in the first place.
+
+**Also verified live against a real PayPal sandbox account** (see
+`examples/tulip/datasets/live_sandbox.py`, credential-gated, not run in
+CI) -- no mocks: a real `create_order` genuinely created a real sandbox
+order over a real HTTPS call; `get_order_details` genuinely read it back;
+`pay_order` was genuinely held and never reached PayPal; the same
+`pay_order` call through a `GovernedPayPalAPI` constructed with an
+explicit allow-everything policy override genuinely reached PayPal's real
+API and got PayPal's own real `ORDER_NOT_APPROVED` business rejection
+back -- proving the override is real, not a stub, and that this gate and
+PayPal's own business rules are two independent, composable layers. Two
+more real findings from that live run, neither a bug in this gate:
+`get_order_details`'s own response message always says "has been
+successfully captured" regardless of the order's real status (looks
+copy-pasted from `capture_order`'s handler); `list_transactions` returned
+a real `403 Forbidden` from PayPal's Transaction Search API on this
+sandbox app, likely a scope this particular sandbox app doesn't have
+enabled. This run also caught a real bug in an earlier draft of this
+module's own examples: `app_agent.py`/the datasets above used the wrong
+request field name (`id` instead of the real `order_id`, per
+`shared/orders/parameters.py`'s `OrderIdParameters`/
+`CaptureOrderParameters`) -- invisible under full mocking (which replaces
+`execute()` wholesale and never validates params against the real
+schema), caught immediately once real schema validation was in the loop.
+Fixed everywhere it appeared.
+
+The other 3 high-risk methods (`accept_dispute_claim`,
+`cancel_subscription`, `cancel_sent_invoice`) remain verified only via
+the mocked full-catalog sweep above, not live -- exercising them for real
+needs pre-existing real sandbox state (an approved subscription, a filed
+dispute) that itself requires a real buyer-approval redirect flow,
+out of scope for this pass. Disclosed, not glossed over.
 """
 
 from __future__ import annotations
