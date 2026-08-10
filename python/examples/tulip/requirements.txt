@@ -1,0 +1,8 @@
+paypal-agent-toolkit
+# OpenAI (this example reuses the toolkit's own openai.tool.PayPalTool factory)
+openai==1.66.0
+openai-agents==0.0.2
+# tulip-agents -- a real dependency of this example only, not the rest
+# of this package. See paypal_agent_toolkit/tulip/__init__.py.
+tulip-agents
+pytest>=7.4.2
