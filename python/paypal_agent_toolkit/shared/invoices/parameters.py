@@ -230,6 +230,10 @@ class SetupInvoiceAutoReminderParameters(BaseModel):
     )
 
 
+class CancelInvoiceAutoReminderParameters(BaseModel):
+    invoice_id: str = Field(..., description="The ID of the invoice for which to cancel all scheduled automatic reminders.", pattern=INVOICE_ID_REGEX)
+
+
 class UpdateInvoiceAutoReminderParameters(BaseModel):
     reminder_configuration_id: str = Field(..., description="The ID of the auto reminder configuration to update.")
     type: Literal["BEFORE_DUE", "AFTER_DUE"]

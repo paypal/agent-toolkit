@@ -184,3 +184,17 @@ def update_invoice_auto_reminder(client, params: dict):
     response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
 
     return json.dumps(response)
+
+
+def cancel_invoice_auto_reminder(client, params: dict):
+    validated = CancelInvoiceAutoReminderParameters(**params)
+    invoice_id = validated.invoice_id
+    url = f"/v2/invoicing/invoices/{invoice_id}/cancel-reminders"
+
+    response = client.post(uri=url, payload={})
+
+    # PayPal responds with 204 No Content on success (client.post returns {} for that)
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
+
+    return json.dumps(response)

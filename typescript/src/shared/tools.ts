@@ -12,6 +12,7 @@ import {
   deleteInvoicePrompt,
   setupInvoiceAutoReminderPrompt,
   updateInvoiceAutoReminderPrompt,
+  cancelInvoiceAutoReminderPrompt,
   createShipmentPrompt,
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
@@ -52,6 +53,7 @@ import {
   deleteInvoiceParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
+  cancelInvoiceAutoReminderParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
@@ -213,6 +215,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         updateReminder: true,
+      },
+    },
+  },
+  {
+    method: 'cancel_invoice_auto_reminder',
+    name: 'Cancel Invoice Auto Reminder',
+    description: cancelInvoiceAutoReminderPrompt(context),
+    parameters: cancelInvoiceAutoReminderParameters(context),
+    actions: {
+      invoices: {
+        cancelReminders: true,
       },
     },
   },

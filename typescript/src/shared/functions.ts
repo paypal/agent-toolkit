@@ -36,7 +36,8 @@ import {
   updatePlanParameters,
   getMerchantInsightsParameters,
   setupInvoiceAutoReminderParameters,
-  updateInvoiceAutoReminderParameters
+  updateInvoiceAutoReminderParameters,
+  cancelInvoiceAutoReminderParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, buildCreateInvoicePayload, buildCreateRecurringSeriesPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -319,6 +320,34 @@ export async function updateInvoiceAutoReminder(
     return response.data;
   } catch (error: any) {
     logger('[updateInvoiceAutoReminder] Error updating invoice auto reminder configuration:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function cancelInvoiceAutoReminder(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof cancelInvoiceAutoReminderParameters>>
+) {
+  logger('[cancelInvoiceAutoReminder] Starting to cancel invoice auto reminders');
+  const { invoice_id } = params;
+
+  const headers = await client.getHeaders();
+  logger('[cancelInvoiceAutoReminder] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/cancel-reminders`;
+
+  try {
+    logger('[cancelInvoiceAutoReminder] Sending request to PayPal API');
+    const response = await axios.post(url, {}, { headers });
+    if (response.status === 204) {
+      logger(`[cancelInvoiceAutoReminder] Invoice auto reminders cancelled successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[cancelInvoiceAutoReminder] Invoice auto reminders cancellation response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[cancelInvoiceAutoReminder] Error cancelling invoice auto reminders:', error.message);
     handleAxiosError(error);
   }
 }

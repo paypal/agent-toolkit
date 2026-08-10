@@ -28,6 +28,7 @@ from ..shared.invoices.prompts import (
     GENERATE_INVOICE_QRCODE_PROMPT,
     SETUP_INVOICE_AUTO_REMINDER_PROMPT,
     UPDATE_INVOICE_AUTO_REMINDER_PROMPT,
+    CANCEL_INVOICE_AUTO_REMINDER_PROMPT,
 )
 
 from ..shared.disputes.prompts import (
@@ -82,6 +83,7 @@ from ..shared.invoices.parameters import (
     GenerateInvoiceQrCodeParameters,
     SetupInvoiceAutoReminderParameters,
     UpdateInvoiceAutoReminderParameters,
+    CancelInvoiceAutoReminderParameters,
 )
 
 from ..shared.disputes.parameters import (
@@ -135,6 +137,7 @@ from ..shared.invoices.tool_handlers import (
     generate_invoice_qrcode,
     setup_invoice_auto_reminders,
     update_invoice_auto_reminder,
+    cancel_invoice_auto_reminder,
 )
 
 
@@ -352,6 +355,14 @@ tools = [
         "args_schema": UpdateInvoiceAutoReminderParameters,
         "actions": {"invoices": {"updateReminder": True}},
         "execute": update_invoice_auto_reminder,
+    },
+    {
+        "method": "cancel_invoice_auto_reminder",
+        "name": "Cancel Invoice Auto Reminder",
+        "description": CANCEL_INVOICE_AUTO_REMINDER_PROMPT.strip(),
+        "args_schema": CancelInvoiceAutoReminderParameters,
+        "actions": {"invoices": {"cancelReminders": True}},
+        "execute": cancel_invoice_auto_reminder,
     },
     {
         "method": "list_disputes",

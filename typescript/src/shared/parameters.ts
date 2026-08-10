@@ -232,6 +232,11 @@ export const setupInvoiceAutoReminderParameters = (context: Context) =>
       ),
   });
 
+export const cancelInvoiceAutoReminderParameters = (context: Context) =>
+  z.object({
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice for which to cancel all scheduled automatic reminders.'),
+  });
+
 export const updateInvoiceAutoReminderParameters = (context: Context) =>
   z.object({
     reminder_configuration_id: z.string().describe('The ID of the auto reminder configuration to update.'),
