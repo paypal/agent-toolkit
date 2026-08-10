@@ -1,6 +1,6 @@
 [project]
 name = "paypal-agent-toolkit"
-version = "1.8.0"
+version = "1.9.0"
 description = "A toolkit for agent interactions with PayPal API."
 authors = [
   { name = "PayPal", email = "support@paypal.com" }
