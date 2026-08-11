@@ -9,6 +9,7 @@ import {
   activateRecurringSeriesParameters,
   createOrderParameters,
   generateInvoiceQrCodeParameters,
+  generateInvoiceNumberParameters,
   getOrderParameters,
   listInvoicesParameters,
   sendInvoiceParameters,
@@ -37,6 +38,7 @@ import {
   getMerchantInsightsParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
+  searchInvoicingParameters,
   updateInvoicingParameters,
   updateInvoiceBodyParameters,
   updateRecurringSeriesBodyParameters,
@@ -416,6 +418,86 @@ export async function updateInvoiceAutoReminder(
   }
 }
 
+// search_invoicing: one external tool that internally branches to invoice search or
+// recurring-series search based on resource_type. invoice_filters/recurring_series_filters
+// map 1:1 onto PayPal's real request bodies for /v2/invoicing/search-invoices and
+// /v2/invoicing/search-recurring-invoices respectively -- no payload reshaping needed.
+export async function searchInvoicing(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  const { resource_type, recurring_series_filters, invoice_filters } = params;
+
+  if (resource_type === 'invoice' && !isEmptyFilters(recurring_series_filters)) {
+    throw new Error("recurring_series_filters cannot be set when resource_type is 'invoice' -- use invoice_filters instead.");
+  }
+  if (resource_type === 'recurring_series' && !isEmptyFilters(invoice_filters)) {
+    throw new Error("invoice_filters cannot be set when resource_type is 'recurring_series' -- use recurring_series_filters instead.");
+  }
+
+  if (resource_type === 'invoice') {
+    return searchInvoices(client, params);
+  }
+  return searchRecurringSeries(client, params);
+}
+
+async function searchInvoices(
+  client: PayPalClient,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  logger('[searchInvoices] Starting to search invoices');
+
+  const { page, page_size, total_required, invoice_filters } = params;
+
+  const headers = await client.getHeaders();
+  logger('[searchInvoices] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/search-invoices`;
+  logger(`[searchInvoices] API URL: ${url}`);
+
+  try {
+    logger('[searchInvoices] Sending request to PayPal API');
+    const response = await axios.post(url, invoice_filters ?? {}, {
+      headers,
+      params: { page, page_size, total_required },
+    });
+    logger(`[searchInvoices] Invoices retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[searchInvoices] Error searching invoices:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+async function searchRecurringSeries(
+  client: PayPalClient,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  logger('[searchRecurringSeries] Starting to search recurring invoice series');
+
+  const { page, page_size, recurring_series_filters } = params;
+
+  const headers = await client.getHeaders();
+  logger('[searchRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/search-recurring-invoices`;
+  logger(`[searchRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[searchRecurringSeries] Sending request to PayPal API');
+    const response = await axios.post(url, recurring_series_filters ?? {}, {
+      headers,
+      params: { page, page_size },
+    });
+    logger(`[searchRecurringSeries] Recurring invoice series retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[searchRecurringSeries] Error searching recurring invoice series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
 export async function cancelInvoiceAutoReminder(
   client: PayPalClient,
   context: Context,
@@ -531,6 +613,22 @@ export async function generateInvoiceQrCode(
     return response.data;
   } catch (error: any) {
     logger('[cancelSentInvoice] Error cancelling invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function generateInvoiceNumber(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof generateInvoiceNumberParameters>>
+) {
+  const url = `${client.getBaseUrl()}/v2/invoicing/generate-next-invoice-number`;
+  const headers = await client.getHeaders();
+  try {
+    const response = await axios.post(url, { fetch_id: false }, { headers });
+    return response.data;
+  } catch (error: any) {
+    logger('[generateInvoiceNumber] Error generating invoice number:', error.message);
     handleAxiosError(error);
   }
 }

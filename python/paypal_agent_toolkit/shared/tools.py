@@ -26,8 +26,10 @@ from ..shared.invoices.prompts import (
     CANCEL_SENT_INVOICE_PROMPT,
     DELETE_INVOICE_PROMPT,
     GENERATE_INVOICE_QRCODE_PROMPT,
+    GENERATE_INVOICE_NUMBER_PROMPT,
     SETUP_INVOICE_AUTO_REMINDER_PROMPT,
     UPDATE_INVOICE_AUTO_REMINDER_PROMPT,
+    SEARCH_INVOICING_PROMPT,
     UPDATE_INVOICING_PROMPT,
     CANCEL_INVOICE_AUTO_REMINDER_PROMPT,
 )
@@ -82,8 +84,10 @@ from ..shared.invoices.parameters import (
     CancelSentInvoiceParameters,
     DeleteInvoiceParameters,
     GenerateInvoiceQrCodeParameters,
+    GenerateInvoiceNumberParameters,
     SetupInvoiceAutoReminderParameters,
     UpdateInvoiceAutoReminderParameters,
+    SearchInvoicingParameters,
     UpdateInvoicingParameters,
     CancelInvoiceAutoReminderParameters,
 )
@@ -137,8 +141,10 @@ from ..shared.invoices.tool_handlers import (
     cancel_sent_invoice,
     delete_invoice,
     generate_invoice_qrcode,
+    generate_invoice_number,
     setup_invoice_auto_reminders,
     update_invoice_auto_reminder,
+    search_invoicing,
     update_invoicing,
     cancel_invoice_auto_reminder,
 )
@@ -344,6 +350,14 @@ tools = [
         "execute": generate_invoice_qrcode,
     },
     {
+        "method": "generate_invoice_number",
+        "name": "Generate Invoice Number",
+        "description": GENERATE_INVOICE_NUMBER_PROMPT.strip(),
+        "args_schema": GenerateInvoiceNumberParameters,
+        "actions": {"invoices": {"generateInvoiceNumber": True}},
+        "execute": generate_invoice_number,
+    },
+    {
         "method": "setup_invoice_auto_reminders",
         "name": "Setup Invoice Auto Reminders",
         "description": SETUP_INVOICE_AUTO_REMINDER_PROMPT.strip(),
@@ -358,6 +372,14 @@ tools = [
         "args_schema": UpdateInvoiceAutoReminderParameters,
         "actions": {"invoices": {"updateReminder": True}},
         "execute": update_invoice_auto_reminder,
+    },
+    {
+        "method": "search_invoicing",
+        "name": "Search Invoices or Recurring Invoice Series",
+        "description": SEARCH_INVOICING_PROMPT.strip(),
+        "args_schema": SearchInvoicingParameters,
+        "actions": {"invoices": {"search": True}},
+        "execute": search_invoicing,
     },
     {
         "method": "update_invoicing",

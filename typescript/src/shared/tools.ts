@@ -12,11 +12,13 @@ import {
   deleteInvoicePrompt,
   setupInvoiceAutoReminderPrompt,
   updateInvoiceAutoReminderPrompt,
+  searchInvoicingPrompt,
   updateInvoicingPrompt,
   cancelInvoiceAutoReminderPrompt,
   createShipmentPrompt,
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
+  generateInvoiceNumberPrompt,
   createOrderPrompt,
   getOrderPrompt,
   updateShipmentTrackingPrompt,
@@ -54,11 +56,13 @@ import {
   deleteInvoiceParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
+  searchInvoicingParameters,
   updateInvoicingParameters,
   cancelInvoiceAutoReminderParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
+  generateInvoiceNumberParameters,
   createOrderParameters,
   getOrderParameters,
   updateShipmentTrackingParameters,
@@ -221,6 +225,17 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
+    method: 'search_invoicing',
+    name: 'Search Invoices or Recurring Invoice Series',
+    description: searchInvoicingPrompt(context),
+    parameters: searchInvoicingParameters(context),
+    actions: {
+      invoices: {
+        search: true,
+      },
+    },
+  },
+  {
     method: 'update_invoicing',
     name: 'Update Invoice or Recurring Invoice Series',
     description: updateInvoicingPrompt(context),
@@ -250,6 +265,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         generateQRC: true,
+      },
+    },
+  },
+  {
+    method: 'generate_invoice_number',
+    name: 'Generate Invoice Number',
+    description: generateInvoiceNumberPrompt(context),
+    parameters: generateInvoiceNumberParameters(context),
+    actions: {
+      invoices: {
+        generateInvoiceNumber: true,
       },
     },
   },

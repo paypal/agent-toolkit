@@ -64,6 +64,12 @@ Generate a QR code for an invoice.
 This function generates a QR code for an invoice, which can be used to pay the invoice using a mobile device or scanning app.
 """
 
+GENERATE_INVOICE_NUMBER_PROMPT = """
+Generate the next invoice number available to the merchant.
+
+This function generates the next invoice number by using the prefix and suffix from the merchant's last invoice number and incrementing the numeric portion by one (e.g. INVOICE-1234 -> INVOICE-1235).
+"""
+
 SETUP_INVOICE_AUTO_REMINDER_PROMPT = """
 Initialize the invoice auto reminder configuration for the merchant's PayPal account.
 
@@ -74,6 +80,12 @@ UPDATE_INVOICE_AUTO_REMINDER_PROMPT = """
 Update an existing invoice auto reminder configuration by its configuration ID.
 
 This function performs a full update of the reminder configuration's timing interval, repetition count and notification preferences.
+"""
+
+SEARCH_INVOICING_PROMPT = """
+Search for invoices or recurring invoice series on PayPal.
+
+Use resource_type "invoice" with invoice_filters, or "recurring_series" with recurring_series_filters -- only set the matching filters object. Recurring series search covers only the past 3 years.
 """
 
 CANCEL_INVOICE_AUTO_REMINDER_PROMPT = """

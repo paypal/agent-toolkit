@@ -159,6 +159,17 @@ def generate_invoice_qrcode(client, params: dict):
     return json.dumps(response)
 
 
+def generate_invoice_number(client, params: dict):
+
+    GenerateInvoiceNumberParameters(**params)
+    payload = {"fetch_id": False}
+
+    url = "/v2/invoicing/generate-next-invoice-number"
+    response = client.post(uri=url, payload=payload)
+
+    return json.dumps(response)
+
+
 def setup_invoice_auto_reminders(client, params: dict):
 
     validated = SetupInvoiceAutoReminderParameters(**params)
@@ -182,6 +193,34 @@ def update_invoice_auto_reminder(client, params: dict):
 
     url = f"/v2/invoicing/reminders/{reminder_configuration_id}"
     response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
+
+    return json.dumps(response)
+
+
+def search_invoicing(client, params: dict):
+
+    validated = SearchInvoicingParameters(**params)
+
+    if validated.resource_type == "invoice":
+        return _search_invoices(client, validated)
+    return _search_recurring_series(client, validated)
+
+
+def _search_invoices(client, validated: SearchInvoicingParameters):
+
+    body = (validated.invoice_filters or SearchInvoicesFilters()).model_dump(exclude_none=True)
+    total_required = "true" if validated.total_required else "false"
+    uri = f"/v2/invoicing/search-invoices?page={validated.page}&page_size={validated.page_size}&total_required={total_required}"
+    response = client.post(uri=uri, payload=body)
+
+    return json.dumps(response)
+
+
+def _search_recurring_series(client, validated: SearchInvoicingParameters):
+
+    body = (validated.recurring_series_filters or SearchRecurringSeriesFilters()).model_dump(exclude_none=True)
+    uri = f"/v2/invoicing/search-recurring-invoices?page={validated.page}&page_size={validated.page_size}"
+    response = client.post(uri=uri, payload=body)
 
     return json.dumps(response)
 

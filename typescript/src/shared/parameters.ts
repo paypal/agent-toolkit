@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
 import {subscriptionKeys} from "./constants";
-import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX, HEX_COLOR_REGEX, DATE_NO_TIME_REGEX, RECURRING_SERIES_ID_REGEX, COUNTRY_CODE_REGEX, LANGUAGE_REGEX, DECIMAL_STRING_REGEX} from "./regex"
+import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX, HEX_COLOR_REGEX, DATE_NO_TIME_REGEX, DATE_TIME_REGEX, RECURRING_SERIES_ID_REGEX, COUNTRY_CODE_REGEX, LANGUAGE_REGEX, DECIMAL_STRING_REGEX} from "./regex"
 
 // === INVOICE PARAMETERS ===
 // Shared building blocks, reused across create_invoice and create_recurring_series (and
@@ -19,6 +19,58 @@ const money = () => z.object({
   currency_code: z.string().describe("The three-character ISO-4217 currency code that identifies the currency."),
   value: z.string().regex(DECIMAL_STRING_REGEX, "value must be a numeric value, e.g. \"50\" or \"50.00\"").describe("The amount, as a signed decimal string with up to 2 decimal places (e.g. '50.00')."),
 });
+
+const amountRange = () => z.object({
+  lower_amount: money().describe("The lower bound of the amount range."),
+  upper_amount: money().describe("The upper bound of the amount range."),
+}).describe("amount range object");
+
+// Some MCP clients "clear" a filter by blanking out its leaf values (e.g. lower_amount.value: "")
+// instead of omitting the field entirely -- treat a range with a blank bound as not provided.
+const amountRangeOrUndefinedIfBlank = (description: string) => z.preprocess(
+  (val) => {
+    if (val && typeof val === "object") {
+      const lowerValue = (val as any).lower_amount?.value;
+      const upperValue = (val as any).upper_amount?.value;
+      if (!lowerValue || !upperValue) return undefined;
+    }
+    return val;
+  },
+  amountRange().optional().describe(description)
+);
+
+const dateRange = () => z.object({
+  start: z.string().regex(DATE_NO_TIME_REGEX, "start must be in yyyy-MM-DD format").describe("The start date, in yyyy-MM-DD format."),
+  end: z.string().regex(DATE_NO_TIME_REGEX, "end must be in yyyy-MM-DD format").describe("The end date, in yyyy-MM-DD format."),
+}).describe("date range object");
+
+// Some MCP clients "clear" a filter by blanking out a range's leaf values (e.g. start: "")
+// instead of omitting the field entirely -- treat a range with a blank bound as not provided.
+const dateRangeOrUndefinedIfBlank = (description: string) => z.preprocess(
+  (val) => {
+    if (val && typeof val === "object" && (!(val as any).start || !(val as any).end)) return undefined;
+    return val;
+  },
+  dateRange().optional().describe(description)
+);
+
+const dateTimeBoundary = (defaultTime: string, label: string, description: string) => z.preprocess(
+  (val) => (typeof val === "string" && DATE_NO_TIME_REGEX.test(val) ? `${val}T${defaultTime}` : val),
+  z.string().regex(DATE_TIME_REGEX, `${label} must be in ISO8601 format, e.g. 2018-06-01T00:00:00Z`).min(20).max(64).describe(description)
+);
+
+const dateTimeRange = () => z.object({
+  start: dateTimeBoundary("00:00:00Z", "start", "The start date and time, in ISO8601 format (for example, 2018-06-01T00:00:00Z). Seconds are required; fractional seconds are optional. A plain date (yyyy-MM-DD) is also accepted and is expanded to the start of that day (00:00:00Z)."),
+  end: dateTimeBoundary("23:59:59Z", "end", "The end date and time, in ISO8601 format (for example, 2018-06-21T23:59:59Z). Seconds are required; fractional seconds are optional. A plain date (yyyy-MM-DD) is also accepted and is expanded to the end of that day (23:59:59Z)."),
+}).describe("date and time range object");
+
+const dateTimeRangeOrUndefinedIfBlank = (description: string) => z.preprocess(
+  (val) => {
+    if (val && typeof val === "object" && (!(val as any).start || !(val as any).end)) return undefined;
+    return val;
+  },
+  dateTimeRange().optional().describe(description)
+);
 
 const personName = () => z.object({
   given_name: z.string().optional().describe("The first name of the person."),
@@ -238,6 +290,8 @@ export const generateInvoiceQrCodeParameters = (context: Context) => z.object({
   height: z.number().default(300).describe("The QR code height")
 }).describe("generate invoice qr code request payload");
 
+export const generateInvoiceNumberParameters = (context: Context) => z.object({}).describe("generate next invoice number request payload");
+
 const invoiceReminderConfiguration = z.object({
   type: z.enum(['BEFORE_DUE', 'AFTER_DUE']).describe('The type of reminder. BEFORE_DUE sends a reminder before the invoice due date; AFTER_DUE sends a reminder after the invoice due date.'),
   interval: z.object({
@@ -279,6 +333,82 @@ export const updateInvoiceAutoReminderParameters = (context: Context) =>
     }).optional().describe('Notification settings for the reminder.'),
   }).describe('Full replacement configuration for an existing invoice auto reminder. All required fields must be included since this performs a full update.');
 
+
+// search_invoicing: one external tool that internally branches to invoice search or
+// recurring-series search based on resource_type. invoice_filters/recurring_series_filters
+// map 1:1 onto PayPal's real request bodies for /v2/invoicing/search-invoices and
+// /v2/invoicing/search-recurring-invoices respectively -- no payload reshaping needed.
+
+// Some MCP clients "clear" an array/string filter by blanking it to [] or "" instead of
+// omitting the field entirely -- these treat such blanked-out values as not provided.
+const arrayOrUndefinedIfEmpty = (schema: z.ZodTypeAny) => z.preprocess(
+  (val) => (Array.isArray(val) && val.length === 0 ? undefined : val),
+  schema
+);
+
+const stringOrUndefinedIfBlank = (schema: z.ZodTypeAny) => z.preprocess(
+  (val) => (typeof val === "string" && val.trim().length === 0 ? undefined : val),
+  schema
+);
+
+const searchInvoicesFilters = () => z.object({
+  recipient_email: stringOrUndefinedIfBlank(z.string().max(254).optional().describe("Filters invoices by the recipient's email address.")),
+  recipient_first_name: stringOrUndefinedIfBlank(z.string().max(140).optional().describe("Filters invoices by the recipient's first name.")),
+  recipient_last_name: stringOrUndefinedIfBlank(z.string().max(140).optional().describe("Filters invoices by the recipient's last name.")),
+  recipient_business_name: stringOrUndefinedIfBlank(z.string().max(300).optional().describe("Filters invoices by the recipient's business name.")),
+  invoice_number: stringOrUndefinedIfBlank(z.string().max(25).optional().describe("Filters invoices by invoice number.")),
+  status: arrayOrUndefinedIfEmpty(z.array(z.enum([
+    "DRAFT", "SENT", "SCHEDULED", "PAID", "MARKED_AS_PAID", "CANCELLED", "REFUNDED",
+    "PARTIALLY_PAID", "PARTIALLY_REFUNDED", "MARKED_AS_REFUNDED", "UNPAID", "PAYMENT_PENDING",
+    "AUTO_CANCELLED", "PAID_EXTERNAL", "REFUNDED_EXTERNAL", "SHARED",
+  ])).max(5).optional().describe("Filters invoices by one or more statuses (up to 5).")),
+  reference: stringOrUndefinedIfBlank(z.string().max(120).optional().describe("Filters invoices by reference value, such as a purchase order number.")),
+  currency_code: stringOrUndefinedIfBlank(z.string().optional().describe("Filters invoices by the three-character ISO-4217 currency code.")),
+  total_amount_range: amountRangeOrUndefinedIfBlank("Filters invoices whose total amount falls within this range."),
+  invoice_date_range: dateRangeOrUndefinedIfBlank("Filters invoices by the invoice's own date (the date shown on the invoice itself, also called the billing date). Use this for most 'invoices dated/created/issued between X and Y' requests -- creation_date_range is for PayPal's internal record-creation timestamp, not the invoice's date."),
+  due_date_range: dateRangeOrUndefinedIfBlank("Filters invoices whose due date falls within this range."),
+  payment_date_range: dateTimeRangeOrUndefinedIfBlank("Filters invoices by the date and time PayPal recorded the invoice as paid (a system timestamp)."),
+  creation_date_range: dateTimeRangeOrUndefinedIfBlank("Filters invoices by the date and time PayPal's system recorded the invoice record as created (an internal system timestamp, NOT the invoice's own date). For 'invoices dated/created between X and Y' requests, prefer invoice_date_range unless the user specifically means when the record was created in PayPal."),
+}).describe("Filters for searching individual invoices.");
+
+const recurringSeriesSearchFilters = () => z.object({
+  currency_code: stringOrUndefinedIfBlank(z.string().optional().describe("Filters recurring series by the three-character ISO-4217 currency code.")),
+  status: arrayOrUndefinedIfEmpty(z.array(z.enum(["DRAFT", "ACTIVE", "CANCELLED", "EXPIRED"])).min(1).max(5).optional().describe("Filters recurring series by one or more statuses (up to 5, must be unique).")),
+  creation_date_range: dateTimeRangeOrUndefinedIfBlank("Filters recurring series by the date and time PayPal recorded the series as created (a system timestamp). This endpoint has no separate 'series date' field -- for 'series created/started between X and Y' requests, this is the field to use. Mutually exclusive with next_occurrence_date_range -- PayPal supports only one range criterion per search."),
+  next_occurrence_date_range: dateRangeOrUndefinedIfBlank("Filters recurring series whose next occurrence date falls within this range. Mutually exclusive with creation_date_range -- PayPal supports only one range criterion per search."),
+  total_amount_range: amountRangeOrUndefinedIfBlank("Filters recurring series whose total amount falls within this range."),
+}).refine((val) => val.status === undefined || new Set(val.status).size === val.status.length, {
+  message: "status values must be unique.",
+  path: ["status"],
+}).refine((val) => val.creation_date_range === undefined || val.next_occurrence_date_range === undefined, {
+  message: "creation_date_range and next_occurrence_date_range cannot both be set -- PayPal supports only one range criterion per search.",
+  path: ["next_occurrence_date_range"],
+}).describe("Structured filters for searching recurring invoice series.");
+
+const searchRecurringSeriesFilters = () => z.object({
+  search_text: stringOrUndefinedIfBlank(z.string().min(3).max(800).optional().describe("Free-text search across the fields listed in search_fields. Cannot be blank.")),
+  search_fields: arrayOrUndefinedIfEmpty(z.array(z.enum([
+    "PAYER_REFERENCE_INFO", "BILLING_EMAIL", "BILLING_NAME", "BILLING_BUSINESS_NAME",
+    "BILLING_PHONE_NUMBER", "SHIPPING_NAME", "SHIPPING_BUSINESS_NAME", "SHIPPING_PHONE_NUMBER",
+    "ITEM_NAME", "ITEM_TAX_NAME", "ITEM_DISCOUNT_NAME", "INVOICE_DISCOUNT_NAME", "ALL",
+  ])).min(1).max(5).optional().describe("The fields that search_text searches against (1-5 values, must be unique).")),
+  search_filters: recurringSeriesSearchFilters().optional().describe("Structured filters for the recurring series search."),
+}).refine((val) => val.search_fields === undefined || new Set(val.search_fields).size === val.search_fields.length, {
+  message: "search_fields values must be unique.",
+  path: ["search_fields"],
+}).describe("Filters for searching recurring invoice series.");
+
+// Note: the resource_type <-> filters pairing is validated at runtime in searchInvoicing()
+// (functions.ts), not via .refine() here -- Tool.parameters requires a plain z.ZodObject
+// (see tools.ts), and .refine() would wrap this in a ZodEffects that no longer satisfies it.
+export const searchInvoicingParameters = (context: Context) => z.object({
+  resource_type: z.enum(["invoice", "recurring_series"]).describe("Which resource type to search. 'invoice' searches individual invoices using invoice_filters; 'recurring_series' searches recurring invoice series using recurring_series_filters."),
+  page: z.number().int().min(1).max(1000).default(1).optional().describe("The page number of the result set to fetch."),
+  page_size: z.number().int().min(1).max(100).default(20).optional().describe("The number of records to return per page (maximum 100)."),
+  total_required: z.boolean().default(false).optional().describe("Indicates whether the response should include the total count of matching invoices. Only applies when resource_type is 'invoice'."),
+  invoice_filters: searchInvoicesFilters().optional().describe("Filters to apply when resource_type is 'invoice'. Must not be set when resource_type is 'recurring_series'."),
+  recurring_series_filters: searchRecurringSeriesFilters().optional().describe("Filters to apply when resource_type is 'recurring_series'. Must not be set when resource_type is 'invoice'."),
+}).describe("Search for invoices or recurring invoice series, depending on resource_type.");
 
 export const updateProductParameters = (context: Context) =>
   z.object({
