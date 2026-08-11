@@ -101,3 +101,19 @@ Use resource_type "invoice" with invoice_update, or "recurring_series" with recu
 
 For invoices, the recipient (primary_recipients) can only be changed 2 times within any 72-hour window -- avoid unnecessary recipient edits.
 """
+
+RECORD_PAYMENT_FOR_INVOICE_PROMPT = """
+Record a payment for an invoice on PayPal.
+
+This function records an external or manual payment (for example, cash, check, bank transfer, or a PayPal transaction) against an invoice, by invoice ID. If the recorded amount covers the full amount due, PayPal marks the invoice PAID; otherwise it is marked PARTIALLY_PAID. This does not process a new payment -- it only logs one that was already collected.
+
+method is required. payment_id applies only to PAYPAL-type payments.
+"""
+
+RECORD_REFUND_FOR_INVOICE_PROMPT = """
+Record a refund for an invoice on PayPal.
+
+This function records a refund against an invoice, by invoice ID. If all payments on the invoice are refunded, PayPal marks the invoice REFUNDED; otherwise it is marked PARTIALLY_REFUNDED. This does not process a new refund -- it only logs one that was already issued.
+
+method is required.
+"""

@@ -38,6 +38,8 @@ import {
   getMerchantInsightsParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
+  recordPaymentForInvoiceParameters,
+  recordRefundForInvoiceParameters,
   searchInvoicingParameters,
   updateInvoicingParameters,
   updateInvoiceBodyParameters,
@@ -629,6 +631,92 @@ export async function generateInvoiceNumber(
     return response.data;
   } catch (error: any) {
     logger('[generateInvoiceNumber] Error generating invoice number:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function recordPaymentForInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof recordPaymentForInvoiceParameters>>
+) {
+  logger('[recordPaymentForInvoice] Starting to record payment for invoice');
+  const {
+    invoice_id,
+    payment_id,
+    payment_date,
+    payment_date_time,
+    method,
+    note,
+    amount,
+    shipping_info,
+  } = params;
+
+  const body = {
+    payment_id,
+    payment_date,
+    payment_date_time,
+    method,
+    note,
+    amount,
+    shipping_info,
+  };
+
+  const headers = await client.getHeaders();
+  logger('[recordPaymentForInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/payments`;
+
+  try {
+    logger('[recordPaymentForInvoice] Sending request to PayPal API');
+    const response = await axios.post(url, body, { headers });
+    if (response.status === 204) {
+      logger(`[recordPaymentForInvoice] Payment recorded successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[recordPaymentForInvoice] Payment record response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[recordPaymentForInvoice] Error recording payment for invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function recordRefundForInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof recordRefundForInvoiceParameters>>
+) {
+  logger('[recordRefundForInvoice] Starting to record refund for invoice');
+  const {
+    invoice_id,
+    refund_date,
+    amount,
+    method,
+  } = params;
+
+  const body = {
+    refund_date,
+    amount,
+    method,
+  };
+
+  const headers = await client.getHeaders();
+  logger('[recordRefundForInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/refunds`;
+
+  try {
+    logger('[recordRefundForInvoice] Sending request to PayPal API');
+    const response = await axios.post(url, body, { headers });
+    if (response.status === 204) {
+      logger(`[recordRefundForInvoice] Refund recorded successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[recordRefundForInvoice] Refund record response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[recordRefundForInvoice] Error recording refund for invoice:', error.message);
     handleAxiosError(error);
   }
 }

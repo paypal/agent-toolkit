@@ -104,6 +104,22 @@ Generate the next invoice number available to the merchant.
 This function generates the next invoice number by using the prefix and suffix from the merchant's last invoice number and incrementing the numeric portion by one (e.g. INVOICE-1234 -> INVOICE-1235).
 `;
 
+export const recordPaymentForInvoicePrompt = (context: Context) => `
+Record a payment for an invoice on PayPal.
+
+This function records an external or manual payment (for example, cash, check, bank transfer, or a PayPal transaction) against an invoice, by invoice ID. If the recorded amount covers the full amount due, PayPal marks the invoice PAID; otherwise it is marked PARTIALLY_PAID. This does not process a new payment -- it only logs one that was already collected.
+
+method is required. payment_id applies only to PAYPAL-type payments.
+`;
+
+export const recordRefundForInvoicePrompt = (context: Context) => `
+Record a refund for an invoice on PayPal.
+
+This function records a refund against an invoice, by invoice ID. If all payments made against the invoice are refunded, PayPal marks the invoice REFUNDED; otherwise it is marked PARTIALLY_REFUNDED. This does not process a new refund -- it only logs one that was already issued.
+
+method is required.
+`;
+
 export const createProductPrompt = (context: Context) => `
 Create a product in PayPal using product catalog - create products API.
 This function creates a new product that will be used in subscription plans, subscriptions.

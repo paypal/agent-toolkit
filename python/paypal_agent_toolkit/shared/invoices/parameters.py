@@ -54,6 +54,11 @@ class Address(BaseModel):
     postal_code: Optional[str] = Field(None, description="The postal code, which is the zip code or equivalent.")
     country_code: Optional[str] = Field(None, pattern=COUNTRY_CODE_REGEX.pattern, description="The two-character ISO 3166-1 country code (for example, US or GB).")
 
+    @field_validator("country_code", mode="before")
+    @classmethod
+    def _empty_string_to_none(cls, v):
+        return None if v == "" else v
+
 
 class Phone(BaseModel):
     country_code: str = Field(..., description="The country calling code, in E.164 format (for example, '1' for the United States).")
@@ -507,5 +512,33 @@ class UpdateInvoicingParameters(BaseModel):
             if not _is_empty_update(self.invoice_update):
                 raise ValueError("invoice_update cannot be set when resource_type is 'recurring_series' -- use recurring_series_update instead.")
         return self
+
+
+class RecordPaymentForInvoiceParameters(BaseModel):
+    invoice_id: str = Field(..., pattern=INVOICE_ID_REGEX.pattern, description="The ID of the invoice to record the payment against.")
+    payment_id: Optional[str] = Field(None, max_length=22, description="The ID for a PayPal payment transaction. Required for the PAYPAL payment type.")
+    payment_date: Optional[str] = Field(None, pattern=DATE_NO_TIME_REGEX.pattern, description="The date when the invoicer recorded the payment, in yyyy-MM-dd format.")
+    payment_date_time: Optional[str] = Field(None, min_length=20, max_length=64, description="The date and time when the invoicer recorded the payment, in Internet date and time format (ISO 8601), for example 2018-05-13T21:20:00Z or 2018-05-13T21:20:00.000-08:00. Seconds are required.")
+    method: Literal["BANK_TRANSFER", "CASH", "CHECK", "CREDIT_CARD", "DEBIT_CARD", "PAYPAL", "WIRE_TRANSFER", "OTHER"] = Field(..., description="The payment mode or method through which the invoicer can accept the payments.")
+    note: Optional[str] = Field(None, max_length=2000, description="A note associated with an external cash or check payment.")
+    amount: Optional[Money] = Field(None, description="The currency and amount for a financial transaction.")
+    shipping_info: Optional[ShippingInfo] = Field(None, description="The shipping information associated with this payment.")
+
+    @field_validator("payment_id", "payment_date", "payment_date_time", mode="before")
+    @classmethod
+    def _empty_string_to_none(cls, v):
+        return None if v == "" else v
+
+
+class RecordRefundForInvoiceParameters(BaseModel):
+    invoice_id: str = Field(..., pattern=INVOICE_ID_REGEX.pattern, description="The ID of the invoice to mark as refunded.")
+    refund_date: Optional[str] = Field(None, pattern=DATE_NO_TIME_REGEX.pattern, description="The date when the invoicer recorded the refund, in yyyy-MM-dd format.")
+    amount: Optional[Money] = Field(None, description="The currency and amount for a financial transaction.")
+    method: Literal["BANK_TRANSFER", "CASH", "CHECK", "CREDIT_CARD", "DEBIT_CARD", "PAYPAL", "WIRE_TRANSFER", "OTHER"] = Field(..., description="The payment mode or method through which the invoicer can accept the payments.")
+
+    @field_validator("refund_date", mode="before")
+    @classmethod
+    def _empty_string_to_none(cls, v):
+        return None if v == "" else v
 
 

@@ -22,6 +22,8 @@ import {
   updateShipmentTracking,
   generateInvoiceQrCode,
   generateInvoiceNumber,
+  recordPaymentForInvoice,
+  recordRefundForInvoice,
   createOrder,
   getOrder,
   listDisputes,
@@ -126,6 +128,10 @@ class PayPalAPI {
         return generateInvoiceQrCode(this.paypalClient, this.context, arg);
       case 'generate_invoice_number':
         return generateInvoiceNumber(this.paypalClient, this.context, arg);
+      case 'record_payment_for_invoice':
+        return recordPaymentForInvoice(this.paypalClient, this.context, arg);
+      case 'record_refund_for_invoice':
+        return recordRefundForInvoice(this.paypalClient, this.context, arg);
       case 'create_product':
         return createProduct(this.paypalClient, this.context, arg);
       case 'list_products':

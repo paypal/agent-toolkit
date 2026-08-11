@@ -32,6 +32,8 @@ from ..shared.invoices.prompts import (
     SEARCH_INVOICING_PROMPT,
     UPDATE_INVOICING_PROMPT,
     CANCEL_INVOICE_AUTO_REMINDER_PROMPT,
+    RECORD_PAYMENT_FOR_INVOICE_PROMPT,
+    RECORD_REFUND_FOR_INVOICE_PROMPT,
 )
 
 from ..shared.disputes.prompts import (
@@ -90,6 +92,8 @@ from ..shared.invoices.parameters import (
     SearchInvoicingParameters,
     UpdateInvoicingParameters,
     CancelInvoiceAutoReminderParameters,
+    RecordPaymentForInvoiceParameters,
+    RecordRefundForInvoiceParameters,
 )
 
 from ..shared.disputes.parameters import (
@@ -147,6 +151,8 @@ from ..shared.invoices.tool_handlers import (
     search_invoicing,
     update_invoicing,
     cancel_invoice_auto_reminder,
+    record_payment_for_invoice,
+    record_refund_for_invoice,
 )
 
 
@@ -396,6 +402,22 @@ tools = [
         "args_schema": CancelInvoiceAutoReminderParameters,
         "actions": {"invoices": {"cancelReminders": True}},
         "execute": cancel_invoice_auto_reminder,
+    },
+    {
+        "method": "record_payment_for_invoice",
+        "name": "Record Payment For Invoice",
+        "description": RECORD_PAYMENT_FOR_INVOICE_PROMPT.strip(),
+        "args_schema": RecordPaymentForInvoiceParameters,
+        "actions": {"invoices": {"recordPayment": True}},
+        "execute": record_payment_for_invoice,
+    },
+    {
+        "method": "record_refund_for_invoice",
+        "name": "Record Refund For Invoice",
+        "description": RECORD_REFUND_FOR_INVOICE_PROMPT.strip(),
+        "args_schema": RecordRefundForInvoiceParameters,
+        "actions": {"invoices": {"recordRefund": True}},
+        "execute": record_refund_for_invoice,
     },
     {
         "method": "list_disputes",
