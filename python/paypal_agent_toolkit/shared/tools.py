@@ -34,6 +34,7 @@ from ..shared.invoices.prompts import (
     CANCEL_INVOICE_AUTO_REMINDER_PROMPT,
     RECORD_PAYMENT_FOR_INVOICE_PROMPT,
     RECORD_REFUND_FOR_INVOICE_PROMPT,
+    CREATE_CONDITIONAL_RULES_FOR_INVOICE_PROMPT,
 )
 
 from ..shared.disputes.prompts import (
@@ -94,6 +95,7 @@ from ..shared.invoices.parameters import (
     CancelInvoiceAutoReminderParameters,
     RecordPaymentForInvoiceParameters,
     RecordRefundForInvoiceParameters,
+    CreateConditionalRulesForInvoiceParameters,
 )
 
 from ..shared.disputes.parameters import (
@@ -153,6 +155,7 @@ from ..shared.invoices.tool_handlers import (
     cancel_invoice_auto_reminder,
     record_payment_for_invoice,
     record_refund_for_invoice,
+    create_conditional_rules_for_invoice,
 )
 
 
@@ -418,6 +421,14 @@ tools = [
         "args_schema": RecordRefundForInvoiceParameters,
         "actions": {"invoices": {"recordRefund": True}},
         "execute": record_refund_for_invoice,
+    },
+    {
+        "method": "create_conditional_rules_for_invoice",
+        "name": "Create Conditional Rules For Invoice",
+        "description": CREATE_CONDITIONAL_RULES_FOR_INVOICE_PROMPT.strip(),
+        "args_schema": CreateConditionalRulesForInvoiceParameters,
+        "actions": {"invoices": {"createConditionalRules": True}},
+        "execute": create_conditional_rules_for_invoice,
     },
     {
         "method": "list_disputes",

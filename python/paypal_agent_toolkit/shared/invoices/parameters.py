@@ -542,3 +542,35 @@ class RecordRefundForInvoiceParameters(BaseModel):
         return None if v == "" else v
 
 
+class InvoiceConditionalRuleExpiryTerms(BaseModel):
+    rule_expiry_condition: Literal[
+        "SPECIFIC_DATE",
+        "THREE_DAYS_AFTER_ISSUE_DATE",
+        "SEVEN_DAYS_AFTER_ISSUE_DATE",
+        "FIFTEEN_DAYS_AFTER_ISSUE_DATE",
+        "THIRTY_DAYS_AFTER_ISSUE_DATE",
+    ] = Field(..., description="When the conditional rule expires: a specific date, or a period relative to the invoice issue date.")
+    condition_rule_end_date: str = Field(..., pattern=DATE_NO_TIME_REGEX.pattern, description="The date the conditional rule expires, in yyyy-MM-dd format.")
+
+
+class InvoiceConditionalRule(BaseModel):
+    conditional_rule_type: Literal["EARLY_PAYMENT_DISCOUNT", "AUTO_CANCEL"] = Field(..., description="The type of conditional rule to apply to the invoice.")
+    conditional_rule_value_type: Optional[Literal["PERCENT", "AMOUNT"]] = Field(None, description="The type of the conditional rule value. Required, and only applicable, when conditional_rule_type is EARLY_PAYMENT_DISCOUNT.")
+    conditional_rule_value: Optional[str] = Field(None, description="The value of the conditional rule. Required, and only applicable, when conditional_rule_type is EARLY_PAYMENT_DISCOUNT. When conditional_rule_value_type is PERCENT, must be between 1 and 100.")
+    rule_expiry_terms: InvoiceConditionalRuleExpiryTerms = Field(..., description="The expiry terms for the conditional rule.")
+
+    @model_validator(mode="after")
+    def _validate_early_payment_discount_fields(self):
+        if self.conditional_rule_type == "EARLY_PAYMENT_DISCOUNT":
+            if self.conditional_rule_value_type is None or self.conditional_rule_value is None:
+                raise ValueError("conditional_rule_value_type and conditional_rule_value are required when conditional_rule_type is EARLY_PAYMENT_DISCOUNT.")
+            if self.conditional_rule_value_type == "PERCENT" and not (1 <= float(self.conditional_rule_value) <= 100):
+                raise ValueError("conditional_rule_value must be between 1 and 100 when conditional_rule_value_type is PERCENT.")
+        return self
+
+
+class CreateConditionalRulesForInvoiceParameters(BaseModel):
+    invoice_id: str = Field(..., pattern=INVOICE_ID_REGEX.pattern, description="The ID of the invoice for which the conditional rules are to be created.")
+    rules: List[InvoiceConditionalRule] = Field(..., min_length=1, description="The list of conditional rules to create for the invoice.")
+
+

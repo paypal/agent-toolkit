@@ -353,6 +353,34 @@ export const recordRefundForInvoiceParameters = (context: Context) =>
     method: z.enum(['BANK_TRANSFER', 'CASH', 'CHECK', 'CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'WIRE_TRANSFER', 'OTHER']).describe('The payment mode or method through which the invoicer can accept the payments.'),
   }).describe('Record a refund against an invoice.');
 
+const invoiceConditionalRule = z.object({
+  conditional_rule_type: z.enum(['EARLY_PAYMENT_DISCOUNT', 'AUTO_CANCEL']).describe('The type of conditional rule to apply to the invoice.'),
+  conditional_rule_value_type: z.enum(['PERCENT', 'AMOUNT']).optional().describe('The type of the conditional rule value. Required, and only applicable, when conditional_rule_type is EARLY_PAYMENT_DISCOUNT.'),
+  conditional_rule_value: z.string().optional().describe('The value of the conditional rule. Required, and only applicable, when conditional_rule_type is EARLY_PAYMENT_DISCOUNT. When conditional_rule_value_type is PERCENT, must be between 1 and 100.'),
+  rule_expiry_terms: z.object({
+    rule_expiry_condition: z.enum([
+      'SPECIFIC_DATE',
+      'THREE_DAYS_AFTER_ISSUE_DATE',
+      'SEVEN_DAYS_AFTER_ISSUE_DATE',
+      'FIFTEEN_DAYS_AFTER_ISSUE_DATE',
+      'THIRTY_DAYS_AFTER_ISSUE_DATE',
+    ]).describe('When the conditional rule expires: a specific date, or a period relative to the invoice issue date.'),
+    condition_rule_end_date: z.string().regex(DATE_NO_TIME_REGEX, "condition_rule_end_date must be in yyyy-MM-DD format").describe('The date the conditional rule expires, in yyyy-MM-dd format.'),
+  }).describe('The expiry terms for the conditional rule.'),
+}).refine(
+  (rule) => rule.conditional_rule_type !== 'EARLY_PAYMENT_DISCOUNT' || (rule.conditional_rule_value_type !== undefined && rule.conditional_rule_value !== undefined),
+  { message: 'conditional_rule_value_type and conditional_rule_value are required when conditional_rule_type is EARLY_PAYMENT_DISCOUNT.' }
+).refine(
+  (rule) => rule.conditional_rule_value_type !== 'PERCENT' || (Number(rule.conditional_rule_value) >= 1 && Number(rule.conditional_rule_value) <= 100),
+  { message: 'conditional_rule_value must be between 1 and 100 when conditional_rule_value_type is PERCENT.' }
+);
+
+export const createConditionalRulesForInvoiceParameters = (context: Context) =>
+  z.object({
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice for which the conditional rules are to be created.'),
+    rules: z.array(invoiceConditionalRule).min(1).describe('The list of conditional rules to create for the invoice.'),
+  }).describe('Create conditional rules for an invoice.');
+
 
 // search_invoicing: one external tool that internally branches to invoice search or
 // recurring-series search based on resource_type. invoice_filters/recurring_series_filters

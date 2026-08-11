@@ -15,6 +15,14 @@ The PayPal Agent toolkit provides the following tools:
 - `send_invoice_reminder`: Send a reminder for an existing invoice
 - `cancel_sent_invoice`: Cancel a sent invoice
 - `generate_invoice_qr_code`: Generate a QR code for an invoice
+- `delete_invoice`: Permanently delete a draft or scheduled invoice
+- `generate_invoice_number`: Generate the next invoice number available to the merchant
+- `search_invoicing`: Search for invoices or recurring invoice series
+- `update_invoicing`: Update an existing invoice or recurring invoice series (full-replacement)
+- `cancel_invoice_auto_reminder`: Cancel all scheduled automatic reminders for an invoice
+- `record_payment_for_invoice`: Record an external or manual payment against an invoice
+- `record_refund_for_invoice`: Record a refund against an invoice
+- `create_conditional_rules_for_invoice`: Create conditional rules for an invoice, such as an early payment discount or automatic cancellation date
 
 **Payments**
 

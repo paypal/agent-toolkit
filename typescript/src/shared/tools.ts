@@ -21,6 +21,7 @@ import {
   generateInvoiceNumberPrompt,
   recordPaymentForInvoicePrompt,
   recordRefundForInvoicePrompt,
+  createConditionalRulesForInvoicePrompt,
   createOrderPrompt,
   getOrderPrompt,
   updateShipmentTrackingPrompt,
@@ -67,6 +68,7 @@ import {
   generateInvoiceNumberParameters,
   recordPaymentForInvoiceParameters,
   recordRefundForInvoiceParameters,
+  createConditionalRulesForInvoiceParameters,
   createOrderParameters,
   getOrderParameters,
   updateShipmentTrackingParameters,
@@ -302,6 +304,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         recordRefund: true,
+      },
+    },
+  },
+  {
+    method: 'create_conditional_rules_for_invoice',
+    name: 'Create Conditional Rules For Invoice',
+    description: createConditionalRulesForInvoicePrompt(context),
+    parameters: createConditionalRulesForInvoiceParameters(context),
+    actions: {
+      invoices: {
+        createConditionalRules: true,
       },
     },
   },

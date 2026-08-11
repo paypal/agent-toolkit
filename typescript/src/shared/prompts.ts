@@ -120,6 +120,10 @@ This function records a refund against an invoice, by invoice ID. If all payment
 method is required.
 `;
 
+export const createConditionalRulesForInvoicePrompt = (context: Context) => `
+Create conditional rules for an invoice on PayPal.
+`;
+
 export const createProductPrompt = (context: Context) => `
 Create a product in PayPal using product catalog - create products API.
 This function creates a new product that will be used in subscription plans, subscriptions.

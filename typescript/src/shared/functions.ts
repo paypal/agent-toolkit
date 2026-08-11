@@ -40,6 +40,7 @@ import {
   updateInvoiceAutoReminderParameters,
   recordPaymentForInvoiceParameters,
   recordRefundForInvoiceParameters,
+  createConditionalRulesForInvoiceParameters,
   searchInvoicingParameters,
   updateInvoicingParameters,
   updateInvoiceBodyParameters,
@@ -717,6 +718,36 @@ export async function recordRefundForInvoice(
     return response.data;
   } catch (error: any) {
     logger('[recordRefundForInvoice] Error recording refund for invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createConditionalRulesForInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createConditionalRulesForInvoiceParameters>>
+) {
+  logger('[createConditionalRulesForInvoice] Starting to create conditional rules for invoice');
+  const { invoice_id, rules } = params;
+
+  const body = { rules };
+
+  const headers = await client.getHeaders();
+  logger('[createConditionalRulesForInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/conditional-rules`;
+
+  try {
+    logger('[createConditionalRulesForInvoice] Sending request to PayPal API');
+    const response = await axios.post(url, body, { headers });
+    if (response.status === 204) {
+      logger(`[createConditionalRulesForInvoice] Conditional rules created successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[createConditionalRulesForInvoice] Response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createConditionalRulesForInvoice] Error creating conditional rules for invoice:', error.message);
     handleAxiosError(error);
   }
 }

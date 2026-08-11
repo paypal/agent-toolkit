@@ -117,3 +117,7 @@ This function records a refund against an invoice, by invoice ID. If all payment
 
 method is required.
 """
+
+CREATE_CONDITIONAL_RULES_FOR_INVOICE_PROMPT = """
+Create conditional rules for an invoice on PayPal.
+"""
