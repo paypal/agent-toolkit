@@ -81,3 +81,11 @@ Cancel all scheduled automatic reminders for an invoice.
 
 This function permanently cancels every automatic reminder scheduled for a specific invoice, by invoice ID. This action is irreversible -- once cancelled, automatic reminders cannot be re-enabled for that invoice.
 """
+
+UPDATE_INVOICING_PROMPT = """
+Update an existing invoice or recurring invoice series on PayPal.
+
+Use resource_type "invoice" with invoice_update, or "recurring_series" with recurring_series_update -- only set the matching object. This is a full-replacement update: resend the complete invoice/series content, not just the changed fields.
+
+For invoices, the recipient (primary_recipients) can only be changed 2 times within any 72-hour window -- avoid unnecessary recipient edits.
+"""

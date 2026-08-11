@@ -12,6 +12,7 @@ import {
   deleteInvoicePrompt,
   setupInvoiceAutoReminderPrompt,
   updateInvoiceAutoReminderPrompt,
+  updateInvoicingPrompt,
   cancelInvoiceAutoReminderPrompt,
   createShipmentPrompt,
   getShipmentTrackingPrompt,
@@ -53,6 +54,7 @@ import {
   deleteInvoiceParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
+  updateInvoicingParameters,
   cancelInvoiceAutoReminderParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
@@ -215,6 +217,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         updateReminder: true,
+      },
+    },
+  },
+  {
+    method: 'update_invoicing',
+    name: 'Update Invoice or Recurring Invoice Series',
+    description: updateInvoicingPrompt(context),
+    parameters: updateInvoicingParameters(context),
+    actions: {
+      invoices: {
+        update: true,
       },
     },
   },

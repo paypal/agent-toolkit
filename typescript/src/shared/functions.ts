@@ -37,6 +37,9 @@ import {
   getMerchantInsightsParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
+  updateInvoicingParameters,
+  updateInvoiceBodyParameters,
+  updateRecurringSeriesBodyParameters,
   cancelInvoiceAutoReminderParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, buildCreateInvoicePayload, buildCreateRecurringSeriesPayload, toQueryString} from "./payloadUtils";
@@ -155,6 +158,95 @@ export async function activateRecurringSeries(
     logger('[activateRecurringSeries] Error activating recurring series:', error.message);
     handleAxiosError(error);
   }
+}
+
+// Treats a blanked-out update object (all-undefined fields) as equivalent to "not provided",
+// so clients that clear the unused side of update_invoicing by blanking it instead of omitting
+// it don't trip the mutual-exclusivity check below.
+function isEmptyFilters(value: any): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value === 'string') return value.trim().length === 0;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.values(value).every(isEmptyFilters);
+  return false;
+}
+
+async function updateInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateInvoiceBodyParameters>>
+) {
+  logger('[updateInvoice] Starting to update invoice');
+  const headers = await client.getHeaders();
+  const { invoice_id, send_to_recipient, send_to_invoicer } = params;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}`;
+
+  try {
+    logger('[updateInvoice] Sending request to PayPal API');
+    const invoicePayload = buildCreateInvoicePayload(params);
+    const response = await axios.put(url, invoicePayload, {
+      headers: { ...headers, Prefer: 'return=representation' },
+      params: { send_to_recipient, send_to_invoicer },
+    });
+    logger(`[updateInvoice] Invoice updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateInvoice] Error updating invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+async function updateRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateRecurringSeriesBodyParameters>>
+) {
+  logger('[updateRecurringSeries] Starting to update recurring series');
+  const headers = await client.getHeaders();
+  const { recurring_series_id } = params;
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${recurring_series_id}`;
+
+  try {
+    logger('[updateRecurringSeries] Sending request to PayPal API');
+    const recurringSeriesPayload = buildCreateRecurringSeriesPayload(params);
+    const response = await axios.put(url, recurringSeriesPayload, {
+      headers: { ...headers, Prefer: 'return=representation' },
+    });
+    logger(`[updateRecurringSeries] Recurring series updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateRecurringSeries] Error updating recurring series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updateInvoicing(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateInvoicingParameters>>
+) {
+  if (params.resource_type === 'invoice') {
+    if (!isEmptyFilters(params.recurring_series_update)) {
+      throw new Error("recurring_series_update cannot be set when resource_type is 'invoice' -- use invoice_update instead.");
+    }
+    if (!params.invoice_update) {
+      throw new Error("invoice_update is required when resource_type is 'invoice'.");
+    }
+    if (!params.invoice_update.invoice_id) {
+      throw new Error("invoice_update.invoice_id is required when resource_type is 'invoice'.");
+    }
+    return updateInvoice(client, context, params.invoice_update as TypeOf<ReturnType<typeof updateInvoiceBodyParameters>> & { invoice_id: string });
+  }
+  if (!isEmptyFilters(params.invoice_update)) {
+    throw new Error("invoice_update cannot be set when resource_type is 'recurring_series' -- use recurring_series_update instead.");
+  }
+  if (!params.recurring_series_update) {
+    throw new Error("recurring_series_update is required when resource_type is 'recurring_series'.");
+  }
+  if (!params.recurring_series_update.recurring_series_id) {
+    throw new Error("recurring_series_update.recurring_series_id is required when resource_type is 'recurring_series'.");
+  }
+  return updateRecurringSeries(client, context, params.recurring_series_update as TypeOf<ReturnType<typeof updateRecurringSeriesBodyParameters>> & { recurring_series_id: string });
 }
 
 export async function listInvoices(

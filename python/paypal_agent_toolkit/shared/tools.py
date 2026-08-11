@@ -28,6 +28,7 @@ from ..shared.invoices.prompts import (
     GENERATE_INVOICE_QRCODE_PROMPT,
     SETUP_INVOICE_AUTO_REMINDER_PROMPT,
     UPDATE_INVOICE_AUTO_REMINDER_PROMPT,
+    UPDATE_INVOICING_PROMPT,
     CANCEL_INVOICE_AUTO_REMINDER_PROMPT,
 )
 
@@ -83,6 +84,7 @@ from ..shared.invoices.parameters import (
     GenerateInvoiceQrCodeParameters,
     SetupInvoiceAutoReminderParameters,
     UpdateInvoiceAutoReminderParameters,
+    UpdateInvoicingParameters,
     CancelInvoiceAutoReminderParameters,
 )
 
@@ -137,6 +139,7 @@ from ..shared.invoices.tool_handlers import (
     generate_invoice_qrcode,
     setup_invoice_auto_reminders,
     update_invoice_auto_reminder,
+    update_invoicing,
     cancel_invoice_auto_reminder,
 )
 
@@ -355,6 +358,14 @@ tools = [
         "args_schema": UpdateInvoiceAutoReminderParameters,
         "actions": {"invoices": {"updateReminder": True}},
         "execute": update_invoice_auto_reminder,
+    },
+    {
+        "method": "update_invoicing",
+        "name": "Update Invoice or Recurring Invoice Series",
+        "description": UPDATE_INVOICING_PROMPT.strip(),
+        "args_schema": UpdateInvoicingParameters,
+        "actions": {"invoices": {"update": True}},
+        "execute": update_invoicing,
     },
     {
         "method": "cancel_invoice_auto_reminder",

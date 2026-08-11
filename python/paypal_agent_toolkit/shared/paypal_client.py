@@ -117,14 +117,16 @@ class PayPalClient:
 
         return json_response
 
-    def put(self, uri, payload):
-       
+    def put(self, uri, payload, headers=None):
+
         url = f"{self.base_url}{uri}"
-        headers = self.build_headers()
-        logRequestPayload(payload, url, headers)
+        request_headers = self.build_headers()
+        if headers:
+            request_headers.update(headers)
+        logRequestPayload(payload, url, request_headers)
 
         try:
-            response = requests.put(url, headers=headers, json=payload)
+            response = requests.put(url, headers=request_headers, json=payload)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             self.log_request_exception(e, url)

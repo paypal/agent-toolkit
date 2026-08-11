@@ -157,6 +157,34 @@ export const createRecurringSeriesParameters = (context: Context) => z.object({
   minimum_partial_payment_amount: z.string().regex(DECIMAL_STRING_REGEX, "minimum_partial_payment_amount must be a numeric value, e.g. \"20.00\"").optional().describe("The minimum amount allowed for a partial payment on each generated invoice, in the series' currency_code. Valid only when allow_partial_payment is true."),
 }).describe("Simplified create-recurring-series request. The tool implementation builds PayPal's actual nested recurring-invoicing API request from these flat fields.");
 
+// update_invoicing is one external tool that internally branches to an invoice-update flow
+// or a recurring-series-update flow based on resource_type. invoice_update/recurring_series_update
+// are full-replacement bodies -- the create schemas extended with the resource's ID (and, for
+// invoices, the two query-param booleans) -- since PayPal's update endpoints are full-body PUTs.
+
+export const updateInvoiceBodyParameters = (context: Context) =>
+  createInvoiceParameters(context).extend({
+    // Optional at the schema level (even though it's required whenever this flow actually runs) so that
+    // a client blanking out the unused side of update_invoicing instead of omitting it can still pass
+    // validation -- the regex would otherwise reject an empty placeholder before the dispatcher's own
+    // "is this side really being used" check ever runs. Presence is enforced at runtime in updateInvoicing.
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").optional().describe("The ID of the invoice to update. Required when resource_type is 'invoice'."),
+    send_to_recipient: z.boolean().optional().describe("Whether to send the invoice update notification to the recipient. PayPal defaults to true if omitted."),
+    send_to_invoicer: z.boolean().optional().describe("Whether to send the invoice update notification to the merchant (invoicer). PayPal defaults to true if omitted."),
+  });
+
+export const updateRecurringSeriesBodyParameters = (context: Context) =>
+  createRecurringSeriesParameters(context).extend({
+    // Optional for the same reason as invoice_id above; enforced at runtime in updateInvoicing.
+    recurring_series_id: z.string().regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID").optional().describe("The ID of the recurring invoice series to update. Required when resource_type is 'recurring_series'."),
+  });
+
+export const updateInvoicingParameters = (context: Context) => z.object({
+  resource_type: z.enum(["invoice", "recurring_series"]).describe("Which kind of resource to update. 'invoice' updates an individual invoice; 'recurring_series' updates a recurring invoice series."),
+  invoice_update: updateInvoiceBodyParameters(context).optional().describe("Full replacement content for the invoice. Set only when resource_type is 'invoice'."),
+  recurring_series_update: updateRecurringSeriesBodyParameters(context).optional().describe("Full replacement content for the recurring series. Set only when resource_type is 'recurring_series'."),
+}).describe("Update an existing invoice or recurring invoice series on PayPal, depending on resource_type. This is a full-replacement update -- resend the complete content, not just changed fields.");
+
 export const activateRecurringSeriesParameters = (context: Context) => z.object({
   recurring_series_id: z.string()
     .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")

@@ -20,6 +20,12 @@ primary_recipients and items use PayPal's real nested shape (billing_info/shippi
 A newly created series is in DRAFT status and will not generate invoices until activated -- call activate_recurring_series with the returned series ID to activate it.
 `;
 
+export const updateInvoicingPrompt = (context: Context) => `
+Update an existing invoice or recurring invoice series on PayPal.
+
+For invoices, the recipient (primary_recipients) can only be changed 2 times within any 72-hour window -- avoid unnecessary recipient edits.
+`;
+
 export const activateRecurringSeriesPrompt = (context: Context) => `
 Activate a recurring invoice series on PayPal.
 
