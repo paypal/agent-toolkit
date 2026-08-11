@@ -166,7 +166,7 @@ class PayPalClient:
         try:
             json_response = response.json()
         except ValueError:
-            logging.warning("Response body is not valid JSON or empty")
+            logging.warning("Response body is not valid JSON or empty, Headers: %s", json.dumps(dict(response.headers), indent=2))
             return {}
 
         logResponsePayload(response, json_response)

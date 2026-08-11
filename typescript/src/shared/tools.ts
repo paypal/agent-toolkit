@@ -4,6 +4,9 @@ import {
   createInvoicePrompt,
   createRecurringSeriesPrompt,
   activateRecurringSeriesPrompt,
+  getRecurringSeriesPrompt,
+  cancelRecurringSeriesPrompt,
+  deleteRecurringSeriesPrompt,
   listInvoicesPrompt,
   getInvoicePrompt,
   sendInvoicePrompt,
@@ -51,6 +54,9 @@ import {
   createInvoiceParameters,
   createRecurringSeriesParameters,
   activateRecurringSeriesParameters,
+  getRecurringSeriesParameters,
+  cancelRecurringSeriesParameters,
+  deleteRecurringSeriesParameters,
   listInvoicesParameters,
   getInvoicParameters,
   sendInvoiceParameters,
@@ -139,6 +145,39 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         activateRecurringSeries: true,
+      },
+    },
+  },
+  {
+    method: 'get_recurring_series',
+    name: 'Get Recurring Invoice Series',
+    description: getRecurringSeriesPrompt(context),
+    parameters: getRecurringSeriesParameters(context),
+    actions: {
+      invoices: {
+        getRecurringSeries: true,
+      },
+    },
+  },
+  {
+    method: 'cancel_recurring_series',
+    name: 'Cancel Recurring Invoice Series',
+    description: cancelRecurringSeriesPrompt(context),
+    parameters: cancelRecurringSeriesParameters(context),
+    actions: {
+      invoices: {
+        cancelRecurringSeries: true,
+      },
+    },
+  },
+  {
+    method: 'delete_recurring_series',
+    name: 'Delete Recurring Invoice Series',
+    description: deleteRecurringSeriesPrompt(context),
+    parameters: deleteRecurringSeriesParameters(context),
+    actions: {
+      invoices: {
+        deleteRecurringSeries: true,
       },
     },
   },

@@ -10,7 +10,6 @@ The PayPal Agent toolkit provides the following tools:
 **Invoices**
 
 - `create_invoice`: Create a new invoice in the PayPal system, including recipient billing details, line items, an invoice note, a custom color theme, an optional shipping cost, and an option to enable PAY_BY_BANK as a payment method
-- `create_recurring_series`: Create a recurring invoice series that automatically generates and sends invoices on a schedule
 - `list_invoices`: List invoices with optional pagination and filtering
 - `get_invoice`: Retrieve details of a specific invoice
 - `send_invoice`: Send an invoice to recipients
@@ -25,6 +24,12 @@ The PayPal Agent toolkit provides the following tools:
 - `record_payment_for_invoice`: Record an external or manual payment against an invoice
 - `record_refund_for_invoice`: Record a refund against an invoice
 - `create_conditional_rules_for_invoice`: Create conditional rules for an invoice, such as an early payment discount or automatic cancellation date
+
+- `create_recurring_series`: Create a recurring invoice series that automatically generates and sends invoices on a schedule
+- `activate_recurring_series`: Activate a draft recurring invoice series
+- `get_recurring_series`: Retrieve details of a specific recurring invoice series
+- `cancel_recurring_series`: Cancel an active recurring invoice series
+- `delete_recurring_series`: Delete a draft recurring invoice series
 
 **Payments**
 

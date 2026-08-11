@@ -32,6 +32,24 @@ Activate a recurring invoice series on PayPal.
 This function activates a recurring invoice series by its ID, moving it out of DRAFT status. Once activated, PayPal automatically generates and sends invoices to the customer based on the series' configured schedule. Call this after create_recurring_series to make the series active.
 `;
 
+export const getRecurringSeriesPrompt = (context: Context) => `
+Get a recurring invoice series from PayPal.
+
+This function retrieves details of a specific recurring invoice series using its ID, including its schedule, status, template, and recipient information.
+`;
+
+export const cancelRecurringSeriesPrompt = (context: Context) => `
+Cancel a recurring invoice series on PayPal.
+
+This function cancels a recurring invoice series by its ID. Once cancelled, PayPal stops generating and sending further invoices for the series. This action cannot be undone.
+`;
+
+export const deleteRecurringSeriesPrompt = (context: Context) => `
+Delete a recurring invoice series on PayPal.
+
+This function permanently deletes a recurring invoice series by its ID. Only series in DRAFT status can be deleted -- for a series that has already been activated, use cancel_recurring_series instead. This action cannot be undone.
+`;
+
 export const listInvoicesPrompt = (context: Context) => `
 List invoices from PayPal.
 

@@ -24,6 +24,12 @@ The PayPal Agent toolkit provides the following tools:
 - `record_refund_for_invoice`: Record a refund against an invoice
 - `create_conditional_rules_for_invoice`: Create conditional rules for an invoice, such as an early payment discount or automatic cancellation date
 
+- `create_recurring_series`: Create a recurring invoice series that automatically generates and sends invoices on a schedule
+- `activate_recurring_series`: Activate a draft recurring invoice series
+- `get_recurring_series`: Retrieve details of a specific recurring invoice series
+- `cancel_recurring_series`: Cancel an active recurring invoice series
+- `delete_recurring_series`: Delete a draft recurring invoice series
+
 **Payments**
 
 - `create_order`: Create an order in PayPal system based on provided details
