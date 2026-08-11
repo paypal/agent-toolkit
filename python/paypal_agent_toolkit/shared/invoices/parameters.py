@@ -235,3 +235,61 @@ class UpdateInvoiceAutoReminderParameters(BaseModel):
     notification: Optional[ReminderNotification] = Field(None, description="Notification settings for the reminder.")
 
 
+# ---- update_invoicing: one external tool that internally branches to an invoice-update flow ----
+# ---- or a recurring-series-update flow based on resource_type. invoice_update/recurring_series_update ----
+# ---- are full-replacement bodies -- the create models extended with the resource's ID (and, for ----
+# ---- invoices, the two query-param booleans) -- since PayPal's update endpoints are full-body PUTs. ----
+
+def _is_empty_update(value):
+    if value is None:
+        return True
+    if isinstance(value, BaseModel):
+        return _is_empty_update(value.model_dump())
+    if isinstance(value, str):
+        return not value.strip()
+    if isinstance(value, dict):
+        return all(_is_empty_update(v) for v in value.values())
+    if isinstance(value, list):
+        return len(value) == 0
+    return False
+
+
+class UpdateInvoiceBody(CreateInvoiceParameters):
+    # Optional at the field level (even though required whenever this flow actually runs) so that a
+    # client blanking out the unused side of update_invoicing instead of omitting it can still pass
+    # validation -- the pattern would otherwise reject an empty placeholder before the dispatcher's
+    # own "is this side really being used" check ever runs. Presence is enforced in the validator below.
+    invoice_id: Optional[str] = Field(None, pattern=INVOICE_ID_REGEX.pattern, description="The ID of the invoice to update. Required when resource_type is 'invoice'.")
+    send_to_recipient: Optional[bool] = Field(None, description="Whether to send the invoice update notification to the recipient. PayPal defaults to true if omitted.")
+    send_to_invoicer: Optional[bool] = Field(None, description="Whether to send the invoice update notification to the merchant (invoicer). PayPal defaults to true if omitted.")
+
+
+class UpdateRecurringSeriesBody(CreateRecurringSeriesParameters):
+    # Optional for the same reason as invoice_id above; enforced in the validator below.
+    recurring_series_id: Optional[str] = Field(None, pattern=RECURRING_SERIES_ID_REGEX.pattern, description="The ID of the recurring invoice series to update. Required when resource_type is 'recurring_series'.")
+
+
+class UpdateInvoicingParameters(BaseModel):
+    resource_type: Literal["invoice", "recurring_series"] = Field(..., description="Which kind of resource to update. 'invoice' updates an individual invoice; 'recurring_series' updates a recurring invoice series.")
+    invoice_update: Optional[UpdateInvoiceBody] = Field(None, description="Full replacement content for the invoice. Set only when resource_type is 'invoice'.")
+    recurring_series_update: Optional[UpdateRecurringSeriesBody] = Field(None, description="Full replacement content for the recurring series. Set only when resource_type is 'recurring_series'.")
+
+    @model_validator(mode="after")
+    def _check_update_matches_resource_type(self):
+        if self.resource_type == "invoice":
+            if self.invoice_update is None:
+                raise ValueError("invoice_update is required when resource_type is 'invoice'.")
+            if not self.invoice_update.invoice_id:
+                raise ValueError("invoice_update.invoice_id is required when resource_type is 'invoice'.")
+            if not _is_empty_update(self.recurring_series_update):
+                raise ValueError("recurring_series_update cannot be set when resource_type is 'invoice' -- use invoice_update instead.")
+        else:
+            if self.recurring_series_update is None:
+                raise ValueError("recurring_series_update is required when resource_type is 'recurring_series'.")
+            if not self.recurring_series_update.recurring_series_id:
+                raise ValueError("recurring_series_update.recurring_series_id is required when resource_type is 'recurring_series'.")
+            if not _is_empty_update(self.invoice_update):
+                raise ValueError("invoice_update cannot be set when resource_type is 'recurring_series' -- use recurring_series_update instead.")
+        return self
+
+

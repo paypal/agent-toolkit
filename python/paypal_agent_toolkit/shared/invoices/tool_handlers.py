@@ -170,3 +170,40 @@ def update_invoice_auto_reminder(client, params: dict):
     response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
 
     return json.dumps(response)
+
+
+def _update_invoice(client, body: UpdateInvoiceBody):
+
+    payload = build_create_invoice_payload(
+        body.model_dump(exclude_none=True, exclude={"invoice_id", "send_to_recipient", "send_to_invoicer"})
+    )
+    query = "&".join(
+        f"{k}={str(v).lower()}"
+        for k, v in [("send_to_recipient", body.send_to_recipient), ("send_to_invoicer", body.send_to_invoicer)]
+        if v is not None
+    )
+    url = f"/v2/invoicing/invoices/{body.invoice_id}" + (f"?{query}" if query else "")
+    response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
+
+    return json.dumps(response)
+
+
+def _update_recurring_series(client, body: UpdateRecurringSeriesBody):
+
+    payload = build_create_recurring_series_payload(
+        body.model_dump(exclude_none=True, exclude={"recurring_series_id"})
+    )
+    url = f"/v2/invoicing/recurring-invoices/{body.recurring_series_id}"
+    response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
+
+    return json.dumps(response)
+
+
+def update_invoicing(client, params: dict):
+
+    validated = UpdateInvoicingParameters(**params)
+
+    if validated.resource_type == "invoice":
+        return _update_invoice(client, validated.invoice_update)
+    return _update_recurring_series(client, validated.recurring_series_update)
+

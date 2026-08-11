@@ -69,3 +69,9 @@ Update an existing invoice auto reminder configuration by its configuration ID.
 
 This function performs a full update of the reminder configuration's timing interval, repetition count and notification preferences.
 """
+
+UPDATE_INVOICING_PROMPT = """
+Update an existing invoice or recurring invoice series on PayPal.
+
+For invoices, the recipient (primary_recipients) can only be changed 2 times within any 72-hour window -- avoid unnecessary recipient edits.
+"""
