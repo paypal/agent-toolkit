@@ -33,8 +33,21 @@ EXPECTED_HIGH_RISK = {
     "create_subscription_plan": True,  # widened after independent-classifier review -- defines the terms of a real recurring-billing commitment
     "create_recurring_series": True,  # widened after independent-classifier review -- starts a real recurring invoice series
     "activate_recurring_series": True,  # widened after independent-classifier review -- activates a real recurring invoice series
-    # Everything else: reads, drafts/creates-without-committing-funds or
-    # without-notifying-anyone, listings, reminders, QR generation, tracking updates.
+    # Second widening, and this one came from re-reading the line that
+    # used to sit here. It read "...or without-notifying-anyone,
+    # listings, reminders, QR generation, tracking updates" -- filing
+    # reminders under "notifies nobody", which is what a reminder does.
+    # The send_invoice reasoning above had simply not been carried to
+    # its neighbours. See governance.py's docstring for the per-method
+    # argument; generate_invoice_qr_code is the strongest case (a
+    # payable surface reachable without send_invoice, i.e. an unheld
+    # path to a held outcome) and send_invoice_reminder the weakest.
+    "generate_invoice_qr_code": True,  # second widening -- a scannable payment surface, generatable for an invoice that was never sent
+    "setup_invoice_auto_reminders": True,  # second widening -- account-wide standing schedule of future automated customer messages
+    "update_invoice_auto_reminder": True,  # second widening -- modifies that same standing schedule
+    "send_invoice_reminder": True,  # second widening, weakest of the four -- unsolicited outbound under the merchant's name; invoice already sent
+    # Everything else: reads, drafts/creates-without-committing-funds and
+    # without-notifying-anyone, listings, tracking updates.
     "create_order": False,  # creates a draft order; no funds move until pay_order, nobody is notified
     "get_order_details": False,
     "create_product": False,
@@ -46,10 +59,6 @@ EXPECTED_HIGH_RISK = {
     "create_invoice": False,  # creates a draft invoice; still low-risk -- send_invoice, not create_invoice, is the real external-facing action
     "list_invoices": False,
     "get_invoice": False,
-    "send_invoice_reminder": False,
-    "generate_invoice_qr_code": False,
-    "setup_invoice_auto_reminders": False,
-    "update_invoice_auto_reminder": False,
     "list_disputes": False,
     "get_dispute": False,
     "create_shipment_tracking": False,

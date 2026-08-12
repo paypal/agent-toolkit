@@ -16,7 +16,7 @@ transaction logs.
 
 ## What's gated
 
-Of this toolkit's 31 real tools, nine have a genuine, hard-to-undo
+Of this toolkit's 31 real tools, thirteen have a genuine, hard-to-undo
 financial, liability, or real-external-party consequence: `pay_order`
 (captures/moves real money), `accept_dispute_claim` (accepts real
 financial liability), `cancel_subscription` / `cancel_sent_invoice`
@@ -26,7 +26,20 @@ same dataset and re-reviewing where it disagreed: `send_invoice`
 (transmits a real payment request to a real customer), and
 `create_subscription` / `create_subscription_plan` /
 `create_recurring_series` / `activate_recurring_series` (each starts a
-real recurring-billing commitment). Those nine are held for a human by
+real recurring-billing commitment).
+
+A second widening added four more, after re-reading that list against
+the tools it *doesn't* contain: `generate_invoice_qr_code` (a scannable
+payment surface, generatable for an invoice that was never sent -- an
+unheld path to the outcome `send_invoice` is held for),
+`setup_invoice_auto_reminders` / `update_invoice_auto_reminder` (an
+account-wide standing schedule of future automated customer messages),
+and `send_invoice_reminder` (the weakest of the four, and flagged as
+such). The `send_invoice` reasoning -- a real external communication,
+not a draft -- had simply not been carried to its neighbours; the ground
+truth had them filed under "without-notifying-anyone".
+
+Those thirteen are held for a human by
 default; everything else -- reads, drafts, listings -- auto-allows. See
 `paypal_agent_toolkit/tulip/governance.py`'s module docstring for the full
 reasoning, including one real, disclosed gap this toolkit's own top-level
@@ -80,7 +93,7 @@ installable package:
 
 ```bash
 python datasets/full_catalog.py    # all 31 real tools, hand-reviewed ground truth, 0 mismatches
-python datasets/full_run.py        # all 31 run end-to-end (mocked); 9 high-risk never execute, low-risk do
+python datasets/full_run.py        # all 31 run end-to-end (mocked); 13 high-risk never execute, low-risk do
 python datasets/adversarial.py     # 29 near-miss method-name variants; 0 false positives/negatives
 python datasets/live_sandbox.py    # real PayPal sandbox account, no mocks -- see below
 ```

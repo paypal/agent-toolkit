@@ -8,12 +8,19 @@ method it shouldn't?
 
 Same "find the evasion, don't assume it's not there" methodology used
 against the Velociraptor gate's dynamic-artifact-name concatenation case
-earlier this session. Two cases below are specifically the sharpest
-near-misses in the real catalog: `send_invoice_reminder` literally
-starts with the string `send_invoice`, and `list_subscription_plans`
-shares two whole words with `create_subscription_plan` -- both real,
-legitimate, low-risk methods that must not get swept up by anything
-looser than an exact match.
+earlier this session. `list_subscription_plans` is the sharpest
+remaining near-miss in the real catalog: a real, legitimate, low-risk
+method sharing two whole words with `create_subscription_plan`, which
+must not get swept up by anything looser than an exact match.
+
+The prefix canary used to be `send_invoice_reminder`, which literally
+starts with `send_invoice`. It is high-risk as of the second widening
+(it sends a real message to a real customer), so it can no longer serve
+as a low-risk canary -- and after that widening NO real low-risk method
+contains a high-risk method name as a substring, so the prefix property
+has no real-tool canary left at all. Rather than quietly drop the
+property, it is probed below with an explicitly SYNTHETIC name, marked
+as such so nobody mistakes it for a tool this toolkit ships.
 """
 
 from paypal_agent_toolkit.tulip.governance import classify
@@ -28,6 +35,11 @@ REAL_HIGH_RISK = [
     "create_subscription_plan",
     "create_recurring_series",
     "activate_recurring_series",
+    # Second widening -- see governance.py's docstring.
+    "generate_invoice_qr_code",
+    "setup_invoice_auto_reminders",
+    "update_invoice_auto_reminder",
+    "send_invoice_reminder",
 ]
 
 CASES = []
@@ -79,9 +91,14 @@ CASES += [
         "real, legitimate low-risk method containing 'subscription' -- must NOT be flagged just for sharing a word with cancel_subscription",
     ),
     (
-        "send_invoice_reminder",
+        "send_invoice_extended",
         False,
-        "real, legitimate low-risk method whose name literally STARTS WITH the string 'send_invoice' -- must NOT be flagged just because it's a prefix match against send_invoice",
+        "SYNTHETIC, not a real tool -- the prefix probe that send_invoice_reminder used to serve before it became high-risk: a name starting with 'send_invoice' must NOT be flagged by prefix matching alone",
+    ),
+    (
+        "generate_invoice_qr_code_v2",
+        False,
+        "SYNTHETIC, not a real tool -- same probe against the second widening's strongest addition",
     ),
     (
         "list_subscription_plans",

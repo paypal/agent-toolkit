@@ -27,8 +27,8 @@ out of scope for this change) rather than building this module's policy
 against a tool that doesn't actually exist yet.
 
 **What counts as high-risk here, and why**: of the 31 real tools in
-`shared/tools.py`, nine have a genuine, hard-to-undo financial,
-liability, or real-external-party consequence:
+`shared/tools.py`, thirteen have a genuine, hard-to-undo financial,
+liability, or real-external-party consequence. Nine of them:
 
 - `pay_order` -- captures/moves real money.
 - `accept_dispute_claim` -- accepts real financial liability on a dispute.
@@ -48,12 +48,45 @@ liability, or real-external-party consequence:
   classifier against this dataset and disagreeing on exactly these cases
   -- see `examples/tulip/datasets/full_catalog.py`'s ground truth.
 
+Four more, added in a second widening after re-reading the list above
+against the tools it *doesn't* contain. `send_invoice` is held because
+it is "a real external communication with real business/legal weight,
+not a draft" -- and that reasoning had not been carried to its
+neighbours, which the ground truth had filed under
+"without-notifying-anyone":
+
+- `generate_invoice_qr_code` -- the strongest of the four, and a real
+  gate bypass rather than a judgment call. The toolkit's own description
+  is "a QR code for an invoice, which can be used to pay the invoice".
+  That is a payable surface, and it can be generated for an invoice that
+  was never sent. An agent held at `send_invoice` could produce a
+  scannable payment artifact and distribute it out of band, reaching the
+  same outcome the gate just refused. An alternative path to a held
+  outcome is worth more than the held path itself.
+- `setup_invoice_auto_reminders` -- "sets up automatic reminders for
+  unpaid invoices, for BEFORE_DUE and/or AFTER_DUE". Account-level
+  configuration that commits the merchant to a standing schedule of
+  future automated messages to customers. That is precisely the
+  "commits to a real, ongoing relationship" shape used to justify
+  `create_subscription_plan` above, and it has a wider blast radius than
+  a subscription: it applies to every unpaid invoice on the account, not
+  to one customer.
+- `update_invoice_auto_reminder` -- modifies that same standing
+  schedule, so it inherits the same reasoning.
+- `send_invoice_reminder` -- the weakest of the four, stated plainly.
+  It requires an invoice already sent, so the customer is not hearing
+  from the merchant for the first time. It is included because it is
+  still an unsolicited outbound message under the merchant's name, and
+  because an agent in a retry loop can send many; a reader who disagrees
+  should remove this one and keep the other three, which is why it is
+  listed last.
+
 Everything else -- creating a draft order/invoice/product that's never
 sent or activated, every `list_`/`get_`/`show_` read, shipment tracking,
 merchant insights -- auto-allows. `create_order` and `create_invoice`
 specifically stay low-risk: both create a real record, but neither
 notifies an external party or starts a recurring commitment the way the
-nine above do -- the same independent classifier flagged these two as
+thirteen above do -- the same independent classifier flagged these two as
 well, and this policy disagrees, on purpose: a draft with no external
 effect yet is a materially different risk shape from an actual
 transmission or an actual recurring commitment. This is a starting
@@ -68,7 +101,7 @@ pre-fetch of the order before classifying the capture -- a real, useful
 enhancement this module doesn't attempt, to keep the change small and
 auditable on its own.
 
-**Validated against the full real catalog, not the 9 examples above in
+**Validated against the full real catalog, not the 13 examples above in
 isolation** (see `examples/tulip/datasets/{full_catalog,full_run,
 adversarial}.py` -- standalone verification scripts, not shipped as part
 of the installable package):
@@ -76,8 +109,8 @@ of the installable package):
 - All 31 real tools classified and hand-reviewed one by one: 0 mismatches
   against an independently-written ground-truth expectation per tool.
 - All 31 run end-to-end through the real `GovernedPayPalAPI.run()` (mocked
-  PayPal execution): every one of the 9 high-risk tools provably never
-  executed; all 22 low-risk tools that don't hit PayPal's own unrelated
+  PayPal execution): every one of the 13 high-risk tools provably never
+  executed; all 18 low-risk tools that don't hit PayPal's own unrelated
   sandbox-mode restriction on `get_merchant_insights` actually ran; audit
   trail intact across all 31 decisions. `get_merchant_insights` itself is
   a genuine, separate finding: `PayPalAPI.run()` refuses it outright in
@@ -85,11 +118,17 @@ of the installable package):
   passed through after this gate allowed it, confirming control genuinely
   reaches real PayPal logic on allow rather than being intercepted by the
   mock.
-- 29 adversarial near-miss method-name variants (case, hyphenation,
-  whitespace, no-underscore) against the original 4 flagship high-risk
-  method strings, plus 5 real low-risk methods that share a word with a
-  high-risk one (`get_order_details` vs `pay_order`, `list_disputes` vs
-  `accept_dispute_claim`, etc.) -- 0 false positives, 0 false negatives.
+- 86 adversarial cases: the 13 exact high-risk method strings, 65
+  near-miss variants of them (case, hyphenation, whitespace,
+  no-underscore), and 8 controls that must stay low-risk -- 6 real
+  methods sharing a word with a high-risk one (`get_order_details` vs
+  `pay_order`, `list_disputes` vs `accept_dispute_claim`, ...) and 2
+  explicitly synthetic names probing prefix matching. 0 false positives,
+  0 false negatives. The prefix probe used to be the real
+  `send_invoice_reminder`; after the second widening made it high-risk,
+  no real low-risk method contains a high-risk method name as a
+  substring at all, so the property is probed synthetically and labelled
+  as such rather than quietly dropped.
   Worth being precise about what this does and doesn't prove: `method` is
   a closed, fixed dispatch string chosen by the calling framework's own
   tool definitions, not attacker-controlled free text -- `PayPalAPI.run()`
@@ -145,7 +184,7 @@ from tulip.control import Action, AuditTrail, ControlPolicy, admit
 
 from ..shared.api import PayPalAPI
 
-# The nine tools with a real, hard-to-undo financial, liability, or
+# The thirteen tools with a real, hard-to-undo financial, liability, or
 # real-external-party consequence in the current tool catalog -- see
 # module docstring for why each one.
 HIGH_RISK_METHODS = frozenset(
@@ -159,6 +198,17 @@ HIGH_RISK_METHODS = frozenset(
         "create_subscription_plan",
         "create_recurring_series",
         "activate_recurring_series",
+        # Second widening. `send_invoice` was held on the reasoning that
+        # it is "a real external communication with real business/legal
+        # weight, not a draft" -- but the four below were left low-risk,
+        # and the ground truth filed them under
+        # "without-notifying-anyone", which for three of them is simply
+        # not true. See governance.py's docstring for the per-method
+        # argument and the one weak case.
+        "generate_invoice_qr_code",
+        "setup_invoice_auto_reminders",
+        "update_invoice_auto_reminder",
+        "send_invoice_reminder",
     }
 )
 
