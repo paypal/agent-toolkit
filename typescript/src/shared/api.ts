@@ -2,13 +2,20 @@ import {
   createInvoice,
   createRecurringSeries,
   activateRecurringSeries,
+  getRecurringSeries,
+  cancelRecurringSeries,
+  deleteRecurringSeries,
   listInvoices,
   getInvoice,
   sendInvoice,
   sendInvoiceReminder,
   cancelSentInvoice,
+  deleteInvoice,
   setupInvoiceAutoReminder,
   updateInvoiceAutoReminder,
+  searchInvoicing,
+  updateInvoicing,
+  cancelInvoiceAutoReminder,
   createProduct,
   listProducts,
   createSubscriptionPlan,
@@ -17,6 +24,10 @@ import {
   getShipmentTracking,
   updateShipmentTracking,
   generateInvoiceQrCode,
+  generateInvoiceNumber,
+  recordPaymentForInvoice,
+  recordRefundForInvoice,
+  createConditionalRulesForInvoice,
   createOrder,
   getOrder,
   listDisputes,
@@ -95,6 +106,12 @@ class PayPalAPI {
         return createRecurringSeries(this.paypalClient, this.context, arg);
       case 'activate_recurring_series':
         return activateRecurringSeries(this.paypalClient, this.context, arg);
+      case 'get_recurring_series':
+        return getRecurringSeries(this.paypalClient, this.context, arg);
+      case 'cancel_recurring_series':
+        return cancelRecurringSeries(this.paypalClient, this.context, arg);
+      case 'delete_recurring_series':
+        return deleteRecurringSeries(this.paypalClient, this.context, arg);
       case 'list_invoices':
         return listInvoices(this.paypalClient, this.context, arg);
       case 'get_invoice':
@@ -105,12 +122,28 @@ class PayPalAPI {
         return sendInvoiceReminder(this.paypalClient, this.context, arg);
       case 'cancel_sent_invoice':
         return cancelSentInvoice(this.paypalClient, this.context, arg);
+      case 'delete_invoice':
+        return deleteInvoice(this.paypalClient, this.context, arg);
       case 'setup_invoice_auto_reminders':
         return setupInvoiceAutoReminder(this.paypalClient, this.context, arg);
       case 'update_invoice_auto_reminder':
         return updateInvoiceAutoReminder(this.paypalClient, this.context, arg);
+      case 'search_invoicing':
+        return searchInvoicing(this.paypalClient, this.context, arg);
+      case 'update_invoicing':
+        return updateInvoicing(this.paypalClient, this.context, arg);
+      case 'cancel_invoice_auto_reminder':
+        return cancelInvoiceAutoReminder(this.paypalClient, this.context, arg);
       case 'generate_invoice_qr_code':
         return generateInvoiceQrCode(this.paypalClient, this.context, arg);
+      case 'generate_invoice_number':
+        return generateInvoiceNumber(this.paypalClient, this.context, arg);
+      case 'record_payment_for_invoice':
+        return recordPaymentForInvoice(this.paypalClient, this.context, arg);
+      case 'record_refund_for_invoice':
+        return recordRefundForInvoice(this.paypalClient, this.context, arg);
+      case 'create_conditional_rules_for_invoice':
+        return createConditionalRulesForInvoice(this.paypalClient, this.context, arg);
       case 'create_product':
         return createProduct(this.paypalClient, this.context, arg);
       case 'list_products':

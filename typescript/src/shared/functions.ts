@@ -3,11 +3,16 @@ import type { Context } from './configuration';
 import {
   getInvoicParameters,
   cancelSentInvoiceParameters,
+  deleteInvoiceParameters,
   createInvoiceParameters,
   createRecurringSeriesParameters,
   activateRecurringSeriesParameters,
+  getRecurringSeriesParameters,
+  cancelRecurringSeriesParameters,
+  deleteRecurringSeriesParameters,
   createOrderParameters,
   generateInvoiceQrCodeParameters,
+  generateInvoiceNumberParameters,
   getOrderParameters,
   listInvoicesParameters,
   sendInvoiceParameters,
@@ -35,7 +40,15 @@ import {
   updatePlanParameters,
   getMerchantInsightsParameters,
   setupInvoiceAutoReminderParameters,
-  updateInvoiceAutoReminderParameters
+  updateInvoiceAutoReminderParameters,
+  recordPaymentForInvoiceParameters,
+  recordRefundForInvoiceParameters,
+  createConditionalRulesForInvoiceParameters,
+  searchInvoicingParameters,
+  updateInvoicingParameters,
+  updateInvoiceBodyParameters,
+  updateRecurringSeriesBodyParameters,
+  cancelInvoiceAutoReminderParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, buildCreateInvoicePayload, buildCreateRecurringSeriesPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -151,6 +164,167 @@ export async function activateRecurringSeries(
     return { recurring_series_id: params.recurring_series_id, status: response.status };
   } catch (error: any) {
     logger('[activateRecurringSeries] Error activating recurring series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+// Treats a blanked-out update object (all-undefined fields) as equivalent to "not provided",
+// so clients that clear the unused side of update_invoicing by blanking it instead of omitting
+// it don't trip the mutual-exclusivity check below.
+function isEmptyFilters(value: any): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value === 'string') return value.trim().length === 0;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.values(value).every(isEmptyFilters);
+  return false;
+}
+
+async function updateInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateInvoiceBodyParameters>>
+) {
+  logger('[updateInvoice] Starting to update invoice');
+  const headers = await client.getHeaders();
+  const { invoice_id, send_to_recipient, send_to_invoicer } = params;
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}`;
+
+  try {
+    logger('[updateInvoice] Sending request to PayPal API');
+    const invoicePayload = buildCreateInvoicePayload(params);
+    const response = await axios.put(url, invoicePayload, {
+      headers: { ...headers, Prefer: 'return=representation' },
+      params: { send_to_recipient, send_to_invoicer },
+    });
+    logger(`[updateInvoice] Invoice updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateInvoice] Error updating invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getRecurringSeriesParameters>>
+) {
+  logger('[getRecurringSeries] Starting to get recurring series');
+
+  const headers = await client.getHeaders();
+  logger('[getRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${params.recurring_series_id}`;
+  logger(`[getRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[getRecurringSeries] Sending request to PayPal API');
+    const response = await axios.get(url, { headers });
+    logger(`[getRecurringSeries] Recurring series retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[getRecurringSeries] Error getting recurring series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+async function updateRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateRecurringSeriesBodyParameters>>
+) {
+  logger('[updateRecurringSeries] Starting to update recurring series');
+  const headers = await client.getHeaders();
+  const { recurring_series_id } = params;
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${recurring_series_id}`;
+
+  try {
+    logger('[updateRecurringSeries] Sending request to PayPal API');
+    const recurringSeriesPayload = buildCreateRecurringSeriesPayload(params);
+    const response = await axios.put(url, recurringSeriesPayload, {
+      headers: { ...headers, Prefer: 'return=representation' },
+    });
+    logger(`[updateRecurringSeries] Recurring series updated successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[updateRecurringSeries] Error updating recurring series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function cancelRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof cancelRecurringSeriesParameters>>
+) {
+  logger('[cancelRecurringSeries] Starting recurring series cancellation process');
+
+  const headers = await client.getHeaders();
+  logger('[cancelRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${params.recurring_series_id}/cancel`;
+  logger(`[cancelRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[cancelRecurringSeries] Sending request to PayPal API');
+    const response = await axios.post(url, {}, { headers });
+    logger(`[cancelRecurringSeries] Recurring series cancelled successfully. Status: ${response.status}`);
+    return { recurring_series_id: params.recurring_series_id, status: response.status };
+  } catch (error: any) {
+    logger('[cancelRecurringSeries] Error cancelling recurring series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function updateInvoicing(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof updateInvoicingParameters>>
+) {
+  if (params.resource_type === 'invoice') {
+    if (!isEmptyFilters(params.recurring_series_update)) {
+      throw new Error("recurring_series_update cannot be set when resource_type is 'invoice' -- use invoice_update instead.");
+    }
+    if (!params.invoice_update) {
+      throw new Error("invoice_update is required when resource_type is 'invoice'.");
+    }
+    if (!params.invoice_update.invoice_id) {
+      throw new Error("invoice_update.invoice_id is required when resource_type is 'invoice'.");
+    }
+    return updateInvoice(client, context, params.invoice_update as TypeOf<ReturnType<typeof updateInvoiceBodyParameters>> & { invoice_id: string });
+  }
+  if (!isEmptyFilters(params.invoice_update)) {
+    throw new Error("invoice_update cannot be set when resource_type is 'recurring_series' -- use recurring_series_update instead.");
+  }
+  if (!params.recurring_series_update) {
+    throw new Error("recurring_series_update is required when resource_type is 'recurring_series'.");
+  }
+  if (!params.recurring_series_update.recurring_series_id) {
+    throw new Error("recurring_series_update.recurring_series_id is required when resource_type is 'recurring_series'.");
+  }
+  return updateRecurringSeries(client, context, params.recurring_series_update as TypeOf<ReturnType<typeof updateRecurringSeriesBodyParameters>> & { recurring_series_id: string });
+}
+
+export async function deleteRecurringSeries(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof deleteRecurringSeriesParameters>>
+) {
+  logger('[deleteRecurringSeries] Starting recurring series deletion process');
+
+  const headers = await client.getHeaders();
+  logger('[deleteRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/recurring-invoices/${params.recurring_series_id}`;
+  logger(`[deleteRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[deleteRecurringSeries] Sending request to PayPal API');
+    const response = await axios.delete(url, { headers });
+    logger(`[deleteRecurringSeries] Recurring series deleted successfully. Status: ${response.status}`);
+    return { recurring_series_id: params.recurring_series_id, status: response.status };
+  } catch (error: any) {
+    logger('[deleteRecurringSeries] Error deleting recurring series:', error.message);
     handleAxiosError(error);
   }
 }
@@ -322,6 +496,114 @@ export async function updateInvoiceAutoReminder(
   }
 }
 
+// search_invoicing: one external tool that internally branches to invoice search or
+// recurring-series search based on resource_type. invoice_filters/recurring_series_filters
+// map 1:1 onto PayPal's real request bodies for /v2/invoicing/search-invoices and
+// /v2/invoicing/search-recurring-invoices respectively -- no payload reshaping needed.
+export async function searchInvoicing(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  const { resource_type, recurring_series_filters, invoice_filters } = params;
+
+  if (resource_type === 'invoice' && !isEmptyFilters(recurring_series_filters)) {
+    throw new Error("recurring_series_filters cannot be set when resource_type is 'invoice' -- use invoice_filters instead.");
+  }
+  if (resource_type === 'recurring_series' && !isEmptyFilters(invoice_filters)) {
+    throw new Error("invoice_filters cannot be set when resource_type is 'recurring_series' -- use recurring_series_filters instead.");
+  }
+
+  if (resource_type === 'invoice') {
+    return searchInvoices(client, params);
+  }
+  return searchRecurringSeries(client, params);
+}
+
+async function searchInvoices(
+  client: PayPalClient,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  logger('[searchInvoices] Starting to search invoices');
+
+  const { page, page_size, total_required, invoice_filters } = params;
+
+  const headers = await client.getHeaders();
+  logger('[searchInvoices] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/search-invoices`;
+  logger(`[searchInvoices] API URL: ${url}`);
+
+  try {
+    logger('[searchInvoices] Sending request to PayPal API');
+    const response = await axios.post(url, invoice_filters ?? {}, {
+      headers,
+      params: { page, page_size, total_required },
+    });
+    logger(`[searchInvoices] Invoices retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[searchInvoices] Error searching invoices:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+async function searchRecurringSeries(
+  client: PayPalClient,
+  params: TypeOf<ReturnType<typeof searchInvoicingParameters>>
+) {
+  logger('[searchRecurringSeries] Starting to search recurring invoice series');
+
+  const { page, page_size, recurring_series_filters } = params;
+
+  const headers = await client.getHeaders();
+  logger('[searchRecurringSeries] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/search-recurring-invoices`;
+  logger(`[searchRecurringSeries] API URL: ${url}`);
+
+  try {
+    logger('[searchRecurringSeries] Sending request to PayPal API');
+    const response = await axios.post(url, recurring_series_filters ?? {}, {
+      headers,
+      params: { page, page_size },
+    });
+    logger(`[searchRecurringSeries] Recurring invoice series retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[searchRecurringSeries] Error searching recurring invoice series:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function cancelInvoiceAutoReminder(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof cancelInvoiceAutoReminderParameters>>
+) {
+  logger('[cancelInvoiceAutoReminder] Starting to cancel invoice auto reminders');
+  const { invoice_id } = params;
+
+  const headers = await client.getHeaders();
+  logger('[cancelInvoiceAutoReminder] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/cancel-reminders`;
+
+  try {
+    logger('[cancelInvoiceAutoReminder] Sending request to PayPal API');
+    const response = await axios.post(url, {}, { headers });
+    if (response.status === 204) {
+      logger(`[cancelInvoiceAutoReminder] Invoice auto reminders cancelled successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[cancelInvoiceAutoReminder] Invoice auto reminders cancellation response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[cancelInvoiceAutoReminder] Error cancelling invoice auto reminders:', error.message);
+    handleAxiosError(error);
+  }
+}
+
 export async function cancelSentInvoice(
   client: PayPalClient,
   context: Context,
@@ -357,6 +639,33 @@ export async function cancelSentInvoice(
   }
 }
 
+export async function deleteInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof deleteInvoiceParameters>>
+) {
+  logger('[deleteInvoice] Starting to delete invoice');
+  const { invoice_id } = params;
+
+  const headers = await client.getHeaders();
+  logger('[deleteInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}`;
+
+  try {
+    logger('[deleteInvoice] Sending request to PayPal API');
+    const response = await axios.delete(url, { headers });
+    if (response.status === 204) {
+      logger(`[deleteInvoice] Invoice deleted successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    return response.data;
+  } catch (error: any) {
+    logger('[deleteInvoice] Error deleting invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
 export async function generateInvoiceQrCode(
   client: PayPalClient,
   context: Context,
@@ -382,6 +691,138 @@ export async function generateInvoiceQrCode(
     return response.data;
   } catch (error: any) {
     logger('[cancelSentInvoice] Error cancelling invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function generateInvoiceNumber(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof generateInvoiceNumberParameters>>
+) {
+  const url = `${client.getBaseUrl()}/v2/invoicing/generate-next-invoice-number`;
+  const headers = await client.getHeaders();
+  try {
+    const response = await axios.post(url, { fetch_id: false }, { headers });
+    return response.data;
+  } catch (error: any) {
+    logger('[generateInvoiceNumber] Error generating invoice number:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function recordPaymentForInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof recordPaymentForInvoiceParameters>>
+) {
+  logger('[recordPaymentForInvoice] Starting to record payment for invoice');
+  const {
+    invoice_id,
+    payment_id,
+    payment_date,
+    payment_date_time,
+    method,
+    note,
+    amount,
+    shipping_info,
+  } = params;
+
+  const body = {
+    payment_id,
+    payment_date,
+    payment_date_time,
+    method,
+    note,
+    amount,
+    shipping_info,
+  };
+
+  const headers = await client.getHeaders();
+  logger('[recordPaymentForInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/payments`;
+
+  try {
+    logger('[recordPaymentForInvoice] Sending request to PayPal API');
+    const response = await axios.post(url, body, { headers });
+    if (response.status === 204) {
+      logger(`[recordPaymentForInvoice] Payment recorded successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[recordPaymentForInvoice] Payment record response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[recordPaymentForInvoice] Error recording payment for invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function recordRefundForInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof recordRefundForInvoiceParameters>>
+) {
+  logger('[recordRefundForInvoice] Starting to record refund for invoice');
+  const {
+    invoice_id,
+    refund_date,
+    amount,
+    method,
+  } = params;
+
+  const body = {
+    refund_date,
+    amount,
+    method,
+  };
+
+  const headers = await client.getHeaders();
+  logger('[recordRefundForInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/refunds`;
+
+  try {
+    logger('[recordRefundForInvoice] Sending request to PayPal API');
+    const response = await axios.post(url, body, { headers });
+    if (response.status === 204) {
+      logger(`[recordRefundForInvoice] Refund recorded successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[recordRefundForInvoice] Refund record response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[recordRefundForInvoice] Error recording refund for invoice:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function createConditionalRulesForInvoice(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createConditionalRulesForInvoiceParameters>>
+) {
+  logger('[createConditionalRulesForInvoice] Starting to create conditional rules for invoice');
+  const { invoice_id, rules } = params;
+
+  const body = { rules };
+
+  const headers = await client.getHeaders();
+  logger('[createConditionalRulesForInvoice] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v2/invoicing/invoices/${invoice_id}/conditional-rules`;
+
+  try {
+    logger('[createConditionalRulesForInvoice] Sending request to PayPal API');
+    const response = await axios.post(url, body, { headers });
+    if (response.status === 204) {
+      logger(`[createConditionalRulesForInvoice] Conditional rules created successfully. Status: ${response.status}`);
+      return { success: true, invoice_id };
+    }
+    logger(`[createConditionalRulesForInvoice] Response received. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createConditionalRulesForInvoice] Error creating conditional rules for invoice:', error.message);
     handleAxiosError(error);
   }
 }

@@ -4,16 +4,27 @@ import {
   createInvoicePrompt,
   createRecurringSeriesPrompt,
   activateRecurringSeriesPrompt,
+  getRecurringSeriesPrompt,
+  cancelRecurringSeriesPrompt,
+  deleteRecurringSeriesPrompt,
   listInvoicesPrompt,
   getInvoicePrompt,
   sendInvoicePrompt,
   sendInvoiceReminderPrompt,
   cancelSentInvoicePrompt,
+  deleteInvoicePrompt,
   setupInvoiceAutoReminderPrompt,
   updateInvoiceAutoReminderPrompt,
+  searchInvoicingPrompt,
+  updateInvoicingPrompt,
+  cancelInvoiceAutoReminderPrompt,
   createShipmentPrompt,
   getShipmentTrackingPrompt,
   generateInvoiceQrCodePrompt,
+  generateInvoiceNumberPrompt,
+  recordPaymentForInvoicePrompt,
+  recordRefundForInvoicePrompt,
+  createConditionalRulesForInvoicePrompt,
   createOrderPrompt,
   getOrderPrompt,
   updateShipmentTrackingPrompt,
@@ -43,16 +54,27 @@ import {
   createInvoiceParameters,
   createRecurringSeriesParameters,
   activateRecurringSeriesParameters,
+  getRecurringSeriesParameters,
+  cancelRecurringSeriesParameters,
+  deleteRecurringSeriesParameters,
   listInvoicesParameters,
   getInvoicParameters,
   sendInvoiceParameters,
   sendInvoiceReminderParameters,
   cancelSentInvoiceParameters,
+  deleteInvoiceParameters,
   setupInvoiceAutoReminderParameters,
   updateInvoiceAutoReminderParameters,
+  searchInvoicingParameters,
+  updateInvoicingParameters,
+  cancelInvoiceAutoReminderParameters,
   createShipmentParameters,
   getShipmentTrackingParameters,
   generateInvoiceQrCodeParameters,
+  generateInvoiceNumberParameters,
+  recordPaymentForInvoiceParameters,
+  recordRefundForInvoiceParameters,
+  createConditionalRulesForInvoiceParameters,
   createOrderParameters,
   getOrderParameters,
   updateShipmentTrackingParameters,
@@ -127,6 +149,39 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
+    method: 'get_recurring_series',
+    name: 'Get Recurring Invoice Series',
+    description: getRecurringSeriesPrompt(context),
+    parameters: getRecurringSeriesParameters(context),
+    actions: {
+      invoices: {
+        getRecurringSeries: true,
+      },
+    },
+  },
+  {
+    method: 'cancel_recurring_series',
+    name: 'Cancel Recurring Invoice Series',
+    description: cancelRecurringSeriesPrompt(context),
+    parameters: cancelRecurringSeriesParameters(context),
+    actions: {
+      invoices: {
+        cancelRecurringSeries: true,
+      },
+    },
+  },
+  {
+    method: 'delete_recurring_series',
+    name: 'Delete Recurring Invoice Series',
+    description: deleteRecurringSeriesPrompt(context),
+    parameters: deleteRecurringSeriesParameters(context),
+    actions: {
+      invoices: {
+        deleteRecurringSeries: true,
+      },
+    },
+  },
+  {
     method: 'list_invoices',
     name: 'List Invoices',
     description: listInvoicesPrompt(context),
@@ -182,6 +237,17 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
+    method: 'delete_invoice',
+    name: 'Delete Invoice',
+    description: deleteInvoicePrompt(context),
+    parameters: deleteInvoiceParameters(context),
+    actions: {
+      invoices: {
+        delete: true,
+      },
+    },
+  },
+  {
     method: 'setup_invoice_auto_reminders',
     name: 'Setup Invoice Auto Reminders',
     description: setupInvoiceAutoReminderPrompt(context),
@@ -204,6 +270,39 @@ const tools = (context: Context): Tool[] => [
     },
   },
   {
+    method: 'search_invoicing',
+    name: 'Search Invoices or Recurring Invoice Series',
+    description: searchInvoicingPrompt(context),
+    parameters: searchInvoicingParameters(context),
+    actions: {
+      invoices: {
+        search: true,
+      },
+    },
+  },
+  {
+    method: 'update_invoicing',
+    name: 'Update Invoice or Recurring Invoice Series',
+    description: updateInvoicingPrompt(context),
+    parameters: updateInvoicingParameters(context),
+    actions: {
+      invoices: {
+        update: true,
+      },
+    },
+  },
+  {
+    method: 'cancel_invoice_auto_reminder',
+    name: 'Cancel Invoice Auto Reminder',
+    description: cancelInvoiceAutoReminderPrompt(context),
+    parameters: cancelInvoiceAutoReminderParameters(context),
+    actions: {
+      invoices: {
+        cancelReminders: true,
+      },
+    },
+  },
+  {
     method: 'generate_invoice_qr_code',
     name: 'Generate Invoice QR Code',
     description: generateInvoiceQrCodePrompt(context),
@@ -211,6 +310,50 @@ const tools = (context: Context): Tool[] => [
     actions: {
       invoices: {
         generateQRC: true,
+      },
+    },
+  },
+  {
+    method: 'generate_invoice_number',
+    name: 'Generate Invoice Number',
+    description: generateInvoiceNumberPrompt(context),
+    parameters: generateInvoiceNumberParameters(context),
+    actions: {
+      invoices: {
+        generateInvoiceNumber: true,
+      },
+    },
+  },
+  {
+    method: 'record_payment_for_invoice',
+    name: 'Record Payment For Invoice',
+    description: recordPaymentForInvoicePrompt(context),
+    parameters: recordPaymentForInvoiceParameters(context),
+    actions: {
+      invoices: {
+        recordPayment: true,
+      },
+    },
+  },
+  {
+    method: 'record_refund_for_invoice',
+    name: 'Record Refund For Invoice',
+    description: recordRefundForInvoicePrompt(context),
+    parameters: recordRefundForInvoiceParameters(context),
+    actions: {
+      invoices: {
+        recordRefund: true,
+      },
+    },
+  },
+  {
+    method: 'create_conditional_rules_for_invoice',
+    name: 'Create Conditional Rules For Invoice',
+    description: createConditionalRulesForInvoicePrompt(context),
+    parameters: createConditionalRulesForInvoiceParameters(context),
+    actions: {
+      invoices: {
+        createConditionalRules: true,
       },
     },
   },

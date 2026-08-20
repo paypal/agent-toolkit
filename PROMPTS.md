@@ -75,6 +75,100 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Generate a QR code for invoice {invoice_id}
 
+---
+
+**`delete_invoice`** - Permanently deletes a draft or scheduled invoice. Does not work on invoices that have already been sent -- use `cancel_sent_invoice` for those instead.
+
+- `invoice_id` (string, required): The ID of the draft or scheduled invoice to delete.
+
+> **Example Prompt**:
+> Delete invoice {invoice_id}
+
+---
+
+**`generate_invoice_number`** - Generates the next invoice number available to the merchant, based on the prefix/suffix and numeric portion of their last invoice number.
+
+- No parameters required.
+
+> **Example Prompt**:
+> Generate the next invoice number for me
+
+---
+
+**`search_invoicing`** - Searches for invoices or recurring invoice series. Set `resource_type` to `"invoice"` with `invoice_filters`, or `"recurring_series"` with `recurring_series_filters` -- only set the matching filters object.
+
+- `resource_type` (string, required): `"invoice"` or `"recurring_series"`.
+- `page` (number, optional): The page number of the result set to fetch. Defaults to 1.
+- `page_size` (number, optional): The number of records to return per page (max 100). Defaults to 20.
+- `total_required` (boolean, optional): Whether to include total_pages/total_items. Only applies to invoice search.
+- `invoice_filters` (object, optional): Filters such as `recipient_email`, `status`, `invoice_number`, `total_amount_range`, `invoice_date_range`. Set only when `resource_type` is `"invoice"`.
+- `recurring_series_filters` (object, optional): Filters such as `search_text`, `search_fields`, and structured `search_filters` (status, currency_code, date ranges). Set only when `resource_type` is `"recurring_series"`. Covers only the past 3 years.
+
+> **Example Prompt**:
+> Search for all PAID invoices for recipient {recipient_email}
+> Search for active recurring series with a total amount between {lower_amount} and {upper_amount}
+
+---
+
+**`update_invoicing`** - Updates an existing invoice or recurring invoice series. This is a full-replacement update -- resend the complete invoice/series content, not just the changed fields. Set `resource_type` to `"invoice"` with `invoice_update`, or `"recurring_series"` with `recurring_series_update` -- only set the matching object.
+
+- `resource_type` (string, required): `"invoice"` or `"recurring_series"`.
+- `invoice_update` (object, optional): Full replacement content for the invoice, including `invoice_id`, plus everything `create_invoice` accepts. Set only when `resource_type` is `"invoice"`. The recipient (`primary_recipients`) can only be changed 2 times within any 72-hour window.
+- `recurring_series_update` (object, optional): Full replacement content for the series, including `recurring_series_id`, plus everything `create_recurring_series` accepts. Set only when `resource_type` is `"recurring_series"`.
+
+> **Example Prompt**:
+> Update invoice {invoice_id} to change the due date to {due_date}
+> Update recurring series {recurring_series_id} to change the billing amount to {amount}
+
+---
+
+**`cancel_invoice_auto_reminder`** - Permanently cancels every automatic reminder scheduled for a specific invoice. This action is irreversible.
+
+- `invoice_id` (string, required): The ID of the invoice for which to cancel all scheduled automatic reminders.
+
+> **Example Prompt**:
+> Cancel all auto reminders for invoice {invoice_id}
+
+---
+
+**`record_payment_for_invoice`** - Records an external or manual payment (cash, check, bank transfer, or a PayPal transaction) against an invoice. Does not process a new payment -- only logs one that was already collected.
+
+- `invoice_id` (string, required): The ID of the invoice to record the payment against.
+- `method` (string, required): The payment method. One of `BANK_TRANSFER`, `CASH`, `CHECK`, `CREDIT_CARD`, `DEBIT_CARD`, `PAYPAL`, `WIRE_TRANSFER`, `OTHER`.
+- `payment_id` (string, optional): The ID of a PayPal payment transaction. Required for the `PAYPAL` payment type.
+- `payment_date` (string, optional): The date the payment was recorded, in `yyyy-MM-dd` format.
+- `amount` (object, optional): The currency and amount for the payment.
+- `note` (string, optional): A note associated with an external cash or check payment.
+
+> **Example Prompt**:
+> Record a cash payment of {amount} {currency} against invoice {invoice_id}
+
+---
+
+**`record_refund_for_invoice`** - Records a refund against an invoice. Does not process a new refund -- only logs one that was already issued.
+
+- `invoice_id` (string, required): The ID of the invoice to mark as refunded.
+- `method` (string, required): The refund method. One of `BANK_TRANSFER`, `CASH`, `CHECK`, `CREDIT_CARD`, `DEBIT_CARD`, `PAYPAL`, `WIRE_TRANSFER`, `OTHER`.
+- `refund_date` (string, optional): The date the refund was recorded, in `yyyy-MM-dd` format.
+- `amount` (object, optional): The currency and amount for the refund.
+
+> **Example Prompt**:
+> Record a refund of {amount} {currency} for invoice {invoice_id}
+
+---
+
+**`create_conditional_rules_for_invoice`** - Creates conditional rules on an invoice, such as an early payment discount or an automatic cancellation date.
+
+- `invoice_id` (string, required): The ID of the invoice for which the conditional rules are to be created.
+- `rules` (array, required): The list of conditional rules to create.
+  - `conditional_rule_type` (string, required): `EARLY_PAYMENT_DISCOUNT` or `AUTO_CANCEL`.
+  - `conditional_rule_value_type` (string, required only for `EARLY_PAYMENT_DISCOUNT`): `PERCENT` or `AMOUNT`.
+  - `conditional_rule_value` (string, required only for `EARLY_PAYMENT_DISCOUNT`): The discount value; must be between 1 and 100 when the value type is `PERCENT`.
+  - `rule_expiry_terms` (object, required): When the rule expires -- a specific date (`condition_rule_end_date`) or a period relative to the invoice issue date.
+
+> **Example Prompt**:
+> Add an early payment discount of {percent}% to invoice {invoice_id} if paid within 7 days of issue
+
 ### **Payments**
 
 ---

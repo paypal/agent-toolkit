@@ -75,6 +75,39 @@ def activate_recurring_series(client, params: dict):
     return json.dumps({"recurring_series_id": recurring_series_id, "status": "ACTIVATED"})
 
 
+def get_recurring_series(client, params: dict):
+
+    validated = GetRecurringSeriesParameters(**params)
+    recurring_series_id = validated.recurring_series_id
+
+    url = f"/v2/invoicing/recurring-invoices/{recurring_series_id}"
+    response = client.get(uri=url)
+
+    return json.dumps(response)
+
+
+def cancel_recurring_series(client, params: dict):
+
+    validated = CancelRecurringSeriesParameters(**params)
+    recurring_series_id = validated.recurring_series_id
+
+    url = f"/v2/invoicing/recurring-invoices/{recurring_series_id}/cancel"
+    client.post(uri=url, payload={})
+
+    return json.dumps({"recurring_series_id": recurring_series_id, "status": "CANCELLED"})
+
+
+def delete_recurring_series(client, params: dict):
+
+    validated = DeleteRecurringSeriesParameters(**params)
+    recurring_series_id = validated.recurring_series_id
+
+    url = f"/v2/invoicing/recurring-invoices/{recurring_series_id}"
+    client.delete(uri=url)
+
+    return json.dumps({"recurring_series_id": recurring_series_id, "status": "DELETED"})
+
+
 def list_invoices(client, params: dict):
 
     validated = ListInvoicesParameters(**params)
@@ -126,6 +159,20 @@ def cancel_sent_invoice(client, params: dict):
     return json.dumps(response)
 
 
+def delete_invoice(client, params: dict):
+    validated = DeleteInvoiceParameters(**params)
+    invoice_id = validated.invoice_id
+    url = f"/v2/invoicing/invoices/{invoice_id}"
+
+    response = client.delete(uri=url)
+
+    # PayPal responds with 204 No Content on successful deletion (client.delete returns {} for that)
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
+
+    return json.dumps(response)
+
+
 def generate_invoice_qrcode(client, params: dict):
 
     validated = GenerateInvoiceQrCodeParameters(**params)
@@ -141,6 +188,17 @@ def generate_invoice_qrcode(client, params: dict):
 
     if response is None:
         return {"success": True, "invoice_id": invoice_id}
+
+    return json.dumps(response)
+
+
+def generate_invoice_number(client, params: dict):
+
+    GenerateInvoiceNumberParameters(**params)
+    payload = {"fetch_id": False}
+
+    url = "/v2/invoicing/generate-next-invoice-number"
+    response = client.post(uri=url, payload=payload)
 
     return json.dumps(response)
 
@@ -168,5 +226,129 @@ def update_invoice_auto_reminder(client, params: dict):
 
     url = f"/v2/invoicing/reminders/{reminder_configuration_id}"
     response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
+
+    return json.dumps(response)
+
+
+def search_invoicing(client, params: dict):
+
+    validated = SearchInvoicingParameters(**params)
+
+    if validated.resource_type == "invoice":
+        return _search_invoices(client, validated)
+    return _search_recurring_series(client, validated)
+
+
+def _search_invoices(client, validated: SearchInvoicingParameters):
+
+    body = (validated.invoice_filters or SearchInvoicesFilters()).model_dump(exclude_none=True)
+    total_required = "true" if validated.total_required else "false"
+    uri = f"/v2/invoicing/search-invoices?page={validated.page}&page_size={validated.page_size}&total_required={total_required}"
+    response = client.post(uri=uri, payload=body)
+
+    return json.dumps(response)
+
+
+def _search_recurring_series(client, validated: SearchInvoicingParameters):
+
+    body = (validated.recurring_series_filters or SearchRecurringSeriesFilters()).model_dump(exclude_none=True)
+    uri = f"/v2/invoicing/search-recurring-invoices?page={validated.page}&page_size={validated.page_size}"
+    response = client.post(uri=uri, payload=body)
+
+    return json.dumps(response)
+
+
+def _update_invoice(client, body: UpdateInvoiceBody):
+
+    payload = build_create_invoice_payload(
+        body.model_dump(exclude_none=True, exclude={"invoice_id", "send_to_recipient", "send_to_invoicer"})
+    )
+    query = "&".join(
+        f"{k}={str(v).lower()}"
+        for k, v in [("send_to_recipient", body.send_to_recipient), ("send_to_invoicer", body.send_to_invoicer)]
+        if v is not None
+    )
+    url = f"/v2/invoicing/invoices/{body.invoice_id}" + (f"?{query}" if query else "")
+    response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
+
+    return json.dumps(response)
+
+
+def _update_recurring_series(client, body: UpdateRecurringSeriesBody):
+
+    payload = build_create_recurring_series_payload(
+        body.model_dump(exclude_none=True, exclude={"recurring_series_id"})
+    )
+    url = f"/v2/invoicing/recurring-invoices/{body.recurring_series_id}"
+    response = client.put(uri=url, payload=payload, headers={"Prefer": "return=representation"})
+
+    return json.dumps(response)
+
+
+def update_invoicing(client, params: dict):
+
+    validated = UpdateInvoicingParameters(**params)
+
+    if validated.resource_type == "invoice":
+        return _update_invoice(client, validated.invoice_update)
+    return _update_recurring_series(client, validated.recurring_series_update)
+
+
+
+def cancel_invoice_auto_reminder(client, params: dict):
+    validated = CancelInvoiceAutoReminderParameters(**params)
+    invoice_id = validated.invoice_id
+    url = f"/v2/invoicing/invoices/{invoice_id}/cancel-reminders"
+
+    response = client.post(uri=url, payload={})
+
+    # PayPal responds with 204 No Content on success (client.post returns {} for that)
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
+
+    return json.dumps(response)
+
+
+def record_payment_for_invoice(client, params: dict):
+
+    validated = RecordPaymentForInvoiceParameters(**params)
+    invoice_id = validated.invoice_id
+    payload = validated.model_dump(exclude_none=True, exclude={"invoice_id"})
+
+    url = f"/v2/invoicing/invoices/{invoice_id}/payments"
+    response = client.post(uri=url, payload=payload)
+
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
+
+    return json.dumps(response)
+
+
+def record_refund_for_invoice(client, params: dict):
+
+    validated = RecordRefundForInvoiceParameters(**params)
+    invoice_id = validated.invoice_id
+    payload = validated.model_dump(exclude_none=True, exclude={"invoice_id"})
+
+    url = f"/v2/invoicing/invoices/{invoice_id}/refunds"
+    response = client.post(uri=url, payload=payload)
+
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
+
+    return json.dumps(response)
+
+
+def create_conditional_rules_for_invoice(client, params: dict):
+
+    validated = CreateConditionalRulesForInvoiceParameters(**params)
+    invoice_id = validated.invoice_id
+    payload = validated.model_dump(exclude_none=True, exclude={"invoice_id"})
+
+    url = f"/v2/invoicing/invoices/{invoice_id}/conditional-rules"
+    response = client.post(uri=url, payload=payload)
+
+    if not response:
+        return json.dumps({"success": True, "invoice_id": invoice_id})
 
     return json.dumps(response)

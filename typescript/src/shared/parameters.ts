@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Context } from './configuration';
 import {subscriptionKeys} from "./constants";
-import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX, HEX_COLOR_REGEX, DATE_NO_TIME_REGEX, RECURRING_SERIES_ID_REGEX, COUNTRY_CODE_REGEX, LANGUAGE_REGEX, DECIMAL_STRING_REGEX} from "./regex"
+import {INVOICE_ID_REGEX, ORDER_ID_REGEX, SUBSCRIPTION_ID_REGEX, PRODUCT_ID_REGEX, PLAN_ID_REGEX, DISPUTE_ID_REGEX, REFUND_ID_REGEX, CAPTURE_ID_REGEX, TRANSACTION_ID_REGEX, HEX_COLOR_REGEX, DATE_NO_TIME_REGEX, DATE_TIME_REGEX, RECURRING_SERIES_ID_REGEX, COUNTRY_CODE_REGEX, LANGUAGE_REGEX, DECIMAL_STRING_REGEX} from "./regex"
 
 // === INVOICE PARAMETERS ===
 // Shared building blocks, reused across create_invoice and create_recurring_series (and
@@ -20,6 +20,58 @@ const money = () => z.object({
   value: z.string().regex(DECIMAL_STRING_REGEX, "value must be a numeric value, e.g. \"50\" or \"50.00\"").describe("The amount, as a signed decimal string with up to 2 decimal places (e.g. '50.00')."),
 });
 
+const amountRange = () => z.object({
+  lower_amount: money().describe("The lower bound of the amount range."),
+  upper_amount: money().describe("The upper bound of the amount range."),
+}).describe("amount range object");
+
+// Some MCP clients "clear" a filter by blanking out its leaf values (e.g. lower_amount.value: "")
+// instead of omitting the field entirely -- treat a range with a blank bound as not provided.
+const amountRangeOrUndefinedIfBlank = (description: string) => z.preprocess(
+  (val) => {
+    if (val && typeof val === "object") {
+      const lowerValue = (val as any).lower_amount?.value;
+      const upperValue = (val as any).upper_amount?.value;
+      if (!lowerValue || !upperValue) return undefined;
+    }
+    return val;
+  },
+  amountRange().optional().describe(description)
+);
+
+const dateRange = () => z.object({
+  start: z.string().regex(DATE_NO_TIME_REGEX, "start must be in yyyy-MM-DD format").describe("The start date, in yyyy-MM-DD format."),
+  end: z.string().regex(DATE_NO_TIME_REGEX, "end must be in yyyy-MM-DD format").describe("The end date, in yyyy-MM-DD format."),
+}).describe("date range object");
+
+// Some MCP clients "clear" a filter by blanking out a range's leaf values (e.g. start: "")
+// instead of omitting the field entirely -- treat a range with a blank bound as not provided.
+const dateRangeOrUndefinedIfBlank = (description: string) => z.preprocess(
+  (val) => {
+    if (val && typeof val === "object" && (!(val as any).start || !(val as any).end)) return undefined;
+    return val;
+  },
+  dateRange().optional().describe(description)
+);
+
+const dateTimeBoundary = (defaultTime: string, label: string, description: string) => z.preprocess(
+  (val) => (typeof val === "string" && DATE_NO_TIME_REGEX.test(val) ? `${val}T${defaultTime}` : val),
+  z.string().regex(DATE_TIME_REGEX, `${label} must be in ISO8601 format, e.g. 2018-06-01T00:00:00Z`).min(20).max(64).describe(description)
+);
+
+const dateTimeRange = () => z.object({
+  start: dateTimeBoundary("00:00:00Z", "start", "The start date and time, in ISO8601 format (for example, 2018-06-01T00:00:00Z). Seconds are required; fractional seconds are optional. A plain date (yyyy-MM-DD) is also accepted and is expanded to the start of that day (00:00:00Z)."),
+  end: dateTimeBoundary("23:59:59Z", "end", "The end date and time, in ISO8601 format (for example, 2018-06-21T23:59:59Z). Seconds are required; fractional seconds are optional. A plain date (yyyy-MM-DD) is also accepted and is expanded to the end of that day (23:59:59Z)."),
+}).describe("date and time range object");
+
+const dateTimeRangeOrUndefinedIfBlank = (description: string) => z.preprocess(
+  (val) => {
+    if (val && typeof val === "object" && (!(val as any).start || !(val as any).end)) return undefined;
+    return val;
+  },
+  dateTimeRange().optional().describe(description)
+);
+
 const personName = () => z.object({
   given_name: z.string().optional().describe("The first name of the person."),
   surname: z.string().optional().describe("The last name of the person."),
@@ -31,7 +83,7 @@ const address = () => z.object({
   admin_area_2: z.string().optional().describe("A city, town, or village."),
   admin_area_1: z.string().optional().describe("The highest-level sub-division in a country, such as a state or province."),
   postal_code: z.string().optional().describe("The postal code, which is the zip code or equivalent."),
-  country_code: z.string().regex(COUNTRY_CODE_REGEX, "country_code must be a two-character ISO 3166-1 country code").optional().describe("The two-character ISO 3166-1 country code (for example, US or GB)."),
+  country_code: z.preprocess((val) => (val === '' ? undefined : val), z.string().regex(COUNTRY_CODE_REGEX, "country_code must be a two-character ISO 3166-1 country code").optional()).describe("The two-character ISO 3166-1 country code (for example, US or GB)."),
 }).describe("address object");
 
 const phone = () => z.object({
@@ -157,10 +209,56 @@ export const createRecurringSeriesParameters = (context: Context) => z.object({
   minimum_partial_payment_amount: z.string().regex(DECIMAL_STRING_REGEX, "minimum_partial_payment_amount must be a numeric value, e.g. \"20.00\"").optional().describe("The minimum amount allowed for a partial payment on each generated invoice, in the series' currency_code. Valid only when allow_partial_payment is true."),
 }).describe("Simplified create-recurring-series request. The tool implementation builds PayPal's actual nested recurring-invoicing API request from these flat fields.");
 
+// update_invoicing is one external tool that internally branches to an invoice-update flow
+// or a recurring-series-update flow based on resource_type. invoice_update/recurring_series_update
+// are full-replacement bodies -- the create schemas extended with the resource's ID (and, for
+// invoices, the two query-param booleans) -- since PayPal's update endpoints are full-body PUTs.
+
+export const updateInvoiceBodyParameters = (context: Context) =>
+  createInvoiceParameters(context).extend({
+    // Optional at the schema level (even though it's required whenever this flow actually runs) so that
+    // a client blanking out the unused side of update_invoicing instead of omitting it can still pass
+    // validation -- the regex would otherwise reject an empty placeholder before the dispatcher's own
+    // "is this side really being used" check ever runs. Presence is enforced at runtime in updateInvoicing.
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").optional().describe("The ID of the invoice to update. Required when resource_type is 'invoice'."),
+    send_to_recipient: z.boolean().optional().describe("Whether to send the invoice update notification to the recipient. PayPal defaults to true if omitted."),
+    send_to_invoicer: z.boolean().optional().describe("Whether to send the invoice update notification to the merchant (invoicer). PayPal defaults to true if omitted."),
+  });
+
+export const updateRecurringSeriesBodyParameters = (context: Context) =>
+  createRecurringSeriesParameters(context).extend({
+    // Optional for the same reason as invoice_id above; enforced at runtime in updateInvoicing.
+    recurring_series_id: z.string().regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID").optional().describe("The ID of the recurring invoice series to update. Required when resource_type is 'recurring_series'."),
+  });
+
+export const updateInvoicingParameters = (context: Context) => z.object({
+  resource_type: z.enum(["invoice", "recurring_series"]).describe("Which kind of resource to update. 'invoice' updates an individual invoice; 'recurring_series' updates a recurring invoice series."),
+  invoice_update: updateInvoiceBodyParameters(context).optional().describe("Full replacement content for the invoice. Set only when resource_type is 'invoice'."),
+  recurring_series_update: updateRecurringSeriesBodyParameters(context).optional().describe("Full replacement content for the recurring series. Set only when resource_type is 'recurring_series'."),
+}).describe("Update an existing invoice or recurring invoice series on PayPal, depending on resource_type. This is a full-replacement update -- resend the complete content, not just changed fields.");
+
 export const activateRecurringSeriesParameters = (context: Context) => z.object({
   recurring_series_id: z.string()
     .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
     .describe("The ID of the recurring invoice series to activate."),
+});
+
+export const getRecurringSeriesParameters = (context: Context) => z.object({
+  recurring_series_id: z.string()
+    .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
+    .describe("The ID of the recurring invoice series to retrieve."),
+});
+
+export const cancelRecurringSeriesParameters = (context: Context) => z.object({
+  recurring_series_id: z.string()
+    .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
+    .describe("The ID of the recurring invoice series to cancel."),
+});
+
+export const deleteRecurringSeriesParameters = (context: Context) => z.object({
+  recurring_series_id: z.string()
+    .regex(RECURRING_SERIES_ID_REGEX, "Invalid PayPal Recurring Series ID")
+    .describe("The ID of the recurring invoice series to delete. Only series in DRAFT status can be deleted; use cancel_recurring_series for an activated series."),
 });
 
 export const getInvoicParameters = (context: Context) => z.object({
@@ -200,11 +298,17 @@ export const cancelSentInvoiceParameters = (context: Context) =>
     additional_recipients: z.array(z.string()).optional().describe('Additional email addresses to which to send the cancellation.'),
   });
 
+export const deleteInvoiceParameters = (context: Context) => z.object({
+  invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the draft or scheduled invoice to delete.'),
+});
+
 export const generateInvoiceQrCodeParameters = (context: Context) => z.object({
   invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The invoice id to generate QR code for'),
   width: z.number().default(300).describe("The QR code width"),
   height: z.number().default(300).describe("The QR code height")
 }).describe("generate invoice qr code request payload");
+
+export const generateInvoiceNumberParameters = (context: Context) => z.object({}).describe("generate next invoice number request payload");
 
 const invoiceReminderConfiguration = z.object({
   type: z.enum(['BEFORE_DUE', 'AFTER_DUE']).describe('The type of reminder. BEFORE_DUE sends a reminder before the invoice due date; AFTER_DUE sends a reminder after the invoice due date.'),
@@ -228,6 +332,11 @@ export const setupInvoiceAutoReminderParameters = (context: Context) =>
       ),
   });
 
+export const cancelInvoiceAutoReminderParameters = (context: Context) =>
+  z.object({
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice for which to cancel all scheduled automatic reminders.'),
+  });
+
 export const updateInvoiceAutoReminderParameters = (context: Context) =>
   z.object({
     reminder_configuration_id: z.string().describe('The ID of the auto reminder configuration to update.'),
@@ -242,6 +351,130 @@ export const updateInvoiceAutoReminderParameters = (context: Context) =>
     }).optional().describe('Notification settings for the reminder.'),
   }).describe('Full replacement configuration for an existing invoice auto reminder. All required fields must be included since this performs a full update.');
 
+export const recordPaymentForInvoiceParameters = (context: Context) =>
+  z.object({
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice to record the payment against.'),
+    payment_id: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(22).optional()).describe('The ID for a PayPal payment transaction. Required for the PAYPAL payment type.'),
+    payment_date: z.preprocess((val) => (val === '' ? undefined : val), z.string().regex(DATE_NO_TIME_REGEX, "payment_date must be in yyyy-MM-DD format").optional()).describe('The date when the invoicer recorded the payment, in yyyy-MM-dd format.'),
+    payment_date_time: z.preprocess((val) => (val === '' ? undefined : val), z.string().min(20).max(64).optional()).describe('The date and time when the invoicer recorded the payment, in Internet date and time format (ISO 8601), for example 2018-05-13T21:20:00Z or 2018-05-13T21:20:00.000-08:00. Seconds are required.'),
+    method: z.enum(['BANK_TRANSFER', 'CASH', 'CHECK', 'CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'WIRE_TRANSFER', 'OTHER']).describe('The payment mode or method through which the invoicer can accept the payments.'),
+    note: z.string().max(2000).optional().describe('A note associated with an external cash or check payment.'),
+    amount: money().optional().describe('The currency and amount for a financial transaction.'),
+    shipping_info: shippingInfo().optional().describe('The shipping information associated with this payment.'),
+  }).describe('Record an external or PayPal payment against an invoice.');
+
+export const recordRefundForInvoiceParameters = (context: Context) =>
+  z.object({
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice to mark as refunded.'),
+    refund_date: z.preprocess((val) => (val === '' ? undefined : val), z.string().regex(DATE_NO_TIME_REGEX, "refund_date must be in yyyy-MM-DD format").optional()).describe('The date when the invoicer recorded the refund, in yyyy-MM-dd format.'),
+    amount: money().optional().describe('The currency and amount for a financial transaction.'),
+    method: z.enum(['BANK_TRANSFER', 'CASH', 'CHECK', 'CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'WIRE_TRANSFER', 'OTHER']).describe('The payment mode or method through which the invoicer can accept the payments.'),
+  }).describe('Record a refund against an invoice.');
+
+const invoiceConditionalRule = z.object({
+  conditional_rule_type: z.enum(['EARLY_PAYMENT_DISCOUNT', 'AUTO_CANCEL']).describe('The type of conditional rule to apply to the invoice.'),
+  conditional_rule_value_type: z.enum(['PERCENT', 'AMOUNT']).optional().describe('The type of the conditional rule value. Required, and only applicable, when conditional_rule_type is EARLY_PAYMENT_DISCOUNT.'),
+  conditional_rule_value: z.string().optional().describe('The value of the conditional rule. Required, and only applicable, when conditional_rule_type is EARLY_PAYMENT_DISCOUNT. When conditional_rule_value_type is PERCENT, must be between 1 and 100.'),
+  rule_expiry_terms: z.object({
+    rule_expiry_condition: z.enum([
+      'SPECIFIC_DATE',
+      'THREE_DAYS_AFTER_ISSUE_DATE',
+      'SEVEN_DAYS_AFTER_ISSUE_DATE',
+      'FIFTEEN_DAYS_AFTER_ISSUE_DATE',
+      'THIRTY_DAYS_AFTER_ISSUE_DATE',
+    ]).describe('When the conditional rule expires: a specific date, or a period relative to the invoice issue date.'),
+    condition_rule_end_date: z.string().regex(DATE_NO_TIME_REGEX, "condition_rule_end_date must be in yyyy-MM-DD format").describe('The date the conditional rule expires, in yyyy-MM-dd format.'),
+  }).describe('The expiry terms for the conditional rule.'),
+}).refine(
+  (rule) => rule.conditional_rule_type !== 'EARLY_PAYMENT_DISCOUNT' || (rule.conditional_rule_value_type !== undefined && rule.conditional_rule_value !== undefined),
+  { message: 'conditional_rule_value_type and conditional_rule_value are required when conditional_rule_type is EARLY_PAYMENT_DISCOUNT.' }
+).refine(
+  (rule) => rule.conditional_rule_value_type !== 'PERCENT' || (Number(rule.conditional_rule_value) >= 1 && Number(rule.conditional_rule_value) <= 100),
+  { message: 'conditional_rule_value must be between 1 and 100 when conditional_rule_value_type is PERCENT.' }
+);
+
+export const createConditionalRulesForInvoiceParameters = (context: Context) =>
+  z.object({
+    invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").describe('The ID of the invoice for which the conditional rules are to be created.'),
+    rules: z.array(invoiceConditionalRule).min(1).describe('The list of conditional rules to create for the invoice.'),
+  }).describe('Create conditional rules for an invoice.');
+
+
+// search_invoicing: one external tool that internally branches to invoice search or
+// recurring-series search based on resource_type. invoice_filters/recurring_series_filters
+// map 1:1 onto PayPal's real request bodies for /v2/invoicing/search-invoices and
+// /v2/invoicing/search-recurring-invoices respectively -- no payload reshaping needed.
+
+// Some MCP clients "clear" an array/string filter by blanking it to [] or "" instead of
+// omitting the field entirely -- these treat such blanked-out values as not provided.
+const arrayOrUndefinedIfEmpty = (schema: z.ZodTypeAny) => z.preprocess(
+  (val) => (Array.isArray(val) && val.length === 0 ? undefined : val),
+  schema
+);
+
+const stringOrUndefinedIfBlank = (schema: z.ZodTypeAny) => z.preprocess(
+  (val) => (typeof val === "string" && val.trim().length === 0 ? undefined : val),
+  schema
+);
+
+const searchInvoicesFilters = () => z.object({
+  recipient_email: stringOrUndefinedIfBlank(z.string().max(254).optional().describe("Filters invoices by the recipient's email address.")),
+  recipient_first_name: stringOrUndefinedIfBlank(z.string().max(140).optional().describe("Filters invoices by the recipient's first name.")),
+  recipient_last_name: stringOrUndefinedIfBlank(z.string().max(140).optional().describe("Filters invoices by the recipient's last name.")),
+  recipient_business_name: stringOrUndefinedIfBlank(z.string().max(300).optional().describe("Filters invoices by the recipient's business name.")),
+  invoice_number: stringOrUndefinedIfBlank(z.string().max(25).optional().describe("Filters invoices by invoice number.")),
+  status: arrayOrUndefinedIfEmpty(z.array(z.enum([
+    "DRAFT", "SENT", "SCHEDULED", "PAID", "MARKED_AS_PAID", "CANCELLED", "REFUNDED",
+    "PARTIALLY_PAID", "PARTIALLY_REFUNDED", "MARKED_AS_REFUNDED", "UNPAID", "PAYMENT_PENDING",
+    "AUTO_CANCELLED", "PAID_EXTERNAL", "REFUNDED_EXTERNAL", "SHARED",
+  ])).max(5).optional().describe("Filters invoices by one or more statuses (up to 5).")),
+  reference: stringOrUndefinedIfBlank(z.string().max(120).optional().describe("Filters invoices by reference value, such as a purchase order number.")),
+  currency_code: stringOrUndefinedIfBlank(z.string().optional().describe("Filters invoices by the three-character ISO-4217 currency code.")),
+  total_amount_range: amountRangeOrUndefinedIfBlank("Filters invoices whose total amount falls within this range."),
+  invoice_date_range: dateRangeOrUndefinedIfBlank("Filters invoices by the invoice's own date (the date shown on the invoice itself, also called the billing date). Use this for most 'invoices dated/created/issued between X and Y' requests -- creation_date_range is for PayPal's internal record-creation timestamp, not the invoice's date."),
+  due_date_range: dateRangeOrUndefinedIfBlank("Filters invoices whose due date falls within this range."),
+  payment_date_range: dateTimeRangeOrUndefinedIfBlank("Filters invoices by the date and time PayPal recorded the invoice as paid (a system timestamp)."),
+  creation_date_range: dateTimeRangeOrUndefinedIfBlank("Filters invoices by the date and time PayPal's system recorded the invoice record as created (an internal system timestamp, NOT the invoice's own date). For 'invoices dated/created between X and Y' requests, prefer invoice_date_range unless the user specifically means when the record was created in PayPal."),
+}).describe("Filters for searching individual invoices.");
+
+const recurringSeriesSearchFilters = () => z.object({
+  currency_code: stringOrUndefinedIfBlank(z.string().optional().describe("Filters recurring series by the three-character ISO-4217 currency code.")),
+  status: arrayOrUndefinedIfEmpty(z.array(z.enum(["DRAFT", "ACTIVE", "CANCELLED", "EXPIRED"])).min(1).max(5).optional().describe("Filters recurring series by one or more statuses (up to 5, must be unique).")),
+  creation_date_range: dateTimeRangeOrUndefinedIfBlank("Filters recurring series by the date and time PayPal recorded the series as created (a system timestamp). This endpoint has no separate 'series date' field -- for 'series created/started between X and Y' requests, this is the field to use. Mutually exclusive with next_occurrence_date_range -- PayPal supports only one range criterion per search."),
+  next_occurrence_date_range: dateRangeOrUndefinedIfBlank("Filters recurring series whose next occurrence date falls within this range. Mutually exclusive with creation_date_range -- PayPal supports only one range criterion per search."),
+  total_amount_range: amountRangeOrUndefinedIfBlank("Filters recurring series whose total amount falls within this range."),
+}).refine((val) => val.status === undefined || new Set(val.status).size === val.status.length, {
+  message: "status values must be unique.",
+  path: ["status"],
+}).refine((val) => val.creation_date_range === undefined || val.next_occurrence_date_range === undefined, {
+  message: "creation_date_range and next_occurrence_date_range cannot both be set -- PayPal supports only one range criterion per search.",
+  path: ["next_occurrence_date_range"],
+}).describe("Structured filters for searching recurring invoice series.");
+
+const searchRecurringSeriesFilters = () => z.object({
+  search_text: stringOrUndefinedIfBlank(z.string().min(3).max(800).optional().describe("Free-text search across the fields listed in search_fields. Cannot be blank.")),
+  search_fields: arrayOrUndefinedIfEmpty(z.array(z.enum([
+    "PAYER_REFERENCE_INFO", "BILLING_EMAIL", "BILLING_NAME", "BILLING_BUSINESS_NAME",
+    "BILLING_PHONE_NUMBER", "SHIPPING_NAME", "SHIPPING_BUSINESS_NAME", "SHIPPING_PHONE_NUMBER",
+    "ITEM_NAME", "ITEM_TAX_NAME", "ITEM_DISCOUNT_NAME", "INVOICE_DISCOUNT_NAME", "ALL",
+  ])).min(1).max(5).optional().describe("The fields that search_text searches against (1-5 values, must be unique).")),
+  search_filters: recurringSeriesSearchFilters().optional().describe("Structured filters for the recurring series search."),
+}).refine((val) => val.search_fields === undefined || new Set(val.search_fields).size === val.search_fields.length, {
+  message: "search_fields values must be unique.",
+  path: ["search_fields"],
+}).describe("Filters for searching recurring invoice series.");
+
+// Note: the resource_type <-> filters pairing is validated at runtime in searchInvoicing()
+// (functions.ts), not via .refine() here -- Tool.parameters requires a plain z.ZodObject
+// (see tools.ts), and .refine() would wrap this in a ZodEffects that no longer satisfies it.
+export const searchInvoicingParameters = (context: Context) => z.object({
+  resource_type: z.enum(["invoice", "recurring_series"]).describe("Which resource type to search. 'invoice' searches individual invoices using invoice_filters; 'recurring_series' searches recurring invoice series using recurring_series_filters."),
+  page: z.number().int().min(1).max(1000).default(1).optional().describe("The page number of the result set to fetch."),
+  page_size: z.number().int().min(1).max(100).default(20).optional().describe("The number of records to return per page (maximum 100)."),
+  total_required: z.boolean().default(false).optional().describe("Indicates whether the response should include the total count of matching invoices. Only applies when resource_type is 'invoice'."),
+  invoice_filters: searchInvoicesFilters().optional().describe("Filters to apply when resource_type is 'invoice'. Must not be set when resource_type is 'recurring_series'."),
+  recurring_series_filters: searchRecurringSeriesFilters().optional().describe("Filters to apply when resource_type is 'recurring_series'. Must not be set when resource_type is 'invoice'."),
+}).describe("Search for invoices or recurring invoice series, depending on resource_type.");
 
 export const updateProductParameters = (context: Context) =>
   z.object({
