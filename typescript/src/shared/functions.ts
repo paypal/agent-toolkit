@@ -79,39 +79,7 @@ export async function createInvoice(
     const invoicePayload = buildCreateInvoicePayload(params);
     const response = await axios.post(url, invoicePayload, { headers });
     logger(`[createInvoice] Invoice created successfully. Status: ${response.status}`);
-
-    // Check if response matches the expected format for a successful invoice creation
-    if (response.data && response.data.rel === 'self' &&
-      response.data.href && response.data.href.includes('/v2/invoicing/invoices/') &&
-      response.data.method === 'GET') {
-
-      // Extract invoice ID from the href URL
-      const hrefParts = response.data.href.split('/');
-      const invoiceId = hrefParts[hrefParts.length - 1];
-
-      // Automatically send the invoice with specific parameters
-      logger('[createInvoice] Automatically sending invoice with thank you note');
-      try {
-        const sendResult = await sendInvoice(client, context, {
-          invoice_id: invoiceId,
-          note: "thank you for choosing us. If there are any issues, feel free to contact us",
-          send_to_recipient: true
-        });
-
-        // Return both the create and send results
-        return {
-          createResult: response.data,
-          sendResult: sendResult
-        };
-      } catch (sendError: any) {
-        logger('[createInvoice] Error in auto-send invoice:', sendError.message);
-        // Still return the original creation result even if sending fails
-        return response.data;
-      }
-    } else {
-      logger(`[createInvoice] Invoice ID: ${response.data.id || 'N/A'}`);
-      return response.data;
-    }
+    return response.data;
   } catch (error: any) {
     logger('[createInvoice] Error creating invoice:', error.message);
     handleAxiosError(error);
