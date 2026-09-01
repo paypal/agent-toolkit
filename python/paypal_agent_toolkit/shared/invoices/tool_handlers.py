@@ -7,38 +7,15 @@ from typing import Union, Dict, Any
 
 
 
-def _submit_invoice(client, invoice_payload: dict):
-    url = "/v2/invoicing/invoices"
-    response = client.post(uri=url, payload=invoice_payload)
-
-    if (
-        response.get("rel") == "self"
-        and "/v2/invoicing/invoices/" in response.get("href", "")
-        and response.get("method") == "GET"
-    ):
-        invoice_id = response["href"].split("/")[-1]
-        try:
-            send_result = send_invoice(client, {
-                "invoice_id": invoice_id,
-                "note": "Thank you for choosing us. If there are any issues, feel free to contact us.",
-                "send_to_recipient": True
-            })
-            return json.dumps({
-                "createResult": response,
-                "sendResult": send_result
-            })
-        except Exception:
-            return json.dumps(response)
-
-    return json.dumps(response)
-
-
 def create_invoice(client, params: dict):
 
     validated = CreateInvoiceParameters(**params)
     invoice_payload = build_create_invoice_payload(validated.model_dump(exclude_none=True))
 
-    return _submit_invoice(client, invoice_payload)
+    url = "/v2/invoicing/invoices"
+    response = client.post(uri=url, payload=invoice_payload)
+
+    return json.dumps(response)
 
 
 def send_invoice(client, params: dict):
