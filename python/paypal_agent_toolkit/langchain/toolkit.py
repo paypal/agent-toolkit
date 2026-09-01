@@ -17,7 +17,7 @@ class PayPalToolkit:
     def __init__(self, client_id, secret, configuration: Configuration):
         super().__init__()
         self.configuration = configuration
-        self.context = configuration.context if configuration and configuration.context else Configuration.Context.default()
+        self.context = configuration.context if configuration and configuration.context else Context.default()
         self.context.source = self.SOURCE
         self._paypal_api = PayPalAPI(client_id=client_id, secret=secret, context=self.context)
 

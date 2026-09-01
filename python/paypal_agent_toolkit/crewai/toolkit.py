@@ -7,7 +7,7 @@ from pydantic import PrivateAttr, BaseModel
 
 from ..shared.api import PayPalAPI
 from ..shared.tools import tools
-from ..shared.configuration import Configuration, is_tool_allowed
+from ..shared.configuration import Configuration, Context, is_tool_allowed
 from .tool import PayPalTool
 
 
@@ -19,7 +19,7 @@ class PayPalToolkit:
     ):
         super().__init__()
         self._tools = []
-        self.context = configuration.context if configuration and configuration.context else Configuration.Context.default()
+        self.context = configuration.context if configuration and configuration.context else Context.default()
         self.context.source = self.SOURCE
         paypal_api = PayPalAPI(client_id=client_id, secret=secret, context=self.context)
 
