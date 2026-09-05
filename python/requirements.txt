@@ -15,13 +15,13 @@ openai==1.66.0
 openai-agents==0.0.2
 
 # LangChain
-langchain==0.3.23
+langchain==1.3.9
 langchain-openai==0.2.2
 
 # CrewAI
 setuptools>=61.0
 crewai==0.76.2
-crewai-tools==0.13.2
+crewai-tools==1.15.1
 
 # Amazon Bedrock
 boto3==1.39.11
