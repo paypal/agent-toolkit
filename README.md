@@ -1,7 +1,29 @@
 # PayPal Agent Toolkit
 
-The PayPal Agent Toolkit enables popular agent frameworks including OpenAI's Agent SDK, LangChain, Vercel's AI SDK, and Model Context Protocol (MCP) to integrate with PayPal APIs through function calling. It includes support for TypeScript and is built on top of PayPal APIs and the PayPal SDKs.
+[![npm version](https://img.shields.io/npm/v/@paypal/agent-toolkit.svg?label=npm%20(TypeScript))](https://www.npmjs.com/package/@paypal/agent-toolkit)
+[![PyPI version](https://img.shields.io/pypi/v/paypal-agent-toolkit.svg?label=PyPI%20(Python))](https://pypi.org/project/paypal-agent-toolkit/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
+The PayPal Agent Toolkit enables popular AI agent frameworks including **OpenAI's Agent SDK**, **LangChain**, **CrewAI**, **Vercel's AI SDK**, **Amazon Bedrock**, and **Model Context Protocol (MCP)** to integrate with PayPal APIs through function calling.
+
+Built on top of PayPal APIs and SDKs, the toolkit is available for both **[TypeScript](./typescript)** and **[Python](./python)**.
+
+## Repository Structure
+
+- 📦 **[`/typescript`](./typescript)** — TypeScript package (`@paypal/agent-toolkit`) supporting Vercel AI SDK, LangChain.js, OpenAI, Amazon Bedrock, and MCP.
+- 🐍 **[`/python`](./python)** — Python package (`paypal-agent-toolkit`) supporting LangChain, CrewAI, OpenAI, and Amazon Bedrock.
+- 💡 **[`PROMPTS.md`](./PROMPTS.md)** — Ready-to-use prompt templates and parameter documentation for all available tools.
+
+## Supported Frameworks
+
+| Framework | TypeScript (`@paypal/agent-toolkit`) | Python (`paypal-agent-toolkit`) | Examples |
+| :--- | :---: | :---: | :--- |
+| **Vercel AI SDK** | ✅ (`@paypal/agent-toolkit/ai-sdk`) | — | [TypeScript Example](./typescript/examples/ai-sdk) |
+| **LangChain** | ✅ (`@paypal/agent-toolkit/langchain`) | ✅ (`paypal_agent_toolkit.langchain`) | [TypeScript](./typescript/examples/langchain) / [Python](./python/examples/langchain) |
+| **OpenAI Agents** | ✅ (`@paypal/agent-toolkit/openai`) | ✅ (`paypal_agent_toolkit.openai`) | [TypeScript](./typescript/examples/openai) / [Python](./python/examples/openai) |
+| **CrewAI** | — | ✅ (`paypal_agent_toolkit.crewai`) | [Python Example](./python/examples/crewai) |
+| **Amazon Bedrock** | ✅ (`@paypal/agent-toolkit/bedrock`) | ✅ (`paypal_agent_toolkit.bedrock`) | [TypeScript](./typescript/examples/bedrock) / [Python](./python/examples/bedrock) |
+| **Model Context Protocol (MCP)** | ✅ (via [`@paypal/mcp`](https://www.npmjs.com/package/@paypal/mcp)) | — | Claude Desktop, Cursor, Cline |
 
 ## Available tools
 
@@ -60,6 +82,7 @@ The PayPal Agent toolkit provides the following tools:
 **Subscription Management**
 
 - `create_subscription_plan`: Create a new subscription plan
+- `update_plan`: Update an existing subscription plan
 - `list_subscription_plans`: List subscription plans
 - `show_subscription_plan_details`: Retrieve details of a specific subscription plan
 - `create_subscription`: Create a new subscription
@@ -73,20 +96,23 @@ The PayPal Agent toolkit provides the following tools:
 - `list_transactions`: List transactions with optional pagination and filtering
 - `get_merchant_insights`: Retrieve business intelligence metrics and analytics for a merchant
 
-## TypeScript
+## Installation
 
-### Installation
+### TypeScript (Node.js 18+)
 
-You don't need this source code unless you want to modify the package. If you just
-want to use the package run:
-
-```sh
+```bash
 npm install @paypal/agent-toolkit
 ```
 
-#### Requirements
+For full TypeScript documentation, configuration options, and framework guides, see **[`typescript/README.md`](./typescript/README.md)**.
 
-- Node 18+
+### Python (Python 3.11+)
+
+```bash
+pip install paypal-agent-toolkit
+```
+
+For full Python documentation, configuration options, and framework guides, see **[`python/README.md`](./python/README.md)**.
 
 ### Usage
 
@@ -163,7 +189,25 @@ const { text: response } = await generateText({
   maxSteps: 10,
   prompt: `Create an order for $50 for custom handcrafted item and get the payment link.`,
 });
+```
 
+### Using with Python (LangChain)
+
+```python
+import os
+from paypal_agent_toolkit.langchain.toolkit import PayPalToolkit
+from paypal_agent_toolkit.shared.configuration import Configuration
+
+toolkit = PayPalToolkit(
+    client_id=os.environ["PAYPAL_CLIENT_ID"],
+    client_secret=os.environ["PAYPAL_CLIENT_SECRET"],
+    configuration=Configuration(
+        context={"sandbox": True}
+    )
+)
+
+# Pass tools to your LangChain agent
+tools = toolkit.get_tools()
 ```
 
 ## Environment Variables
@@ -241,7 +285,7 @@ A successful response will look like:
 }
 ```
 
-Copy the `access_token` value for use in your Claude Desktop integration.
+Copy the `access_token` value for use in your API or MCP integration.
 
 ## Token Details
 
@@ -249,15 +293,41 @@ Copy the `access_token` value for use in your Claude Desktop integration.
 - **Production Tokens**: Valid for 8 hours
 - It's recommended to implement token refresh logic before expiration
 
-## Using the Token with Claude Desktop
+## Using with Model Context Protocol (MCP) & Claude Desktop
 
-Once you have your access token, update the `PAYPAL_ACCESS_TOKEN` value in your Claude Desktop connector configuration:
+The PayPal Agent Toolkit powers the official PayPal MCP server ([`@paypal/mcp`](https://www.npmjs.com/package/@paypal/mcp)), enabling assistants like Claude Desktop, Cursor, and Cline to interact with PayPal via natural language.
+
+To connect with Claude Desktop, add the server to your `claude_desktop_config.json`:
 
 ```json
 {
-  "env": {
-    "PAYPAL_ACCESS_TOKEN": "YOUR_NEW_ACCESS_TOKEN",
-    "PAYPAL_ENVIRONMENT": "SANDBOX"
+  "mcpServers": {
+    "paypal": {
+      "command": "npx",
+      "args": ["-y", "@paypal/mcp@latest"],
+      "env": {
+        "PAYPAL_CLIENT_ID": "YOUR_CLIENT_ID",
+        "PAYPAL_CLIENT_SECRET": "YOUR_CLIENT_SECRET",
+        "PAYPAL_ENVIRONMENT": "SANDBOX"
+      }
+    }
+  }
+}
+```
+
+Alternatively, if using an access token:
+
+```json
+{
+  "mcpServers": {
+    "paypal": {
+      "command": "npx",
+      "args": ["-y", "@paypal/mcp@latest"],
+      "env": {
+        "PAYPAL_ACCESS_TOKEN": "YOUR_ACCESS_TOKEN",
+        "PAYPAL_ENVIRONMENT": "SANDBOX"
+      }
+    }
   }
 }
 ```
