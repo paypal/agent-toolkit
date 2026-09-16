@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/registry/main/schema/server.schema.json",
+  "name": "paypal-mcp",
+  "namespace": "com.paypal.mcp",
+  "description": "PayPal Model Context Protocol server providing access to PayPal services and operations for AI assistants",
+  "license": "MIT",
+  "keywords": ["paypal", "payments", "financial", "api", "enterprise"],
+  "homepage": "https://mcp.paypal.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hemanth/agent-toolkit"
+  },
+  "version": "1.0.0",
+  "author": {
+    "name": "PayPal",
+    "email": "developer@paypal.com"
+  },
+  "deployment": {
+    "remote": {
+      "url": "https://mcp.paypal.com/mcp",
+      "transport": "sse",
+      "endpoints": {
+        "sse": "https://mcp.paypal.com/sse"
+      },
+      "auth": {
+        "type": "bearer",
+        "description": "Requires PayPal OAuth Bearer token in Authorization header"
+      }
+    }
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": false
+  },
+  "documentation": {
+    "readme": "PayPal MCP Server provides AI assistants with secure access to PayPal's payment processing, transaction management, and compliance services through the Model Context Protocol.",
+    "setup": "1. Obtain PayPal OAuth credentials\n2. Configure Bearer token authentication\n3. Connect to https://mcp.paypal.com/sse using SSE transport\n4. Use SSL certificate bundle for PayPal's internal PKI",
+    "examples": [
+      {
+        "title": "Process Payment",
+        "description": "Process a payment transaction through PayPal",
+        "code": "// Connect to PayPal MCP server and use payment processing tools"
+      },
+      {
+        "title": "Transaction Query",
+        "description": "Query transaction history and status",
+        "code": "// Use transaction query tools to retrieve payment information"
+      }
+    ]
+  },
+  "tags": ["enterprise", "payments", "secure", "oauth"],
+  "maintainers": [
+    {
+      "name": "PayPal Developer Team",
+      "email": "developer@paypal.com"
+    }
+  ]
+}
