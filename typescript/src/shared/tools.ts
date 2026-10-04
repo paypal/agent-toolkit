@@ -47,7 +47,11 @@ import {
   updateSubscriptionPrompt,
   getRefundPrompt,
   createRefundPrompt,
-  getMerchantInsightsPrompt
+  getMerchantInsightsPrompt,
+  createPayoutBatchPrompt,
+  getPayoutBatchPrompt,
+  getPayoutItemPrompt,
+  cancelUnclaimedPayoutItemPrompt
 } from './prompts';
 
 import {
@@ -97,7 +101,11 @@ import {
   updateSubscriptionParameters,
   getRefundParameters,
   createRefundParameters,
-  getMerchantInsightsParameters
+  getMerchantInsightsParameters,
+  createPayoutBatchParameters,
+  getPayoutBatchParameters,
+  getPayoutItemParameters,
+  cancelUnclaimedPayoutItemParameters
 } from './parameters';
 
 import type { Context } from './configuration';
@@ -631,6 +639,50 @@ const tools = (context: Context): Tool[] => [
         get: true,
       }
     }
+  },
+  {
+    method: 'create_payout_batch',
+    name: 'Create Batch Payout',
+    description: createPayoutBatchPrompt(context),
+    parameters: createPayoutBatchParameters(context),
+    actions: {
+      payouts: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'get_payout_batch',
+    name: 'Get Batch Payout',
+    description: getPayoutBatchPrompt(context),
+    parameters: getPayoutBatchParameters(context),
+    actions: {
+      payouts: {
+        get: true,
+      },
+    },
+  },
+  {
+    method: 'get_payout_item',
+    name: 'Get Payout Item',
+    description: getPayoutItemPrompt(context),
+    parameters: getPayoutItemParameters(context),
+    actions: {
+      payouts: {
+        getItem: true,
+      },
+    },
+  },
+  {
+    method: 'cancel_unclaimed_payout_item',
+    name: 'Cancel Unclaimed Payout Item',
+    description: cancelUnclaimedPayoutItemPrompt(context),
+    parameters: cancelUnclaimedPayoutItemParameters(context),
+    actions: {
+      payouts: {
+        cancelItem: true,
+      },
+    },
   }
 ];
 const allActions = tools({}).reduce((acc, tool) => {
@@ -639,6 +691,12 @@ const allActions = tools({}).reduce((acc, tool) => {
   });
   return acc;
 }, {} as { [key: string]: { [key: string]: boolean } });
+
+// Tools that send merchant funds must be enabled explicitly, never through ALL_TOOLS_ENABLED:
+// an agent that reads untrusted content (invoices, disputes, emails) could otherwise be steered
+// into paying an attacker.
+delete allActions.payouts.create;
+delete allActions.payouts.cancelItem;
 
 export const ALL_TOOLS_ENABLED = allActions;
 

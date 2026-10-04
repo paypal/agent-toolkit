@@ -14,3 +14,6 @@ export const RECURRING_SERIES_ID_REGEX = /^RI-[A-Z0-9]{17}$/;
 export const COUNTRY_CODE_REGEX = /^([A-Z]{2}|C2)$/;
 export const LANGUAGE_REGEX = /^[a-z]{2}(-[A-Z][a-z]{3})?(-([A-Z]{2}|[0-9]{3}))?$/;
 export const DECIMAL_STRING_REGEX = /^((-?[0-9]+)|(-?([0-9]+)?[.][0-9]+))$/;
+export const POSITIVE_DECIMAL_STRING_REGEX = /^([0-9]*[1-9][0-9]*(\.[0-9]+)?|[0-9]*\.[0-9]*[1-9][0-9]*)$/;
+export const PAYOUT_BATCH_ID_REGEX = /^[A-Za-z0-9_-]{1,30}$/;
+export const PAYOUT_ITEM_ID_REGEX = /^[A-Za-z0-9_-]{1,32}$/;

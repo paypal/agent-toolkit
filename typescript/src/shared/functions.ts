@@ -48,7 +48,11 @@ import {
   updateInvoicingParameters,
   updateInvoiceBodyParameters,
   updateRecurringSeriesBodyParameters,
-  cancelInvoiceAutoReminderParameters
+  cancelInvoiceAutoReminderParameters,
+  createPayoutBatchParameters,
+  getPayoutBatchParameters,
+  getPayoutItemParameters,
+  cancelUnclaimedPayoutItemParameters
 } from "./parameters";
 import {parseOrderDetails, parseUpdateSubscriptionPayload, buildCreateInvoicePayload, buildCreateRecurringSeriesPayload, toQueryString} from "./payloadUtils";
 import { TypeOf } from "zod";
@@ -1549,6 +1553,120 @@ export async function getMerchantInsights(
     return response.data;
   } catch (error: any) {
     logger('[updatePlan] Error retrieving insights:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+// === PAYOUT FUNCTIONS ===
+
+// Payouts are deduplicated by sender_batch_id. A context-level request_id would be shared by
+// unrelated payout calls, so it is never sent with them.
+async function getPayoutHeaders(client: PayPalClient): Promise<Record<string, string>> {
+  const headers = await client.getHeaders();
+  delete headers['PayPal-Request-Id'];
+  return headers;
+}
+
+export async function createPayoutBatch(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof createPayoutBatchParameters>>
+): Promise<any> {
+  logger('[createPayoutBatch] Starting batch payout creation process');
+  const payoutRequest = createPayoutBatchParameters(context).parse(params);
+
+  if (!payoutRequest.sender_batch_header.recipient_type && payoutRequest.items.some((item) => !item.recipient_type)) {
+    throw new Error('recipient_type must be set on sender_batch_header or on every item.');
+  }
+
+  const headers = await getPayoutHeaders(client);
+  logger('[createPayoutBatch] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v1/payments/payouts`;
+  logger(`[createPayoutBatch] API URL: ${url}`);
+
+  try {
+    logger('[createPayoutBatch] Sending request to PayPal API');
+    const response = await axios.post(url, payoutRequest, { headers });
+    logger(`[createPayoutBatch] Batch payout created successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger('[createPayoutBatch] Error creating batch payout:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getPayoutBatch(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getPayoutBatchParameters>>
+): Promise<any> {
+  logger('[getPayoutBatch] Starting batch payout retrieval process');
+  const { payout_batch_id, page, page_size, total_required } = getPayoutBatchParameters(context).parse(params);
+
+  const headers = await getPayoutHeaders(client);
+  logger('[getPayoutBatch] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v1/payments/payouts/${payout_batch_id}?page=${page}&page_size=${page_size}&total_required=${total_required}`;
+  logger(`[getPayoutBatch] API URL: ${url}`);
+
+  try {
+    logger('[getPayoutBatch] Sending request to PayPal API');
+    const response = await axios.get(url, { headers });
+    logger(`[getPayoutBatch] Batch payout retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger(`[getPayoutBatch] Error retrieving batch payout ${payout_batch_id}:`, error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function getPayoutItem(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof getPayoutItemParameters>>
+): Promise<any> {
+  logger('[getPayoutItem] Starting payout item retrieval process');
+  const { payout_item_id } = getPayoutItemParameters(context).parse(params);
+
+  const headers = await getPayoutHeaders(client);
+  logger('[getPayoutItem] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v1/payments/payouts-item/${payout_item_id}`;
+  logger(`[getPayoutItem] API URL: ${url}`);
+
+  try {
+    logger('[getPayoutItem] Sending request to PayPal API');
+    const response = await axios.get(url, { headers });
+    logger(`[getPayoutItem] Payout item retrieved successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger(`[getPayoutItem] Error retrieving payout item ${payout_item_id}:`, error.message);
+    handleAxiosError(error);
+  }
+}
+
+export async function cancelUnclaimedPayoutItem(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof cancelUnclaimedPayoutItemParameters>>
+): Promise<any> {
+  logger('[cancelUnclaimedPayoutItem] Starting payout item cancellation process');
+  const { payout_item_id } = cancelUnclaimedPayoutItemParameters(context).parse(params);
+
+  const headers = await getPayoutHeaders(client);
+  logger('[cancelUnclaimedPayoutItem] Headers obtained');
+
+  const url = `${client.getBaseUrl()}/v1/payments/payouts-item/${payout_item_id}/cancel`;
+  logger(`[cancelUnclaimedPayoutItem] API URL: ${url}`);
+
+  try {
+    logger('[cancelUnclaimedPayoutItem] Sending request to PayPal API');
+    const response = await axios.post(url, {}, { headers });
+    logger(`[cancelUnclaimedPayoutItem] Payout item cancelled successfully. Status: ${response.status}`);
+    return response.data;
+  } catch (error: any) {
+    logger(`[cancelUnclaimedPayoutItem] Error cancelling payout item ${payout_item_id}:`, error.message);
     handleAxiosError(error);
   }
 }

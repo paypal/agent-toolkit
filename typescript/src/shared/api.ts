@@ -43,7 +43,11 @@ import {
   createRefund,
   getRefund,
   updateSubscription,
-  getMerchantInsights
+  getMerchantInsights,
+  createPayoutBatch,
+  getPayoutBatch,
+  getPayoutItem,
+  cancelUnclaimedPayoutItem
 } from './functions';
 
 import type { Context } from './configuration';
@@ -192,6 +196,14 @@ class PayPalAPI {
         return getRefund(this.paypalClient, this.context, arg);
       case 'get_merchant_insights':
         return getMerchantInsights(this.paypalClient, this.context, arg);
+      case 'create_payout_batch':
+        return createPayoutBatch(this.paypalClient, this.context, arg);
+      case 'get_payout_batch':
+        return getPayoutBatch(this.paypalClient, this.context, arg);
+      case 'get_payout_item':
+        return getPayoutItem(this.paypalClient, this.context, arg);
+      case 'cancel_unclaimed_payout_item':
+        return cancelUnclaimedPayoutItem(this.paypalClient, this.context, arg);
       default:
         throw new Error(`Invalid method: ${method}`);
     }
