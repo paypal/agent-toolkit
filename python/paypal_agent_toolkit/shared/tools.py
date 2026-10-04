@@ -60,6 +60,13 @@ from ..shared.insights.prompts import (
     GET_MERCHANT_INSIGHTS_PROMPT
 )
 
+from ..shared.payouts.prompts import (
+    CREATE_PAYOUT_BATCH_PROMPT,
+    GET_PAYOUT_BATCH_PROMPT,
+    GET_PAYOUT_ITEM_PROMPT,
+    CANCEL_UNCLAIMED_PAYOUT_ITEM_PROMPT,
+)
+
 from ..shared.orders.parameters import (
     
     CreateOrderParameters,
@@ -124,6 +131,13 @@ from ..shared.insights.parameters import (
     GetMerchantInsightsParameters
 )
 
+from ..shared.payouts.parameters import (
+    CreatePayoutBatchParameters,
+    GetPayoutBatchParameters,
+    GetPayoutItemParameters,
+    CancelUnclaimedPayoutItemParameters,
+)
+
 from ..shared.orders.tool_handlers import (
     create_order,
     capture_order,
@@ -186,6 +200,13 @@ from ..shared.transactions.tool_handlers import (
 
 from ..shared.insights.tool_handlers import (
     get_merchant_insights
+)
+
+from ..shared.payouts.tool_handlers import (
+    create_payout_batch,
+    get_payout_batch,
+    get_payout_item,
+    cancel_unclaimed_payout_item,
 )
 
 from pydantic import BaseModel
@@ -526,5 +547,37 @@ tools = [
         "args_schema": GetMerchantInsightsParameters,
         "actions": {"insights": {"get": True}},
         "execute": get_merchant_insights,
+    },
+    {
+        "method": "create_payout_batch",
+        "name": "Create Batch Payout",
+        "description": CREATE_PAYOUT_BATCH_PROMPT.strip(),
+        "args_schema": CreatePayoutBatchParameters,
+        "actions": {"payouts": {"create": True}},
+        "execute": create_payout_batch,
+    },
+    {
+        "method": "get_payout_batch",
+        "name": "Get Batch Payout",
+        "description": GET_PAYOUT_BATCH_PROMPT.strip(),
+        "args_schema": GetPayoutBatchParameters,
+        "actions": {"payouts": {"get": True}},
+        "execute": get_payout_batch,
+    },
+    {
+        "method": "get_payout_item",
+        "name": "Get Payout Item",
+        "description": GET_PAYOUT_ITEM_PROMPT.strip(),
+        "args_schema": GetPayoutItemParameters,
+        "actions": {"payouts": {"getItem": True}},
+        "execute": get_payout_item,
+    },
+    {
+        "method": "cancel_unclaimed_payout_item",
+        "name": "Cancel Unclaimed Payout Item",
+        "description": CANCEL_UNCLAIMED_PAYOUT_ITEM_PROMPT.strip(),
+        "args_schema": CancelUnclaimedPayoutItemParameters,
+        "actions": {"payouts": {"cancelItem": True}},
+        "execute": cancel_unclaimed_payout_item,
     }
 ]
