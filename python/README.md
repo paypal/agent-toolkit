@@ -36,6 +36,15 @@ The PayPal Agent toolkit provides the following tools:
 - `get_order`: Retrieve the details of an order
 - `pay_order`: Process payment for an authorized order
 
+**Payouts**
+
+- `create_payout_batch`: Send money to one or more recipients by email, phone, PayPal ID, or Venmo handle in a single batch payout
+- `get_payout_batch`: Retrieve the status of a batch payout and its payout items
+- `get_payout_item`: Retrieve the details and status of a single payout item
+- `cancel_unclaimed_payout_item`: Cancel an unclaimed payout item and return the funds to the sender
+
+Payout tools are enabled with the `payouts` actions (`create`, `get`, `getItem`, `cancelItem`). `create_payout_batch` and `cancel_unclaimed_payout_item` move funds, so only enable them for agents that should do so.
+
 **Dispute Management**
 
 - `list_disputes`: Retrieve a summary of all open disputes
