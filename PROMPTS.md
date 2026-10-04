@@ -224,6 +224,60 @@ The PayPal Agent toolkit provides the following tools:
 > Get details for refund {refund_id}
 > Get details for Order {order_id}
 
+### **Payouts**
+
+---
+
+**`create_payout_batch`** - Sends money from the merchant's PayPal balance to one or more recipients in a single batch payout. This moves real funds.
+
+- `sender_batch_header` (object, required): The header for the payout.
+  - `sender_batch_id` (string, required): A unique ID for the payout. PayPal rejects a `sender_batch_id` used in the last 30 days, which prevents duplicate payouts.
+  - `recipient_type` (string, optional): `EMAIL`, `PHONE`, `PAYPAL_ID`, or `USER_HANDLE` (Venmo). Required here unless every item sets its own.
+  - `email_subject` (string, optional): The subject of the email sent to each recipient.
+  - `email_message` (string, optional): The message of the email sent to each recipient.
+  - `note` (string, optional): A note for the payout, combined with each item note in the notification email.
+- `items` (array, required, 1 to 15000): One item per recipient.
+  - `receiver` (string, required): The recipient's email address, phone number, PayPal account ID, or Venmo handle.
+  - `amount` (object, required): `currency` (e.g. `USD`) and a positive `value` (e.g. `"10.00"`).
+  - `recipient_type` (string, optional): `EMAIL`, `PHONE`, `PAYPAL_ID`, or `USER_HANDLE`. Overrides the batch `recipient_type`.
+  - `note` (string, optional): A note to the recipient. Required for Venmo recipients.
+  - `sender_item_id` (string, optional): Your own ID for the item.
+  - `recipient_wallet` (string, optional): `PAYPAL` (default) or `VENMO` (US only).
+  - `purpose` (string, optional): `AWARDS`, `PRIZES`, `DONATIONS`, `GOODS`, `SERVICES`, `REBATES`, `CASHBACK`, `DISCOUNTS`, or `NON_GOODS_OR_SERVICES`.
+
+> **Example Prompt**:
+> Pay {amount} USD to {seller_email} for their {month} sales, using payout ID {sender_batch_id}
+
+---
+
+**`get_payout_batch`** - Retrieves the status of a batch payout and each of its payout items.
+
+- `payout_batch_id` (string, required): The ID returned by `create_payout_batch`.
+- `page` (number, optional): The page of payout items to fetch. Defaults to 1.
+- `page_size` (number, optional): The number of payout items per page (max 1000). Defaults to 100.
+- `total_required` (boolean, optional): Whether to include `total_items` and `total_pages`. Defaults to true.
+
+> **Example Prompt**:
+> What is the status of payout {payout_batch_id}?
+
+---
+
+**`get_payout_item`** - Retrieves the details and status of a single payout item, including any errors.
+
+- `payout_item_id` (string, required): The ID of the payout item.
+
+> **Example Prompt**:
+> Why did payout item {payout_item_id} fail?
+
+---
+
+**`cancel_unclaimed_payout_item`** - Cancels a payout item that has not been claimed and returns the funds to the merchant. Only items with status `UNCLAIMED` can be cancelled.
+
+- `payout_item_id` (string, required): The ID of the unclaimed payout item.
+
+> **Example Prompt**:
+> Cancel the unclaimed payout item {payout_item_id}
+
 ### **Dispute Management**
 
 ---
