@@ -231,7 +231,7 @@ The PayPal Agent toolkit provides the following tools:
 **`create_payout_batch`** - Sends money from the merchant's PayPal balance to one or more recipients in a single batch payout. This moves real funds.
 
 - `sender_batch_header` (object, required): The header for the payout.
-  - `sender_batch_id` (string, required): A unique ID for the payout. PayPal rejects a `sender_batch_id` used in the last 30 days, which prevents duplicate payouts.
+  - `sender_batch_id` (string, required): A unique ID for the payout. PayPal rejects a `sender_batch_id` used in the last 30 days, which prevents duplicate payouts, so a retry must always reuse the same ID.
   - `recipient_type` (string, optional): `EMAIL`, `PHONE`, `PAYPAL_ID`, or `USER_HANDLE` (Venmo). Required here unless every item sets its own.
   - `email_subject` (string, optional): The subject of the email sent to each recipient.
   - `email_message` (string, optional): The message of the email sent to each recipient.
