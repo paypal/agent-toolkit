@@ -571,8 +571,8 @@ export const getDisputeParameters = (context: Context) => z.object({
 })
 
 export const acceptDisputeClaimParameters = (context: Context) => z.object({
-  dispute_id: z.string(),
-  note: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal Dispute ID").describe("A note about why the seller is accepting the claim"),
+  dispute_id: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal Dispute ID").describe("The PayPal dispute ID."),
+  note: z.string().describe("A note about why the seller is accepting the claim"),
 });
 
 // === Transaction Search ===
