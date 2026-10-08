@@ -109,8 +109,11 @@ class PayPalClient {
         return this._baseUrl;
     }
 
-    // Helper method to get headers
-    async getHeaders(): Promise<Record<string, string>> {
+    // Helper method to get headers.
+    // `requestId` is the PayPal-Request-Id for this one call. PayPal answers a repeated key with the
+    // original result, so a key must be stable across retries of one operation and distinct
+    // between operations: it belongs to the call, not the client.
+    async getHeaders(requestId?: string): Promise<Record<string, string>> {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
         };
@@ -118,9 +121,10 @@ class PayPalClient {
         this._accessToken = this._accessToken || (await this.getAccessToken());
         headers['Authorization'] = `Bearer ${this._accessToken}`;
 
-        // Add additional headers if needed
-        if (this._context.request_id) {
-            headers['PayPal-Request-Id'] = this._context.request_id;
+        // Add additional headers if needed. A per-call key wins over the client-wide one.
+        const paypalRequestId = requestId ?? this._context.request_id;
+        if (paypalRequestId) {
+            headers['PayPal-Request-Id'] = paypalRequestId;
         }
 
         if (this._context.tenant_context) {

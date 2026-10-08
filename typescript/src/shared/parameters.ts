@@ -532,6 +532,11 @@ const shippingAddress = z.object({
   country_code: z.string().describe('The 2-character ISO 3166-1 code that identifies the country or region. Note: The country code for Great Britain is `GB` and not `UK` as used in the top-level domain names for that country.').length(2).optional()
 }).describe('The shipping address for the order.')
 
+// PayPal-Request-Id, per call. PayPal answers a repeated key with the original result instead of
+// doing the work again, which is what makes a retried tool call safe.
+const requestIdDescription =
+  'Idempotency key, sent as PayPal-Request-Id. Use the same value on every retry of the same operation and a different value for every different one. PayPal answers a repeated value with the original result instead of doing the work again.';
+
 export const createOrderParameters = (context: Context) => z.object({
   currencyCode: z.enum(['USD']).describe('Currency code of the amount.'),
   items: z.array(z.lazy(() => lineItem)).max(50),
@@ -540,7 +545,10 @@ export const createOrderParameters = (context: Context) => z.object({
   shippingAddress: z.optional(shippingAddress.nullable()).default(null).describe('The shipping address for the order.'),
   notes: z.string().optional().nullable().default(null),
   returnUrl: z.string().optional().default('https://example.com/returnUrl'),
-  cancelUrl: z.string().optional().default('https://example.com/cancelUrl')
+  cancelUrl: z.string().optional().default('https://example.com/cancelUrl'),
+  request_id: z.string().min(1).max(108).optional().describe(
+    `${requestIdDescription} Without one, each call opens a new order.`
+  ),
 });
 
 export const getOrderParameters = (context: Context) => z.object({
@@ -549,6 +557,9 @@ export const getOrderParameters = (context: Context) => z.object({
 
 export const captureOrderParameters = (context: Context) => z.object({
   id: z.string().regex(ORDER_ID_REGEX, "Invalid PayPal Order ID").describe('The order id generated during create call'),
+  request_id: z.string().min(1).max(108).optional().describe(
+    `${requestIdDescription} Defaults to one derived from the order id, so a retried capture of the same order gets the original result.`
+  ),
 });
 
 // === Disputes Parameters ===
@@ -804,6 +815,9 @@ export const createRefundParameters = (context: Context) => z.object({
   }).optional().describe('The amount to refund. If not specified, the full captured amount is refunded.'),
   invoice_id: z.string().regex(INVOICE_ID_REGEX, "Invalid PayPal Invoice ID").optional().describe('The invoice ID that is used to track this payment.'),
   note_to_payer: z.string().optional().describe('A note to the payer.'),
+  request_id: z.string().min(1).max(108).optional().describe(
+    `${requestIdDescription} Defaults to one derived from the capture id, amount and invoice id, so a retried refund gets the original result. To make a second refund of the same amount on the same capture on purpose, pass a new value.`
+  ),
 });
 
 export const getMerchantInsightsParameters = (context: Context) => z.object({
