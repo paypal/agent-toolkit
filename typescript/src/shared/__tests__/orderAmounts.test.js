@@ -4,6 +4,7 @@ const { PayPalMCPToolkit } = require('@paypal/agent-toolkit/mcp');
 // Exercise the built public export, schema, dispatcher, generator and axios serialization.
 // Expected values are explicit decimal strings, independent of the generator.
 const cases = [
+  {"name":"shipping and discount rounding boundaries","input":{"currencyCode":"USD","items":[{"name":"Item","itemCost":1,"quantity":1,"taxPercent":0,"itemTotal":1}],"shippingCost":0.006,"discount":0.004},"expected":{"unitTax":["0"],"itemTotal":"1","taxTotal":"0","shipping":"0.01","discount":"0","amount":"1.01"}},
   {"name":"half-cent unit tax, quantity three","input":{"currencyCode":"USD","items":[{"name":"Small item","itemCost":0.05,"quantity":3,"taxPercent":10,"itemTotal":0.15}]},"expected":{"unitTax":["0.01"],"itemTotal":"0.15","taxTotal":"0.03","shipping":"0","discount":"0","amount":"0.18"}},
   {"name":"below half-cent unit tax","input":{"currencyCode":"USD","items":[{"name":"Small item","itemCost":0.04,"quantity":3,"taxPercent":10,"itemTotal":0.12}]},"expected":{"unitTax":["0"],"itemTotal":"0.12","taxTotal":"0","shipping":"0","discount":"0","amount":"0.12"}},
   {"name":"above half-cent unit tax","input":{"currencyCode":"USD","items":[{"name":"Small item","itemCost":0.06,"quantity":3,"taxPercent":10,"itemTotal":0.18}]},"expected":{"unitTax":["0.01"],"itemTotal":"0.18","taxTotal":"0.03","shipping":"0","discount":"0","amount":"0.21"}},
