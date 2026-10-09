@@ -1,6 +1,6 @@
 import {TypeOf, z} from "zod";
 import {createOrderParameters, createInvoiceParameters, createRecurringSeriesParameters, updateSubscriptionParameters} from "./parameters";
-import { round } from "mathjs";
+import { bignumber, round } from "mathjs";
 import { snakeCase, camelCase } from "lodash";
 import {subscriptionKeys, updateSubscriptionPathMapping} from "./constants";
 import debug from "debug";
@@ -142,45 +142,46 @@ export function buildCreateRecurringSeriesPayload(params: TypeOf<ReturnType<type
 export function parseOrderDetails(params: TypeOf<ReturnType<typeof createOrderParameters>>) {
     try {
         const currCode = params.currencyCode;
-        let items: any[] = [];
-        const subTotal = params.items.reduce((sum, item) => sum + item.itemCost * item.quantity, 0);
-        const shippingCost = params.shippingCost || 0;
-        const taxAmount = params.items.reduce((sum, item) => sum + item.itemCost * item.taxPercent * item.quantity / 100, 0)
-        const discount = params.discount || 0;
-        const total = subTotal + taxAmount + shippingCost - discount;
+        const items = params.items.map(item => ({
+            name: item.name,
+            description: item.description,
+            unit_amount: {
+                value: item.itemCost.toString(),
+                currency_code: currCode
+            },
+            quantity: item.quantity.toString(),
+            tax: {
+                value: round((item.itemCost * item.taxPercent) / 100, 2).toString(),
+                currency_code: currCode
+            }
+        }));
+        // PayPal totals must match the serialized unit amounts and taxes times quantity.
+        // Sum those decimal strings exactly, retaining the existing unit-tax rounding.
+        const subTotal = round(items.reduce((sum, item) =>
+            sum.plus(bignumber(item.unit_amount.value).mul(item.quantity)), bignumber(0)), 2);
+        const taxAmount = round(items.reduce((sum, item) =>
+            sum.plus(bignumber(item.tax.value).mul(item.quantity)), bignumber(0)), 2);
+        const shippingCost = round(params.shippingCost ?? 0, 2);
+        const discount = round(params.discount ?? 0, 2);
+        const total = subTotal.plus(taxAmount).plus(shippingCost).minus(discount);
         const amountBreakdown = {
             item_total: {
-                value: round(subTotal, 2).toString(),
+                value: subTotal.toString(),
                 currency_code: currCode
             },
             shipping: {
-                value: round(shippingCost, 2).toString(),
+                value: shippingCost.toString(),
                 currency_code: currCode
             },
             tax_total: {
-                value: round(taxAmount, 2).toString(),
+                value: taxAmount.toString(),
                 currency_code: currCode
             },
             discount: {
-                value: round(discount, 2).toString(),
+                value: discount.toString(),
                 currency_code: currCode
             },
         }
-        params.items.forEach(item => {
-            items.push({
-                name: item.name,
-                description: item.description,
-                unit_amount: {
-                    value: item.itemCost.toString() || '0',
-                    currency_code: currCode
-                },
-                quantity: item.quantity.toString() || '1',
-                tax: {
-                    value: round((item.itemCost * item.taxPercent) / 100, 2).toString() || '0',
-                    currency_code: currCode
-                }
-            })
-        })
         const basePurchaseUnit = {
             amount: {
                 value: round(total, 2).toString(),
