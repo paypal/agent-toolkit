@@ -162,35 +162,58 @@ result = await runner.run(agent, user_input)
 ```
 
 
-### OpenAI Assistants API
+### OpenAI Responses API
+The Assistants API has been retired, so this example uses the Responses API. See `examples/openai/app_assistant_chatbot.py` for the full chat loop.
 ```python
+import json
 from openai import OpenAI
 from paypal_agent_toolkit.openai.toolkit import PayPalToolkit
 
 # Initialize toolkit
 toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
-tools = toolkit.get_openai_chat_tools()
 paypal_api = toolkit.get_paypal_api()
+
+# The Responses API uses a flat function-tool format
+tools = [
+    {"type": "function", "strict": False, **tool["function"]}
+    for tool in toolkit.get_openai_chat_tools()
+]
 
 # OpenAI client
 client = OpenAI()
 
-# Create assistant
-assistant = client.beta.assistants.create(
-    name="PayPal Checkout Assistant",
-    instructions=f"""
+instructions = """
 You help users create and process payment for PayPal Orders. When the user wants to make a purchase,
 use the create_order tool and share the approval link. After approval, use pay_order.
-""",
-    model="gpt-4-1106-preview",
-    tools=tools
+"""
+
+response = client.responses.create(
+    model="gpt-4o",
+    instructions=instructions,
+    tools=tools,
+    input="Create a PayPal order for $10 for AdsService",
 )
 
-# Create a new thread for conversation
-thread = client.beta.threads.create()
+# Run the tool calls the model asks for, then send the results back
+while any(item.type == "function_call" for item in response.output):
+    outputs = [
+        {
+            "type": "function_call_output",
+            "call_id": call.call_id,
+            "output": paypal_api.run(call.name, json.loads(call.arguments)),
+        }
+        for call in response.output
+        if call.type == "function_call"
+    ]
+    response = client.responses.create(
+        model="gpt-4o",
+        instructions=instructions,
+        tools=tools,
+        input=outputs,
+        previous_response_id=response.id,
+    )
 
-# Execute the assistant within the thread
-run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+print(response.output_text)
 ```
 
 ### LangChain Agent

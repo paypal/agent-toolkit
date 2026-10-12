@@ -1,8 +1,5 @@
-
 import os
 import json
-import time
-import httpx
 import webbrowser
 import sys
 from openai import OpenAI
@@ -16,7 +13,7 @@ from paypal_agent_toolkit.shared.configuration import Configuration, Context
 # load_dotenv()
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
-OPENAI_API_VERSION = "2024-02-15-preview"
+MODEL = "gpt-4o"
 
 configuration = Configuration(
     actions={
@@ -33,62 +30,84 @@ configuration = Configuration(
 
 # Initialize toolkit
 toolkit = PayPalToolkit(client_id=PAYPAL_CLIENT_ID, secret=PAYPAL_SECRET, configuration = configuration)
-tools = toolkit.get_openai_chat_tools()
 paypal_api = toolkit.get_paypal_api()
 
+# The Responses API expects function tools in a flat format ({"type", "name", "description",
+# "parameters"}) instead of the Chat Completions format ({"type", "function": {...}}).
+# strict is disabled because the toolkit's schemas contain optional fields.
+tools = [
+    {
+        "type": "function",
+        "name": tool["function"]["name"],
+        "description": tool["function"]["description"],
+        "parameters": tool["function"]["parameters"],
+        "strict": False,
+    }
+    for tool in toolkit.get_openai_chat_tools()
+]
 
-# OpenAI client with SSL verify off
+INSTRUCTIONS = """
+You help users create and process payment for PayPal Orders. When the user wants to make a purchase,
+use the create_order tool and share the approval link. After approval, use pay_order.
+"""
+
 client = OpenAI()
 
-# Create assistant
-assistant = client.beta.assistants.create(
-    name="PayPal Checkout Assistant",
-    instructions=f"""
-You help users create and process payment for PayPal Orders. When the user wants to make a purchase,
-use the create_order tool and share the approval link. After approval, use capture_order.
-""",
-    model="gpt-4-1106-preview",
-    tools=tools
-)
+# The Responses API keeps conversation state server-side: passing the previous response id
+# replaces the Assistants API thread.
+previous_response_id = None
 
-# Create thread
-thread = client.beta.threads.create()
+
+def run_tool(method: str, args: str) -> dict:
+    result = json.loads(paypal_api.run(method, json.loads(args)))
+    if method == "create_order":
+        for link in result.get("links", []):
+            if link["rel"] == "payer-action":
+                result["checkout_url"] = link["href"]
+                print(f"🟢 Approve URL: {link['href']}")
+                webbrowser.open(link['href'])
+    return result
+
 
 def run_agent(prompt: str):
-    client.beta.threads.messages.create(thread_id=thread.id, role="user", content=prompt)
-    run = client.beta.threads.runs.create(thread_id=thread.id, assistant_id=assistant.id)
+    global previous_response_id
 
+    # Instructions are not carried over by previous_response_id, so they are sent on every request.
+    response = client.responses.create(
+        model=MODEL,
+        instructions=INSTRUCTIONS,
+        tools=tools,
+        input=prompt,
+        previous_response_id=previous_response_id,
+    )
+
+    # Keep executing tool calls until the model returns a final answer.
     while True:
-        run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
-        if run.status == "completed":
+        tool_calls = [item for item in response.output if item.type == "function_call"]
+        if not tool_calls:
             break
-        elif run.status == "requires_action":
-            outputs = []
-            for tool_call in run.required_action.submit_tool_outputs.tool_calls:
-                method = tool_call.function.name
-                args = tool_call.function.arguments
-                # print(f"⚙️ Calling tool: {method} with args: {args}")
-                result = json.loads(paypal_api.run( method, json.loads(args)))
-                # print(f"🔧 Tool result: {result}")
-                if method == "create_order":
-                    for link in result.get("links", []):
-                        if link["rel"] == "payer-action":
-                            result["checkout_url"] = link["href"]
-                            print(f"🟢 Approve URL: {link['href']}")
-                            webbrowser.open(link['href'])
 
-                outputs.append({"tool_call_id": tool_call.id, "output": json.dumps(result)})
-            client.beta.threads.runs.submit_tool_outputs(thread_id=thread.id, run_id=run.id, tool_outputs=outputs)
-        else:
-            time.sleep(1)
+        outputs = []
+        for tool_call in tool_calls:
+            # print(f"⚙️ Calling tool: {tool_call.name} with args: {tool_call.arguments}")
+            result = run_tool(tool_call.name, tool_call.arguments)
+            # print(f"🔧 Tool result: {result}")
+            outputs.append({
+                "type": "function_call_output",
+                "call_id": tool_call.call_id,
+                "output": json.dumps(result),
+            })
 
-    steps = client.beta.threads.runs.steps.list(thread_id=thread.id, run_id=run.id)
-    for step in reversed(steps.data):
-        if step.type == "message_creation":
-            msg_id = step.step_details.message_creation.message_id
-            msg = client.beta.threads.messages.retrieve(thread_id=thread.id, message_id=msg_id)
-            print("🤖 Assistant:", msg.content[0].text.value)
-            break
+        response = client.responses.create(
+            model=MODEL,
+            instructions=INSTRUCTIONS,
+            tools=tools,
+            input=outputs,
+            previous_response_id=response.id,
+        )
+
+    previous_response_id = response.id
+    print("🤖 Assistant:", response.output_text)
 
 
 def main():
