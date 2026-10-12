@@ -39,14 +39,25 @@ AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY
 
 # PayPal Configuration
 PAYPAL_CLIENT_ID=<your_paypal_client_id>
-PAYPAL_SECRET=<your_paypal_secret>
+PAYPAL_CLIENT_SECRET=<your_paypal_client_secret>
 
 ```
 Replace the placeholders (<your_openai_api_key>, <your_paypal_client_id>, etc.) with your actual credentials.
 
 ## Running the Example
-Navigate to the example directory and execute the assistant application:
+The examples read the `.env` file only after you uncomment `load_dotenv()` near the top of the script (in `crewai/app_agent.py`, also uncomment the `from dotenv import load_dotenv` import). Alternatively, export the variables in your shell.
+
+Navigate to the example directory and run one of the scripts:
 ```bash
-python app.py
+# OpenAI Agents SDK
+cd openai && python app_agent.py
+
+# OpenAI chatbot
+cd openai && python app_assistant_chatbot.py
+
+# LangChain, CrewAI or Amazon Bedrock
+cd langchain && python app_agent.py
+cd crewai && python app_agent.py
+cd bedrock && python app_agent.py
 ```
 
