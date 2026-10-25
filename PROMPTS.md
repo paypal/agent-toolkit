@@ -253,6 +253,27 @@ The PayPal Agent toolkit provides the following tools:
 > **Example Prompt**:
 > Accept the dispute with ID {dispute_id}
 
+---
+
+**`provide_dispute_evidence`** - Submits evidence for a dispute, using provide-evidence or provide-supporting-info according to what PayPal offers in the dispute's current state.
+
+- `dispute_id` (string): The unique identifier of the dispute.
+- `evidence_type` (string): A PayPal evidence type, e.g. BILLING_AGREEMENT or PROOF_OF_FULFILLMENT.
+- `notes` (string): The evidence notes (1-2000 characters).
+- `documents` (array, optional): Files as `{ name, content_type, content_base64 }`.
+
+> **Example Prompt**:
+> Submit the signed billing agreement as evidence for dispute {dispute_id}
+
+---
+
+**`verify_agent_purchase`** - Rebuilds an AI-agent purchase from PayPal (dispute, capture, order, vault payment token) and returns the configured verifier's verdict.
+
+- `id` (string): A dispute ID or a capture ID.
+
+> **Example Prompt**:
+> Did my customer's agent really authorize the charge in dispute {dispute_id}?
+
 ### **Shipment Tracking**
 
 ---
