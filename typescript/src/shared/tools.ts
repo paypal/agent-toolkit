@@ -592,7 +592,8 @@ const tools = (context: Context): Tool[] => [
       },
     },
   },
-  {
+  // Listed only when a verifier is configured; without one the tool could only fail.
+  ...(context.agentPurchaseVerifier ? [{
     method: 'verify_agent_purchase',
     name: 'Verify agent purchase',
     description: verifyAgentPurchasePrompt(context),
@@ -602,7 +603,7 @@ const tools = (context: Context): Tool[] => [
         get: true,
       },
     },
-  },
+  }] : []),
   {
     method: 'list_transactions',
     name: 'List Transactions',

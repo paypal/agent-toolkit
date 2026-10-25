@@ -87,7 +87,8 @@ describe('verify_agent_purchase', () => {
     expect(schema.safeParse({ id: 'PP-D-1/../../v1/x' }).success).toBe(false);
   });
 
-  it('is registered as a read-only disputes tool', () => {
-    expect(tools({}).find((t) => t.method === 'verify_agent_purchase')?.actions).toEqual({ disputes: { get: true } });
+  it('is registered as a read-only disputes tool only when a verifier is configured', () => {
+    expect(tools({ agentPurchaseVerifier: stubVerifier }).find((t) => t.method === 'verify_agent_purchase')?.actions).toEqual({ disputes: { get: true } });
+    expect(tools({}).find((t) => t.method === 'verify_agent_purchase')).toBeUndefined();
   });
 });
