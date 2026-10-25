@@ -23,7 +23,8 @@ def capture_order(client, params: dict):
     currency = result.get("purchase_units", [{}])[0].get("payments", {}).get("captures", [{}])[0].get("amount", {}).get("currency_code")
 
     return json.dumps({
-        "message": f"The PayPal order {validated.order_id} has been successfully captured.",
+        # A capture response can contain a pending or declined capture.
+        "message": f"Received capture response for PayPal order {validated.order_id}.",
         "status": status,
         "amount": f"{currency} {amount}" if amount and currency else "N/A",
         "raw": result 
@@ -40,7 +41,7 @@ def get_order_details(client, params: dict):
     currency = result.get("purchase_units", [{}])[0].get("payments", {}).get("captures", [{}])[0].get("amount", {}).get("currency_code")
 
     return json.dumps({
-        "message": f"The PayPal order {validated.order_id} has been successfully captured.",
+        "message": f"Retrieved details for PayPal order {validated.order_id}.",
         "status": status,
         "amount": f"{currency} {amount}" if amount and currency else "N/A",
         "raw": result 
