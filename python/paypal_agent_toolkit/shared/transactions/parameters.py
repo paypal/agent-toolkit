@@ -31,6 +31,7 @@ class ListTransactionsParameters(BaseModel):
     )
     search_months: Optional[int] = Field(
         default=12,
+        ge=1,
         description="Number of months to search back for a transaction by ID. Default is 12 months."
     )
     page_size: Optional[int] = Field(default=100)

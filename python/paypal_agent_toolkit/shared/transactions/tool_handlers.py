@@ -1,12 +1,11 @@
 import json
 from datetime import datetime, timedelta
-from typing import Dict, Any
 from urllib.parse import urlencode
 from .parameters import ListTransactionsParameters
 
 
 
-def list_transactions(client, params: dict) -> Dict[str, Any]:
+def list_transactions(client, params: dict) -> str:
     """
     List transactions or search for a specific transaction by ID.
     """
@@ -18,40 +17,39 @@ def list_transactions(client, params: dict) -> Dict[str, Any]:
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=31)
 
-        for month in range(search_months):
-            query_params = validated.dict(exclude={"search_months"})
+        for _ in range(search_months):
+            query_params = validated.model_dump(exclude={"search_months"}, exclude_none=True)
             query_params["end_date"] = end_date.isoformat() + "Z"
             query_params["start_date"] = start_date.isoformat() + "Z"
 
-            uri = f"/v1/reporting/transactions"
-            try:
-                response = client.get(uri=uri, payload=query_params)
-                response_data = json.loads(response)
+            uri = f"/v1/reporting/transactions?{urlencode(query_params)}"
+            # Query failures must propagate, not be reported as an absent payment.
+            response_data = client.get(uri=uri)
 
-                if response_data.get("transaction_details"):
-                    for transaction in response_data["transaction_details"]:
-                        if transaction["transaction_info"]["transaction_id"] == validated.transaction_id:
-                            return {
-                                "found": True,
-                                "transaction_details": [transaction],
-                                "total_items": 1
-                            }
+            if response_data.get("transaction_details"):
+                for transaction in response_data["transaction_details"]:
+                    if transaction["transaction_info"]["transaction_id"] == validated.transaction_id:
+                        return json.dumps({
+                            "found": True,
+                            "transaction_details": [transaction],
+                            "total_items": 1
+                        })
 
-                # Move back one month for the next search
-                end_date = start_date
-                start_date = start_date - timedelta(days=31)
-
-            except Exception as error:
-                # Log and continue to the next month
-                print(f"Error searching transactions for month {month + 1}: {str(error)}")
+            # Move back one month only after a successful query.
+            end_date = start_date
+            start_date = start_date - timedelta(days=31)
 
         # If transaction not found after searching all months
-        return {
+        return json.dumps({
             "found": False,
             "transaction_details": [],
             "total_items": 0,
-            "message": f"The transaction ID {validated.transaction_id} was not found in the last {search_months} months."
-        }
+            "message": (
+                f"No matching record was returned for transaction ID {validated.transaction_id} "
+                f"in the last {search_months} months. PayPal reporting can be delayed; "
+                "this does not establish that a payment failed."
+            )
+        })
 
     else:
         # Listing transactions without a specific ID
