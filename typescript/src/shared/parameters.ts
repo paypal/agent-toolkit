@@ -667,6 +667,10 @@ export const provideDisputeEvidenceParameters = (context: Context) => z.object({
   })).max(10).optional().describe('Optional files to attach.'),
 });
 
+export const verifyAgentPurchaseParameters = (context: Context) => z.object({
+  id: z.string().regex(DISPUTE_ID_REGEX, "Invalid PayPal dispute or capture ID").describe('A dispute ID (PP-D-... or PP-R-...) or a capture ID.'),
+});
+
 // === Transaction Search ===
 
 export const listTransactionsParameters = (context: Context) => z.object({

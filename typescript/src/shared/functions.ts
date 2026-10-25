@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Context } from './configuration';
+import type { Context, PayPalGet } from './configuration';
 import {
   getInvoicParameters,
   cancelSentInvoiceParameters,
@@ -25,6 +25,7 @@ import {
   captureOrderParameters,
   acceptDisputeClaimParameters,
   provideDisputeEvidenceParameters,
+  verifyAgentPurchaseParameters,
   listTransactionsParameters,
   createProductParameters,
   listProductsParameters,
@@ -1346,6 +1347,46 @@ export async function provideDisputeEvidence(
     logger(`[provideDisputeEvidence] Error on ${action}:`, error.message);
     handleAxiosError(error);
   }
+}
+
+// Thin by design: the verifier (Readback's, injected via context) owns the checks; the toolkit
+// only supplies authenticated, read-only GETs against PayPal's API base.
+export async function verifyAgentPurchase(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof verifyAgentPurchaseParameters>>
+): Promise<any> {
+  const verifier = context.agentPurchaseVerifier;
+  if (!verifier) {
+    throw new LlmError({
+      code: 'VERIFIER_NOT_CONFIGURED',
+      message: 'verify_agent_purchase needs context.agentPurchaseVerifier (e.g. verifyCase from @readback/verify).',
+    });
+  }
+  const headers = await client.getHeaders();
+
+  const get: PayPalGet = async (path, schema) => {
+    // Relative paths only, so a verifier can't redirect the bearer token to another host.
+    if (!path.startsWith('/') || path.startsWith('//')) {
+      return { ok: false, status: 400, issues: ['INVALID_PATH'], debugId: null };
+    }
+    try {
+      const response = await axios.get(`${client.getBaseUrl()}${path}`, { headers });
+      const debugId = response.headers?.['paypal-debug-id'] ?? null;
+      if (!schema) return { ok: true, status: response.status, data: response.data, debugId };
+      const parsed = schema.safeParse(response.data);
+      return parsed.success
+        ? { ok: true, status: response.status, data: parsed.data, debugId }
+        : { ok: false, status: 502, issues: ['UNEXPECTED_RESPONSE_SHAPE'], debugId };
+    } catch (error: any) {
+      const res = error?.response;
+      if (!res) return { ok: false, status: 504, issues: ['PAYPAL_UNREACHABLE'], debugId: null };
+      const issues = res.data?.details?.map((d: any) => d?.issue ?? 'UNKNOWN') ?? [res.data?.name ?? `HTTP_${res.status}`];
+      return { ok: false, status: res.status, issues, debugId: res.headers?.['paypal-debug-id'] ?? null };
+    }
+  };
+
+  return verifier(params.id, { get }, new Date());
 }
 
 export async function listTransactions(

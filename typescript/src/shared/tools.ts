@@ -32,6 +32,7 @@ import {
   listDisputesPrompt,
   acceptDisputeClaimPrompt,
   provideDisputeEvidencePrompt,
+  verifyAgentPurchasePrompt,
   captureOrderPrompt,
   listTransactionsPrompt,
   createProductPrompt,
@@ -83,6 +84,7 @@ import {
   listDisputesParameters,
   acceptDisputeClaimParameters,
   provideDisputeEvidenceParameters,
+  verifyAgentPurchaseParameters,
   captureOrderParameters,
   listTransactionsParameters,
   createProductParameters,
@@ -587,6 +589,17 @@ const tools = (context: Context): Tool[] => [
     actions: {
       disputes: {
         create: true,
+      },
+    },
+  },
+  {
+    method: 'verify_agent_purchase',
+    name: 'Verify agent purchase',
+    description: verifyAgentPurchasePrompt(context),
+    parameters: verifyAgentPurchaseParameters(context),
+    actions: {
+      disputes: {
+        get: true,
       },
     },
   },

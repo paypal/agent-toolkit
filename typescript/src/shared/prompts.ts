@@ -321,6 +321,12 @@ Submit evidence for a dispute.
 This tool reads the dispute first and uses whichever submission PayPal offers in the dispute's current state: provide-evidence (with the given evidence_type) or, if only that is offered, provide-supporting-info (notes and documents only). It fails if PayPal offers neither. The result names the action used. Documents are optional base64-encoded PDF, JPEG, GIF or PNG files.
 `
 
+export const verifyAgentPurchasePrompt = (context: Context) => `
+Verify a purchase made by an AI agent, from PayPal's own records.
+
+Given a dispute ID or a capture ID, this tool rebuilds the purchase from PayPal (dispute, capture, order, and the vault payment token that holds the shopper's approved terms) and returns the verifier's verdict: whether the shopper's approved agent signed the request and whether the charge was within the approved terms. It is read-only and requires a verifier to be configured.
+`
+
 export const listTransactionsPrompt = (context: Context) => `
 List transactions from PayPal.
 
