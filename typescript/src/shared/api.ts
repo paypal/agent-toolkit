@@ -33,6 +33,7 @@ import {
   listDisputes,
   getDispute,
   acceptDisputeClaim,
+  provideDisputeEvidence,
   captureOrder, listTransactions,
   createSubscription,
   showProductDetails,
@@ -182,6 +183,8 @@ class PayPalAPI {
         return getDispute(this.paypalClient, this.context, arg);
       case 'accept_dispute_claim':
         return acceptDisputeClaim(this.paypalClient, this.context, arg);
+      case 'provide_dispute_evidence':
+        return provideDisputeEvidence(this.paypalClient, this.context, arg);
       case 'list_transactions':
         return listTransactions(this.paypalClient, this.context, arg);
       case 'update_plan':

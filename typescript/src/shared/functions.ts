@@ -24,6 +24,7 @@ import {
   listDisputesParameters,
   captureOrderParameters,
   acceptDisputeClaimParameters,
+  provideDisputeEvidenceParameters,
   listTransactionsParameters,
   createProductParameters,
   listProductsParameters,
@@ -1287,6 +1288,62 @@ export async function acceptDisputeClaim(
     return response.data;
   } catch (error: any) {
     logger('[acceptClaim] Error listing disputes:', error.message);
+    handleAxiosError(error);
+  }
+}
+
+// PayPal offers different actions in different dispute states: under some states only
+// provide-supporting-info is allowed and provide-evidence returns
+// ACTION_NOT_ALLOWED_IN_CURRENT_DISPUTE_STATE. So read the dispute's own HATEOAS links first.
+export async function provideDisputeEvidence(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof provideDisputeEvidenceParameters>>
+): Promise<any> {
+  const { dispute_id, evidence_type, notes, documents } = params;
+  const headers = await client.getHeaders();
+  const disputeUrl = `${client.getBaseUrl()}/v1/customer/disputes/${dispute_id}`;
+
+  let links: { rel?: string }[] = [];
+  try {
+    const response = await axios.get(disputeUrl, { headers });
+    links = response.data?.links ?? [];
+  } catch (error: any) {
+    logger('[provideDisputeEvidence] Error retrieving dispute:', error.message);
+    handleAxiosError(error);
+  }
+
+  const rels = links.map((l) => l.rel);
+  const action = rels.includes('provide_evidence') ? 'provide_evidence'
+    : rels.includes('provide_supporting_info') ? 'provide_supporting_info'
+    : null;
+  if (!action) {
+    throw new LlmError({
+      code: 'DISPUTE_ACTION_NOT_OFFERED',
+      message: `PayPal offers neither provide_evidence nor provide_supporting_info on dispute ${dispute_id} in its current state. Offered: ${rels.filter((r) => r && r !== 'self').join(', ') || 'none'}.`,
+    });
+  }
+
+  // Supporting info carries notes only; evidence_type applies to provide-evidence.
+  const input = action === 'provide_evidence' ? { evidences: [{ evidence_type, notes }] } : { notes };
+  const form = new FormData();
+  form.append('input', new Blob([JSON.stringify(input)], { type: 'application/json' }));
+  // Part names from customer_disputes_v1.json request bodies.
+  const filePart = action === 'provide_evidence' ? 'evidence-file' : 'supporting document';
+  for (const doc of documents ?? []) {
+    form.append(filePart, new Blob([Buffer.from(doc.content_base64, 'base64')], { type: doc.content_type }), doc.name);
+  }
+
+  // getHeaders() sets Content-Type: application/json, which would make axios serialize the
+  // form as JSON. Drop it so axios sets multipart/form-data with the boundary.
+  const { 'Content-Type': _json, ...multipartHeaders } = headers;
+  const url = `${disputeUrl}/${action.replace(/_/g, '-')}`;
+  try {
+    logger(`[provideDisputeEvidence] POST ${action}`);
+    const response = await axios.post(url, form, { headers: multipartHeaders });
+    return { action, response: response.data };
+  } catch (error: any) {
+    logger(`[provideDisputeEvidence] Error on ${action}:`, error.message);
     handleAxiosError(error);
   }
 }

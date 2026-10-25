@@ -315,6 +315,12 @@ Accept liability for a dispute claim.
 This tool is used to accept liability for a dispute claim. When you accept liability for a dispute claim, the dispute closes in the customer's favor and PayPal automatically refunds money to the customer from the merchant's account.
 `
 
+export const provideDisputeEvidencePrompt = (context: Context) => `
+Submit evidence for a dispute.
+
+This tool reads the dispute first and uses whichever submission PayPal offers in the dispute's current state: provide-evidence (with the given evidence_type) or, if only that is offered, provide-supporting-info (notes and documents only). It fails if PayPal offers neither. The result names the action used. Documents are optional base64-encoded PDF, JPEG, GIF or PNG files.
+`
+
 export const listTransactionsPrompt = (context: Context) => `
 List transactions from PayPal.
 

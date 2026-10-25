@@ -31,6 +31,7 @@ import {
   getDisputePrompt,
   listDisputesPrompt,
   acceptDisputeClaimPrompt,
+  provideDisputeEvidencePrompt,
   captureOrderPrompt,
   listTransactionsPrompt,
   createProductPrompt,
@@ -81,6 +82,7 @@ import {
   getDisputeParameters,
   listDisputesParameters,
   acceptDisputeClaimParameters,
+  provideDisputeEvidenceParameters,
   captureOrderParameters,
   listTransactionsParameters,
   createProductParameters,
@@ -571,6 +573,17 @@ const tools = (context: Context): Tool[] => [
     name: 'Accept dispute claim',
     description: acceptDisputeClaimPrompt(context),
     parameters: acceptDisputeClaimParameters(context),
+    actions: {
+      disputes: {
+        create: true,
+      },
+    },
+  },
+  {
+    method: 'provide_dispute_evidence',
+    name: 'Provide dispute evidence',
+    description: provideDisputeEvidencePrompt(context),
+    parameters: provideDisputeEvidenceParameters(context),
     actions: {
       disputes: {
         create: true,
