@@ -1282,7 +1282,7 @@ export async function acceptDisputeClaim(
 
   try {
     logger('[acceptClaim] Sending request to PayPal API');
-    const response = await axios.post(url, { note: params.note }, { headers, params });
+    const response = await axios.post(url, { note: params.note }, { headers });
     logger(`[acceptClaim] Disputes retrieved successfully. Status: ${response.status}`);
     return response.data;
   } catch (error: any) {
