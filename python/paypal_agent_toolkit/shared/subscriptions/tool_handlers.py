@@ -1,6 +1,7 @@
 
 from .parameters import *
 import json
+import uuid
 
  
 def create_product(client, params: dict):
@@ -57,7 +58,10 @@ def create_subscription(client, params: dict):
 
     validated = CreateSubscriptionParameters(**params)
     subscription_plan_uri = "/v1/billing/subscriptions"
-    result = client.post(uri = subscription_plan_uri, payload = validated.model_dump())
+    # The caller's key makes retries safe. Without one, a fresh key per call, so
+    # two different subscriptions never share one.
+    request_id = validated.request_id or str(uuid.uuid4())
+    result = client.post(uri = subscription_plan_uri, payload = validated.model_dump(exclude={"request_id"}), request_id = request_id)
     return json.dumps(result)
 
 

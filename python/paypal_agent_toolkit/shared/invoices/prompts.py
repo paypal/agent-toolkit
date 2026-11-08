@@ -56,6 +56,7 @@ SEND_INVOICE_PROMPT = """
 Send an invoice to the recipient(s).
 
 This function sends a previously created invoice to its intended recipients.
+Retrying is safe: unless you pass a request_id, the invoice id is used as the idempotency key, so a retried send returns the original result instead of emailing the recipient twice.
 """
 
 SEND_INVOICE_REMINDER_PROMPT = """

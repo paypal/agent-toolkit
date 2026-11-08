@@ -2,6 +2,16 @@ from pydantic import BaseModel, Field, HttpUrl, validator, field_validator, Conf
 from typing import List, Literal, Optional
 from ..regex import ORDER_ID_REGEX
 
+# PayPal-Request-Id, per call. PayPal answers a repeated key with the original
+# result instead of doing the work again, which is what makes a retried tool
+# call safe.
+REQUEST_ID_DESCRIPTION = (
+    "Idempotency key, sent as PayPal-Request-Id. Use the same value on every "
+    "retry of the same operation and a different value for every different one. "
+    "PayPal answers a repeated value with the original result instead of doing "
+    "the work again."
+)
+
 
 class ItemDetails(BaseModel):
     item_cost: float = Field(..., description="The cost of each item – up to 2 decimal points.")
@@ -95,6 +105,12 @@ class CreateOrderParameters(BaseModel):
         "https://example.com/cancelUrl",
         description="URL to redirect the buyer if they cancel."
     )
+    request_id: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=108,
+        description=f"{REQUEST_ID_DESCRIPTION} Without one, each call opens a new order."
+    )
 
 
 class OrderIdParameters(BaseModel):
@@ -102,4 +118,13 @@ class OrderIdParameters(BaseModel):
 
 class CaptureOrderParameters(BaseModel):
     order_id: str = Field(..., pattern=ORDER_ID_REGEX)
+    request_id: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=108,
+        description=(
+            f"{REQUEST_ID_DESCRIPTION} Defaults to one derived from the order id, "
+            "so a retried capture of the same order gets the original result."
+        )
+    )
     

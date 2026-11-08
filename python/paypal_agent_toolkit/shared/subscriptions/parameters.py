@@ -127,6 +127,17 @@ class ApplicationContextSchema(BaseModel):
 # Create Subscription Parameters
 class CreateSubscriptionParameters(BaseModel):
     plan_id: str = Field(..., description="The ID of the subscription plan to create.", pattern=PLAN_ID_REGEX)
+    request_id: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=108,
+        description=(
+            "Idempotency key, sent as PayPal-Request-Id. Use the same value on every retry of the "
+            "same operation and a different value for every different one. PayPal answers a repeated "
+            "value with the original result instead of doing the work again. Without one, each call "
+            "creates a new subscription."
+        ),
+    )
     quantity: Optional[int] = Field(None, description="The quantity of the product in the subscription.")
     shipping_amount: Optional[ShippingAmountSchema] = Field(None, description="The shipping amount for the subscription.")
     subscriber: Optional[SubscriberSchema] = Field(None, description="The subscriber details.")

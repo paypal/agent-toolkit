@@ -21,12 +21,14 @@ def create_invoice(client, params: dict):
 def send_invoice(client, params: dict):
 
     validated = SendInvoiceParameters(**params)
-    payload = validated.model_dump()
+    payload = validated.model_dump(exclude={"request_id"})
 
     invoice_id = payload["invoice_id"]
     url = f"/v2/invoicing/invoices/{invoice_id}/send"
 
-    response =  client.post(uri=url, payload=payload)
+    # One send per invoice is the normal case, so the invoice id is a natural key.
+    request_id = validated.request_id or f"send-{invoice_id}"
+    response =  client.post(uri=url, payload=payload, request_id=request_id)
     return json.dumps(response)
 
 

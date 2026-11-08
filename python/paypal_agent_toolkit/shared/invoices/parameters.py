@@ -214,6 +214,16 @@ class ListInvoicesParameters(BaseModel):
 
 class SendInvoiceParameters(BaseModel):
     invoice_id: str = Field(..., description="The ID of the invoice to send.", pattern=INVOICE_ID_REGEX)
+    request_id: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=108,
+        description=(
+            "Idempotency key, sent as PayPal-Request-Id. Defaults to one derived from the invoice id, "
+            "so a retried send of the same invoice gets the original result instead of emailing the "
+            "recipient twice. To send the same invoice again on purpose, pass a new value."
+        ),
+    )
     note: Optional[str] = Field(None, description="A note to the recipient.")
     send_to_recipient: Optional[bool] = Field(None, description="Indicates whether to send the invoice to the recipient.")
     additional_recipients: Optional[List[str]] = Field(None, description="Additional email addresses to which to send the invoice.")
