@@ -34,12 +34,23 @@ class PayPalClient:
             logging.error("HTTP request failed: %s", str(e))
 
 
-    def build_headers(self):
+    def build_headers(self, request_id: Optional[str] = None):
+        """Headers for one request.
+
+        `request_id` is the PayPal-Request-Id for this one call. PayPal answers a
+        repeated key with the original result instead of doing the work again, so
+        a key must be stable across retries of one operation and distinct between
+        operations: it belongs to the call, not the client. A per-call key wins
+        over the client-wide `context.request_id`.
+        """
         headers = {
                 "Authorization": f"Bearer {self.get_access_token()}",
                 "Content-Type": "application/json",
                 "User-Agent" : Telemetry.generate_user_agent(source=self.context.source)
             }
+        paypal_request_id = request_id or getattr(self.context, "request_id", None)
+        if paypal_request_id:
+            headers["PayPal-Request-Id"] = paypal_request_id
         return headers
 
     def get_access_token(self):
@@ -65,10 +76,10 @@ class PayPalClient:
 
         return token_data["access_token"]
 
-    def post(self, uri, payload):
-       
+    def post(self, uri, payload, request_id: Optional[str] = None):
+
         url = f"{self.base_url}{uri}"
-        headers = self.build_headers()
+        headers = self.build_headers(request_id)
         logRequestPayload(payload, url, headers)
 
         try:

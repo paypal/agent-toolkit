@@ -54,6 +54,7 @@ The only required parameter is plan_id (the ID of the subscription plan). All ot
 The subscriber field is optional. If no subscriber information is provided, omit the subscriber field in the request payload.
 The shipping address is optional. If no shipping address is provided, set the shipping_preference to GET_FROM_FILE in the application context.
 The application context is also optional. If no application context information is provided, omit the application context field in the request payload.
+To make retries safe, pass request_id: the same value every time you retry this subscription, and a new value for each different one.
 """
 
 SHOW_SUBSCRIPTION_DETAILS_PROMPT = """

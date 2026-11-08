@@ -62,6 +62,7 @@ from ..shared.insights.prompts import (
 
 from ..shared.orders.parameters import (
     
+    CaptureOrderParameters,
     CreateOrderParameters,
     OrderIdParameters,
 )
@@ -203,7 +204,7 @@ tools = [
         "method": "pay_order",
         "name": "Process payment for PayPal Order",
         "description": CAPTURE_ORDER_PROMPT.strip(),
-        "args_schema": OrderIdParameters,
+        "args_schema": CaptureOrderParameters,
         "actions": {"orders": {"capture": True}},
         "execute": capture_order,
     },
