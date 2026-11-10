@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
 import {
+  requestMeshFanoutQuotePrompt,
+  requestMeshFanoutQuoteParameters,
+} from './mesh';
+
+import {
   createInvoicePrompt,
   createRecurringSeriesPrompt,
   activateRecurringSeriesPrompt,
@@ -631,7 +636,21 @@ const tools = (context: Context): Tool[] => [
         get: true,
       }
     }
-  }
+  },
+  // DRAFT — 43rd tool proposal, see typescript/src/shared/mesh.ts and
+  // docs/MESH_FANOUT_DESIGN.md. Bridges a PayPal order into an N-party
+  // atomic settlement primitive, bound to an AP2 Payment Mandate.
+  {
+    method: 'request_mesh_fanout_quote',
+    name: 'Request Mesh Fan-out Quote',
+    description: requestMeshFanoutQuotePrompt(context),
+    parameters: requestMeshFanoutQuoteParameters(context),
+    actions: {
+      mesh: {
+        quote: true,
+      },
+    },
+  },
 ];
 const allActions = tools({}).reduce((acc, tool) => {
   Object.keys(tool.actions).forEach(product => {
