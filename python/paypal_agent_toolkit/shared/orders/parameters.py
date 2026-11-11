@@ -71,6 +71,23 @@ class CreateOrderParameters(BaseModel):
         ...,
         description="List of individual items in the order (max 50)."
     )
+    intent: Literal["CAPTURE", "AUTHORIZE"] = Field(
+        "CAPTURE",
+        description=(
+            "CAPTURE to capture the payment once the buyer approves the order, with pay_order. "
+            "AUTHORIZE to place a hold on the funds once the buyer approves, for the merchant to capture later, "
+            "in full or in parts; pay_order does not capture these orders."
+        )
+    )
+    custom_id: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=255,
+        description=(
+            "Your own reference for this purchase, such as a cart or mandate ID, used to reconcile it with your records. "
+            "It appears in transaction and settlement reports and in Transaction Search, and is not shown to the buyer."
+        )
+    )
     discount: float = Field(
         0,
         description="The discount amount for the order."

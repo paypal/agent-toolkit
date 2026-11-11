@@ -535,6 +535,8 @@ const shippingAddress = z.object({
 export const createOrderParameters = (context: Context) => z.object({
   currencyCode: z.enum(['USD']).describe('Currency code of the amount.'),
   items: z.array(z.lazy(() => lineItem)).max(50),
+  intent: z.enum(['CAPTURE', 'AUTHORIZE']).describe('CAPTURE to capture the payment once the buyer approves the order, with pay_order. AUTHORIZE to place a hold on the funds once the buyer approves, for the merchant to capture later, in full or in parts; pay_order does not capture these orders.').optional().default('CAPTURE'),
+  customId: z.string().min(1).max(255).describe('Your own reference for this purchase, such as a cart or mandate ID, used to reconcile it with your records. It appears in transaction and settlement reports and in Transaction Search, and is not shown to the buyer.').optional(),
   discount: z.number().describe('The discount amount for the order.').default(0).optional(),
   shippingCost: z.number().describe('The cost of shipping for the order.').default(0).optional(),
   shippingAddress: z.optional(shippingAddress.nullable()).default(null).describe('The shipping address for the order.'),

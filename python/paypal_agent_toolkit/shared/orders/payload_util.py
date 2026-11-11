@@ -64,8 +64,11 @@ def parse_order_details(params: dict) -> dict:
         if params.get("shipping_address"):
             base_purchase_unit["shipping"] = {"address": params["shipping_address"]}
 
+        if params.get("custom_id"):
+            base_purchase_unit["custom_id"] = params["custom_id"]
+
         request = {
-            "intent": "CAPTURE",
+            "intent": params.get("intent") or "CAPTURE",
             "purchase_units": [base_purchase_unit],
         }
 

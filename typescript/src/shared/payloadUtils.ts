@@ -188,13 +188,14 @@ export function parseOrderDetails(params: TypeOf<ReturnType<typeof createOrderPa
                 breakdown: amountBreakdown
             },
             items: items,
+            ...(params.customId && { custom_id: params.customId }),
         }
         // Conditionally add shipping address if available
         const purchaseUnit = params.shippingAddress
             ? { ...basePurchaseUnit, shipping: { address: params.shippingAddress } }
             : basePurchaseUnit;
         const request = {
-            intent: 'CAPTURE',
+            intent: params.intent ?? 'CAPTURE',
             purchase_units: [purchaseUnit],
         }
         if (params.returnUrl || params.cancelUrl) {
