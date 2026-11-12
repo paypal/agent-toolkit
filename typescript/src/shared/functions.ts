@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Context } from './configuration';
+import type { Context, PayPalGet } from './configuration';
 import {
   getInvoicParameters,
   cancelSentInvoiceParameters,
@@ -24,6 +24,8 @@ import {
   listDisputesParameters,
   captureOrderParameters,
   acceptDisputeClaimParameters,
+  provideDisputeEvidenceParameters,
+  verifyAgentPurchaseParameters,
   listTransactionsParameters,
   createProductParameters,
   listProductsParameters,
@@ -1282,13 +1284,109 @@ export async function acceptDisputeClaim(
 
   try {
     logger('[acceptClaim] Sending request to PayPal API');
-    const response = await axios.post(url, { note: params.note }, { headers, params });
+    const response = await axios.post(url, { note: params.note }, { headers });
     logger(`[acceptClaim] Disputes retrieved successfully. Status: ${response.status}`);
     return response.data;
   } catch (error: any) {
     logger('[acceptClaim] Error listing disputes:', error.message);
     handleAxiosError(error);
   }
+}
+
+// PayPal offers different actions in different dispute states: under some states only
+// provide-supporting-info is allowed and provide-evidence returns
+// ACTION_NOT_ALLOWED_IN_CURRENT_DISPUTE_STATE. So read the dispute's own HATEOAS links first.
+export async function provideDisputeEvidence(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof provideDisputeEvidenceParameters>>
+): Promise<any> {
+  const { dispute_id, evidence_type, notes, documents } = params;
+  const headers = await client.getHeaders();
+  const disputeUrl = `${client.getBaseUrl()}/v1/customer/disputes/${dispute_id}`;
+
+  let links: { rel?: string }[] = [];
+  try {
+    const response = await axios.get(disputeUrl, { headers });
+    links = response.data?.links ?? [];
+  } catch (error: any) {
+    logger('[provideDisputeEvidence] Error retrieving dispute:', error.message);
+    handleAxiosError(error);
+  }
+
+  const rels = links.map((l) => l.rel);
+  const action = rels.includes('provide_evidence') ? 'provide_evidence'
+    : rels.includes('provide_supporting_info') ? 'provide_supporting_info'
+    : null;
+  if (!action) {
+    throw new LlmError({
+      code: 'DISPUTE_ACTION_NOT_OFFERED',
+      message: `PayPal offers neither provide_evidence nor provide_supporting_info on dispute ${dispute_id} in its current state. Offered: ${rels.filter((r) => r && r !== 'self').join(', ') || 'none'}.`,
+    });
+  }
+
+  // Supporting info carries notes only; evidence_type applies to provide-evidence.
+  const input = action === 'provide_evidence' ? { evidences: [{ evidence_type, notes }] } : { notes };
+  const form = new FormData();
+  form.append('input', new Blob([JSON.stringify(input)], { type: 'application/json' }));
+  // Part names from customer_disputes_v1.json request bodies.
+  const filePart = action === 'provide_evidence' ? 'evidence-file' : 'supporting document';
+  for (const doc of documents ?? []) {
+    form.append(filePart, new Blob([Buffer.from(doc.content_base64, 'base64')], { type: doc.content_type }), doc.name);
+  }
+
+  // getHeaders() sets Content-Type: application/json, which would make axios serialize the
+  // form as JSON. Drop it so axios sets multipart/form-data with the boundary.
+  const { 'Content-Type': _json, ...multipartHeaders } = headers;
+  const url = `${disputeUrl}/${action.replace(/_/g, '-')}`;
+  try {
+    logger(`[provideDisputeEvidence] POST ${action}`);
+    const response = await axios.post(url, form, { headers: multipartHeaders });
+    return { action, response: response.data };
+  } catch (error: any) {
+    logger(`[provideDisputeEvidence] Error on ${action}:`, error.message);
+    handleAxiosError(error);
+  }
+}
+
+// Thin by design: the verifier (Readback's, injected via context) owns the checks; the toolkit
+// only supplies authenticated, read-only GETs against PayPal's API base.
+export async function verifyAgentPurchase(
+  client: PayPalClient,
+  context: Context,
+  params: TypeOf<ReturnType<typeof verifyAgentPurchaseParameters>>
+): Promise<any> {
+  const verifier = context.agentPurchaseVerifier;
+  if (!verifier) {
+    throw new LlmError({
+      code: 'VERIFIER_NOT_CONFIGURED',
+      message: 'verify_agent_purchase needs context.agentPurchaseVerifier (e.g. verifyCase from @readbackhq/verify).',
+    });
+  }
+  const headers = await client.getHeaders();
+
+  const get: PayPalGet = async (path, schema) => {
+    // Relative paths only, so a verifier can't redirect the bearer token to another host.
+    if (!path.startsWith('/') || path.startsWith('//')) {
+      return { ok: false, status: 400, issues: ['INVALID_PATH'], debugId: null };
+    }
+    try {
+      const response = await axios.get(`${client.getBaseUrl()}${path}`, { headers });
+      const debugId = response.headers?.['paypal-debug-id'] ?? null;
+      if (!schema) return { ok: true, status: response.status, data: response.data, debugId };
+      const parsed = schema.safeParse(response.data);
+      return parsed.success
+        ? { ok: true, status: response.status, data: parsed.data, debugId }
+        : { ok: false, status: 502, issues: ['UNEXPECTED_RESPONSE_SHAPE'], debugId };
+    } catch (error: any) {
+      const res = error?.response;
+      if (!res) return { ok: false, status: 504, issues: ['PAYPAL_UNREACHABLE'], debugId: null };
+      const issues = res.data?.details?.map((d: any) => d?.issue ?? 'UNKNOWN') ?? [res.data?.name ?? `HTTP_${res.status}`];
+      return { ok: false, status: res.status, issues, debugId: res.headers?.['paypal-debug-id'] ?? null };
+    }
+  };
+
+  return verifier(params.id, { get }, new Date());
 }
 
 export async function listTransactions(

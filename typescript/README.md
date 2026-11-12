@@ -44,6 +44,8 @@ The PayPal Agent toolkit provides the following tools:
 - `list_disputes`: Retrieve a summary of all open disputes
 - `get_dispute`: Retrieve detailed information of a specific dispute
 - `accept_dispute_claim`: Accept a dispute claim
+- `provide_dispute_evidence`: Submit evidence (or supporting info, whichever PayPal offers) for a dispute
+- `verify_agent_purchase`: Verify an AI-agent purchase from PayPal's records (requires a configured verifier)
 
 **Shipment Tracking**
 

@@ -31,6 +31,8 @@ import {
   getDisputePrompt,
   listDisputesPrompt,
   acceptDisputeClaimPrompt,
+  provideDisputeEvidencePrompt,
+  verifyAgentPurchasePrompt,
   captureOrderPrompt,
   listTransactionsPrompt,
   createProductPrompt,
@@ -81,6 +83,8 @@ import {
   getDisputeParameters,
   listDisputesParameters,
   acceptDisputeClaimParameters,
+  provideDisputeEvidenceParameters,
+  verifyAgentPurchaseParameters,
   captureOrderParameters,
   listTransactionsParameters,
   createProductParameters,
@@ -577,6 +581,29 @@ const tools = (context: Context): Tool[] => [
       },
     },
   },
+  {
+    method: 'provide_dispute_evidence',
+    name: 'Provide dispute evidence',
+    description: provideDisputeEvidencePrompt(context),
+    parameters: provideDisputeEvidenceParameters(context),
+    actions: {
+      disputes: {
+        create: true,
+      },
+    },
+  },
+  // Listed only when a verifier is configured; without one the tool could only fail.
+  ...(context.agentPurchaseVerifier ? [{
+    method: 'verify_agent_purchase',
+    name: 'Verify agent purchase',
+    description: verifyAgentPurchasePrompt(context),
+    parameters: verifyAgentPurchaseParameters(context),
+    actions: {
+      disputes: {
+        get: true,
+      },
+    },
+  }] : []),
   {
     method: 'list_transactions',
     name: 'List Transactions',
