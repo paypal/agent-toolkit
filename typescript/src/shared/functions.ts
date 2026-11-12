@@ -1360,7 +1360,7 @@ export async function verifyAgentPurchase(
   if (!verifier) {
     throw new LlmError({
       code: 'VERIFIER_NOT_CONFIGURED',
-      message: 'verify_agent_purchase needs context.agentPurchaseVerifier (e.g. verifyCase from @readback/verify).',
+      message: 'verify_agent_purchase needs context.agentPurchaseVerifier (e.g. verifyCase from @readbackhq/verify).',
     });
   }
   const headers = await client.getHeaders();

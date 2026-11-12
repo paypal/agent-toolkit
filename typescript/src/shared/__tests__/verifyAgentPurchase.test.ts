@@ -19,7 +19,7 @@ const records: Record<string, unknown> = {
   '/v3/vault/payment-tokens/TOKEN1': { id: 'TOKEN1', payment_source: { paypal: { description: 'terms' } } },
 };
 
-// Stands in for @readback/verify's verifyCase: walks the chain through the injected get().
+// Stands in for @readbackhq/verify's verifyCase: walks the chain through the injected get().
 const stubVerifier: AgentPurchaseVerifier = async (id, paypal) => {
   const dispute = await paypal.get<any>(`/v1/customer/disputes/${id}`);
   if (!dispute.ok) return { verdict: 'UNVERIFIED', issues: dispute.issues };

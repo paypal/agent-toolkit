@@ -11,7 +11,7 @@ export type Context = {
 };
 
 // Read-only PayPal GET over the toolkit's own HTTP layer, handed to the verifier. Errors are
-// returned, not thrown, so the verifier can fail closed. The shape matches @readback/verify's
+// returned, not thrown, so the verifier can fail closed. The shape matches @readbackhq/verify's
 // PayPalClient.get(path, schema).
 export type PayPalGetResult<T> =
   | { ok: true; status: number; data: T; debugId: string | null }
@@ -22,8 +22,8 @@ export type PayPalGet = <T = unknown>(
 ) => Promise<PayPalGetResult<T>>;
 
 // Rebuilds an agent purchase from PayPal (dispute -> capture -> order -> vault payment token)
-// and returns a verdict. TODO(@readback/verify@^0.1.0, unpublished): the intended default is
-//   (id, paypal, now) => verifyCase(id, paypal, now)  from '@readback/verify'
+// and returns a verdict. TODO(@readbackhq/verify@^0.1.0, unpublished): the intended default is
+//   (id, paypal, now) => verifyCase(id, paypal, now)  from '@readbackhq/verify'
 // It is ESM-only and needs Node >= 22.18, while this package also ships CJS for node18, so it
 // would be loaded with a dynamic import(); until it is on npm, callers inject it here.
 export type AgentPurchaseVerifier = (
